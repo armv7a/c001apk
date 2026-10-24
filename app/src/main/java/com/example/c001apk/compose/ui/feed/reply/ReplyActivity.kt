@@ -642,6 +642,7 @@ class ReplyActivity :
 
     private fun initPage() {
         binding.checkBox.text = if (type == "createFeed") "仅自己可见" else "回复并转发"
+        binding.checkBox.compact = type != "createFeed"
         binding.title.text = if (type == "createFeed") "发布动态" else "回复"
         if (type != "createFeed" && !username.isNullOrEmpty())
             binding.editText.hint = "回复: " + username

@@ -10,6 +10,8 @@ import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.ui.component.MiuixAlertDialog
 import com.example.c001apk.compose.ui.component.MiuixDialogButton
 import top.yukonga.miuix.kmp.basic.*
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -23,20 +25,38 @@ fun FeedCollectionDialog(collections: FeedCollections) {
     var isOpen by remember { mutableStateOf(false) }
     WindowDialog(
         show = true,
-        title = "收藏到账号",
-        summary = "选择收藏夹，可多选",
         onDismissRequest = collections::dismiss,
     ) {
-        Column(Modifier.fillMaxWidth().heightIn(max = 500.dp)) {
+        Column(Modifier.fillMaxWidth().heightIn(max = 420.dp)) {
+            Row(
+                Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("收藏到", style = MiuixTheme.textStyles.title3, modifier = Modifier.weight(1f))
+                IconButton(
+                    onClick = {
+                        title = ""
+                        isOpen = false
+                        create = true
+                    },
+                    enabled = !collections.busy && collections.error == null,
+                    minHeight = 35.dp,
+                    minWidth = 35.dp,
+                ) {
+                    Icon(
+                        MiuixIcons.Add,
+                        contentDescription = "新建收藏夹",
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
             LazyColumn(Modifier.weight(1f, fill = false).fillMaxWidth()) {
                 items(collections.items, key = { it.id.orEmpty() }) { collection ->
                     CheckboxPreference(
                         title = collection.title.orEmpty().ifBlank { "默认收藏夹" },
-                        summary =
-                            "${if (collection.isOpen == 1) "公开" else "私密"} · ${collection.itemCount ?: 0} 条内容",
                         checked = collection.id in collections.selected,
                         enabled = !collections.busy,
-                        insideMargin = PaddingValues(horizontal = 4.dp, vertical = 12.dp),
+                        insideMargin = PaddingValues(horizontal = 4.dp, vertical = 10.dp),
                         onCheckedChange = { checked ->
                             collection.id?.let { collections.toggle(it, checked) }
                         },
@@ -45,10 +65,10 @@ fun FeedCollectionDialog(collections: FeedCollections) {
                 item {
                     if (collections.loading) {
                         Box(
-                            Modifier.fillMaxWidth().padding(20.dp),
+                            Modifier.fillMaxWidth().padding(12.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            CircularProgressIndicator()
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         }
                     } else if (collections.error != null) {
                         Column(
@@ -66,26 +86,12 @@ fun FeedCollectionDialog(collections: FeedCollections) {
                     } else if (collections.items.isEmpty()) {
                         Text("还没有收藏夹，先新建一个吧", modifier = Modifier.padding(vertical = 16.dp))
                     } else if (collections.hasMore) {
-                        TextButton(
-                            text = "加载更多收藏夹",
-                            onClick = collections::loadMore,
-                            enabled = !collections.busy,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                        LaunchedEffect(collections.items.lastOrNull()?.id) {
+                            collections.loadMore()
+                        }
                     }
                 }
             }
-            Spacer(Modifier.height(12.dp))
-            TextButton(
-                text = "新建收藏夹",
-                onClick = {
-                    title = ""
-                    isOpen = false
-                    create = true
-                },
-                enabled = !collections.busy && collections.error == null,
-                modifier = Modifier.fillMaxWidth(),
-            )
             Spacer(Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(

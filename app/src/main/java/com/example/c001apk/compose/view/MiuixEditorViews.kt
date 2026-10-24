@@ -11,24 +11,30 @@ import android.view.Gravity
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.widget.doAfterTextChanged
 import com.example.c001apk.compose.ui.theme.C001apkViewTheme
 import top.yukonga.miuix.kmp.basic.Checkbox
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.squircle.addSquircleRect
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** The editor keeps Android Editable/span/IME support inside a squircle field. */
 class MiuixInputLayout @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
@@ -103,6 +109,7 @@ class MiuixCheckboxView @JvmOverloads constructor(context: Context, attrs: Attri
     AbstractComposeView(context, attrs) {
     var isChecked by mutableStateOf(false)
     var text: CharSequence by mutableStateOf("")
+    var compact by mutableStateOf(false)
 
     @Composable
     override fun Content() {
@@ -116,14 +123,31 @@ class MiuixCheckboxView @JvmOverloads constructor(context: Context, attrs: Attri
                             performClick()
                         },
                     )
-                    .padding(8.dp),
+                    .then(
+                        if (compact) Modifier.heightIn(min = 40.dp).padding(horizontal = 6.dp)
+                        else Modifier.padding(8.dp),
+                    ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Checkbox(
-                    state = androidx.compose.ui.state.ToggleableState(isChecked),
-                    onClick = null,
+                Box(
+                    Modifier.size(if (compact) 20.dp else 26.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Checkbox(
+                        state = androidx.compose.ui.state.ToggleableState(isChecked),
+                        onClick = null,
+                        modifier =
+                            Modifier.graphicsLayer {
+                                scaleX = if (compact) 20f / 26f else 1f
+                                scaleY = scaleX
+                            },
+                    )
+                }
+                Text(
+                    text.toString(),
+                    modifier = Modifier.padding(start = if (compact) 6.dp else 8.dp),
+                    fontSize = if (compact) 12.sp else MiuixTheme.textStyles.main.fontSize,
                 )
-                Text(text.toString(), modifier = Modifier.padding(start = 8.dp))
             }
         }
     }

@@ -12,7 +12,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -280,22 +279,7 @@ fun FeedScreen(
                                                 dismiss = { dropdownMenuExpanded = false },
                                             )
                                         DropdownMenuItem(
-                                            text = {
-                                                Column {
-                                                    Text(
-                                                        if (viewModel.isAccountCollected) "管理账号收藏"
-                                                        else "收藏",
-                                                    )
-                                                    Text(
-                                                        if (viewModel.isFav) "已本地收藏 · 长按取消"
-                                                        else "长按保存到本地",
-                                                        style = MiuixTheme.textStyles.footnote1,
-                                                        color =
-                                                            MiuixTheme.colorScheme
-                                                                .onSurfaceVariantSummary,
-                                                    )
-                                                }
-                                            },
+                                            text = { Text("收藏") },
                                             onClick = {
                                                 dropdownMenuExpanded = false
                                                 viewModel.collections.open(id)
