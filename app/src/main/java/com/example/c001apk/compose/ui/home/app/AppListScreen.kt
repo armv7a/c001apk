@@ -7,9 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -23,6 +22,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.c001apk.compose.logic.model.UpdateCheckItem
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
+import com.example.c001apk.compose.ui.component.AdaptiveCardColumn
 import com.example.c001apk.compose.util.isScrollingUp
 import com.example.c001apk.compose.util.longVersionCodeCompat
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
@@ -46,7 +46,7 @@ fun AppListScreen(
     val prefs = LocalUserPreferences.current
     val context = LocalContext.current
     val view = LocalView.current
-    val lazyListState = rememberLazyListState()
+    val lazyListState = rememberLazyStaggeredGridState()
 
     LaunchedEffect(refreshState) {
         if (refreshState) {
@@ -65,7 +65,7 @@ fun AppListScreen(
             contentPadding = paddingValues,
             refreshTexts = listOf("下拉刷新", "释放刷新", "正在刷新", "刷新完成"),
         ) {
-            LazyColumn(
+            AdaptiveCardColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = lazyListState,
                 contentPadding =

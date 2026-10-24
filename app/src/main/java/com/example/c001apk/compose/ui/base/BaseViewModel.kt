@@ -46,88 +46,99 @@ abstract class BaseViewModel(
 
     abstract suspend fun customFetchData(): Flow<LoadingState<List<HomeFeedResponse.Data>>>
 
+    private var fetchJob: kotlinx.coroutines.Job? = null
+
+    protected fun cancelFetch() {
+        fetchJob?.cancel()
+    }
+
     fun fetchData() {
         if (accountRevision != CookieUtil.accountSession.revision) return
-        viewModelScope.launch(Dispatchers.IO) {
-            customFetchData().collect { state ->
-                if (accountRevision != CookieUtil.accountSession.revision) return@collect
-                when (state) {
-                    LoadingState.Empty -> {
-                        if (loadingState is LoadingState.Success && !isRefreshing)
-                            footerState = FooterState.End
-                        else {
-                            loadingState = state
-                            footerState = FooterState.Success
-                        }
-                        isEnd = true
-                    }
-
-                    is LoadingState.Error -> {
-                        if (loadingState is LoadingState.Success)
-                            footerState = FooterState.Error(state.errMsg)
-                        else loadingState = state
-                        isEnd = true
-                    }
-
-                    LoadingState.Loading -> {
-                        if (loadingState is LoadingState.Success) footerState = FooterState.Loading
-                        else loadingState = state
-                    }
-
-                    is LoadingState.Success -> {
-                        page++
-                        var response =
-                            state.response.filter {
-                                ((it.entityType in entityTypeList ||
-                                    it.entityTemplate in
-                                        if (CookieUtil.showSquare) entityTemplateList
-                                        else
-                                            entityTemplateList.toMutableList().also { list ->
-                                                list.removeAll(
-                                                    listOf(
-                                                        "iconMiniScrollCard",
-                                                        "iconMiniGridCard",
-                                                    ),
-                                                )
-                                            }) || isAdditionalItemSupported(it)) &&
-                                    !blackListRepo.checkUid(
-                                        if (!it.fromuid.isNullOrEmpty()) it.fromuid
-                                        else it.uid.orEmpty(),
-                                    ) &&
-                                    !blackListRepo.checkTopic(
-                                        it.tags + it.ttitle + it.relationRows?.getOrNull(0)?.title,
-                                    )
+        fetchJob?.cancel()
+        fetchJob =
+            viewModelScope.launch(Dispatchers.IO) {
+                customFetchData().collect { state ->
+                    if (accountRevision != CookieUtil.accountSession.revision) return@collect
+                    when (state) {
+                        LoadingState.Empty -> {
+                            if (loadingState is LoadingState.Success && !isRefreshing)
+                                footerState = FooterState.End
+                            else {
+                                loadingState = state
+                                footerState = FooterState.Success
                             }
-                        firstItem = response.firstOrNull()?.id
-                        lastItem = response.lastOrNull()?.id
-
-                        handleResponse(response)?.let {
-                            response = it
+                            isEnd = true
                         }
 
-                        if (isLoadMore) {
-                            response =
-                                ((loadingState as? LoadingState.Success)?.response ?: emptyList()) +
-                                    response
+                        is LoadingState.Error -> {
+                            if (loadingState is LoadingState.Success)
+                                footerState = FooterState.Error(state.errMsg)
+                            else loadingState = state
+                            isEnd = true
                         }
 
-                        handleLoadMore(response)?.let {
-                            response = it
+                        LoadingState.Loading -> {
+                            if (loadingState is LoadingState.Success)
+                                footerState = FooterState.Loading
+                            else loadingState = state
                         }
 
-                        loadingState = LoadingState.Success(response)
-                        footerState = FooterState.Success
-                        if (response.isEmpty()) {
-                            isLoadMore = false
-                            isRefreshing = false
-                            loadMore()
+                        is LoadingState.Success -> {
+                            page++
+                            var response =
+                                state.response.filter {
+                                    ((it.entityType in entityTypeList ||
+                                        it.entityTemplate in
+                                            if (CookieUtil.showSquare) entityTemplateList
+                                            else
+                                                entityTemplateList.toMutableList().also { list ->
+                                                    list.removeAll(
+                                                        listOf(
+                                                            "iconMiniScrollCard",
+                                                            "iconMiniGridCard",
+                                                        ),
+                                                    )
+                                                }) || isAdditionalItemSupported(it)) &&
+                                        !blackListRepo.checkUid(
+                                            if (!it.fromuid.isNullOrEmpty()) it.fromuid
+                                            else it.uid.orEmpty(),
+                                        ) &&
+                                        !blackListRepo.checkTopic(
+                                            it.tags +
+                                                it.ttitle +
+                                                it.relationRows?.getOrNull(0)?.title,
+                                        )
+                                }
+                            firstItem = response.firstOrNull()?.id
+                            lastItem = response.lastOrNull()?.id
+
+                            handleResponse(response)?.let {
+                                response = it
+                            }
+
+                            if (isLoadMore) {
+                                response =
+                                    ((loadingState as? LoadingState.Success)?.response
+                                        ?: emptyList()) + response
+                            }
+
+                            handleLoadMore(response)?.let {
+                                response = it
+                            }
+
+                            loadingState = LoadingState.Success(response)
+                            footerState = FooterState.Success
+                            if (response.isEmpty()) {
+                                isLoadMore = false
+                                isRefreshing = false
+                                loadMore()
+                            }
                         }
                     }
+                    isLoadMore = false
+                    isRefreshing = false
                 }
-                isLoadMore = false
-                isRefreshing = false
             }
-        }
     }
 
     open fun handleResponse(response: List<HomeFeedResponse.Data>): List<HomeFeedResponse.Data>? {

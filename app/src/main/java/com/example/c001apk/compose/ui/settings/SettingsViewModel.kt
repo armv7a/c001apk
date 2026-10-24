@@ -24,6 +24,10 @@ constructor(
     private val digitalUnion: DigitalUnionRepository,
 ) : PrefsViewModel(userPreferencesRepository) {
 
+    fun setReadingMode(value: Int) {
+        viewModelScope.launch { userPreferencesRepository.setReadingMode(value) }
+    }
+
     var generatingId by mutableStateOf(false)
         private set
 

@@ -5,11 +5,12 @@ import android.net.Uri
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.os.Parcelable
-import androidx.compose.foundation.background
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -19,7 +20,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
@@ -27,6 +33,7 @@ import androidx.navigation.NavType
 import androidx.navigation.Navigator
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.c001apk.compose.constant.Constants.PREFIX_CAROUSEL
 import com.example.c001apk.compose.constant.Constants.PREFIX_CAROUSEL1
@@ -38,6 +45,7 @@ import com.example.c001apk.compose.ui.blacklist.BlackListScreen
 import com.example.c001apk.compose.ui.carousel.CarouselScreen
 import com.example.c001apk.compose.ui.chat.ChatScreen
 import com.example.c001apk.compose.ui.collection.CollectionScreen
+import com.example.c001apk.compose.ui.component.ReadingLayout
 import com.example.c001apk.compose.ui.component.SlideTransition
 import com.example.c001apk.compose.ui.component.WindowWidthSizeClass
 import com.example.c001apk.compose.ui.coolpic.CoolPicScreen
@@ -69,10 +77,6 @@ import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.openInBrowser
 import kotlin.math.max
 import kotlin.math.min
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.All
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** Created by bggRGjQaUbCoE on 2024/5/30 */
 @Composable
@@ -99,18 +103,36 @@ fun MainNavigation(
             }
         }
     }
-    val isCompat by lazy { widthSizeClass == WindowWidthSizeClass.Compact }
-    var compatId by remember { mutableStateOf<String?>(null) }
-    var compatReply by remember { mutableStateOf<Boolean?>(null) }
+    val windowSize = LocalWindowInfo.current.containerDpSize
+    val density = LocalDensity.current
+    val readingMode =
+        com.example.c001apk.compose.logic.providable.LocalUserPreferences.current.readingMode
+    val canSplit =
+        ReadingLayout.split(
+            windowSize.width.value,
+            minOf(windowSize.width.value, windowSize.height.value),
+            density.fontScale,
+            readingMode,
+        )
+    var compatId by rememberSaveable(accountRevision) { mutableStateOf<String?>(null) }
+    var compatReply by rememberSaveable(accountRevision) { mutableStateOf(false) }
+    var compatParent by rememberSaveable(accountRevision) { mutableStateOf<String?>(null) }
+    val entry by navController.currentBackStackEntryAsState()
+    val paneVisible = compatId != null && compatParent == entry?.id
+    val split = paneVisible && canSplit
+    val detailWidth =
+        if (split) (windowSize.width * .52f).coerceIn(390.dp, 760.dp) else windowSize.width
+    var backProgress by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
 
     fun onReport(id: String, type: ReportType) {
         navController.navigateToWebView(getReportUrl(id, type))
     }
 
     fun onViewFeed(viewId: String, isViewReply: Boolean) {
-        if (selectIndex != 2 && !isCompat) {
+        if (canSplit || paneVisible) {
             compatId = viewId
             compatReply = isViewReply
+            compatParent = navController.currentBackStackEntry?.id
         } else {
             navController.navigateToFeed(viewId, isViewReply)
         }
@@ -126,9 +148,16 @@ fun MainNavigation(
         }
     }
 
-    Row(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
-            modifier = Modifier.weight(1f),
+            modifier =
+                Modifier.width(if (split) windowSize.width - detailWidth else windowSize.width)
+                    .fillMaxHeight()
+                    .align(Alignment.CenterEnd)
+                    .then(
+                        if (paneVisible && !split) Modifier.alpha(0f).clearAndSetSemantics {}
+                        else Modifier,
+                    ),
             navController = navController,
             startDestination = Router.MAIN.name,
             enterTransition = {
@@ -750,40 +779,37 @@ fun MainNavigation(
                 )
             }
         }
-        if (selectIndex != 2 && !isCompat) {
-            if (compatId.isNullOrEmpty()) {
-                Box(
-                    modifier =
-                        Modifier.weight(1f)
-                            .fillMaxSize()
-                            .background(
-                                MiuixTheme.colorScheme.surfaceContainer,
-                            ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = MiuixIcons.All,
-                        contentDescription = null,
-                        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                        modifier = Modifier.size(55.dp),
-                    )
-                }
-            } else {
-                FeedScreen(
-                    modifier = Modifier.weight(1f),
-                    isCompat = false,
-                    onBackClick = { compatId = null },
-                    id = compatId.orEmpty(),
-                    isViewReply = compatReply ?: false,
-                    onViewUser = navController::navigateToUser,
-                    onViewFeed = { viewId, viewReply ->
-                        compatId = viewId
-                        compatReply = viewReply
-                    },
-                    onOpenLink = ::onOpenLink,
-                    onCopyText = navController::navigateToCopyText,
-                    onReport = ::onReport,
-                )
+        if (paneVisible) {
+            FeedScreen(
+                modifier =
+                    Modifier.width(detailWidth)
+                        .fillMaxHeight()
+                        .align(Alignment.CenterStart)
+                        .graphicsLayer {
+                            translationX = backProgress * size.width * .15f
+                            scaleX = 1 - backProgress * .04f
+                            scaleY = 1 - backProgress * .04f
+                        },
+                isCompat = false,
+                onBackClick = { compatId = null },
+                id = compatId.orEmpty(),
+                isViewReply = compatReply,
+                onViewUser = navController::navigateToUser,
+                onViewFeed = { viewId, viewReply ->
+                    compatId = viewId
+                    compatReply = viewReply
+                },
+                onOpenLink = ::onOpenLink,
+                onCopyText = navController::navigateToCopyText,
+                onReport = ::onReport,
+            )
+        }
+        PredictiveBackHandler(enabled = paneVisible) { progress ->
+            try {
+                progress.collect { backProgress = it.progress }
+                compatId = null
+            } finally {
+                backProgress = 0f
             }
         }
     }

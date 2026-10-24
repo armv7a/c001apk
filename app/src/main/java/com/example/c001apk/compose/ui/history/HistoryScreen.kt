@@ -13,8 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.c001apk.compose.logic.state.LoadingState
+import com.example.c001apk.compose.ui.component.AdaptiveCardColumn
 import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.MiuixActionButton as TextButton
 import com.example.c001apk.compose.ui.component.MiuixAlertDialog as AlertDialog
@@ -101,7 +101,7 @@ fun HistoryScreen(
             )
         },
     ) { paddingValues ->
-        LazyColumn(
+        AdaptiveCardColumn(
             modifier =
                 Modifier.fillMaxSize()
                     .padding(

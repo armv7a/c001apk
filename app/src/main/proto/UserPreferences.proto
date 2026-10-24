@@ -56,6 +56,7 @@ message UserPreferences {
   bool quietFollow = 50;
   int32 followSelection = 51;
   bool followSelectionConfigured = 52;
+  int32 readingMode = 53;
 }
 
 enum ThemeType{

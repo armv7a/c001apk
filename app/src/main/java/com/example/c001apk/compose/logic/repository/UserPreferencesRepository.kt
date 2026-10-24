@@ -18,6 +18,8 @@ constructor(
     val data
         get() = userPreferencesDataSource.data
 
+    suspend fun setReadingMode(value: Int) = userPreferencesDataSource.setReadingMode(value)
+
     suspend fun setThemeMode(value: ThemeMode) = userPreferencesDataSource.setThemeMode(value)
 
     suspend fun setMaterialYou(value: Boolean) = userPreferencesDataSource.setMaterialYou(value)

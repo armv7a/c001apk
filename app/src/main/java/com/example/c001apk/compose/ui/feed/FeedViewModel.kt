@@ -90,97 +90,113 @@ constructor(
         }
     }
 
+    private var feedJob: kotlinx.coroutines.Job? = null
+
     private fun fetchFeedData(verifyCaptcha: Boolean = false) {
-        viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.getFeedContent("/v6/feed/detail?id=$id", verifyCaptcha).collect { state ->
-                if (state is LoadingState.Success) {
-                    val response = state.response
+        val requestedId = id
+        feedJob?.cancel()
+        feedJob =
+            viewModelScope.launch(Dispatchers.IO) {
+                networkRepo
+                    .getFeedContent("/v6/feed/detail?id=$requestedId", verifyCaptcha)
+                    .collect { state ->
+                        if (requestedId != id) return@collect
+                        if (state is LoadingState.Success) {
+                            val response = state.response
 
-                    feedUid = response.uid.orEmpty()
-                    feedUsername = response.username.orEmpty()
-                    replyCount = response.replynum.orEmpty()
-                    feedTypeName = response.feedTypeName.orEmpty()
-                    feedType = response.feedType.orEmpty()
+                            feedUid = response.uid.orEmpty()
+                            feedUsername = response.username.orEmpty()
+                            replyCount = response.replynum.orEmpty()
+                            feedTypeName = response.feedTypeName.orEmpty()
+                            feedType = response.feedType.orEmpty()
 
-                    if (response.messageRawOutput != "null") {
-                        val listType = object : TypeToken<List<FeedArticleContentBean?>?>() {}.type
-                        val message: List<FeedArticleContentBean> =
-                            Gson().fromJson(response.messageRawOutput, listType)
-
-                        articleList = message.filter {
-                            it.type in listOf("text", "image", "shareUrl")
-                        }
-
-                        if (!response.messageCover.isNullOrEmpty()) itemSize++
-                        if (!response.title.isNullOrEmpty()) itemSize++
-                        if (response.targetRow != null || !response.relationRows.isNullOrEmpty())
-                            itemSize++
-                        itemSize += articleList?.size ?: 0
-                    }
-
-                    if (!response.topReplyRows.isNullOrEmpty()) {
-                        response.topReplyRows?.getOrNull(0)?.let { reply ->
-                            topId = reply.id
-                            val unameTag =
-                                when (reply.uid) {
-                                    feedUid -> " [楼主]"
-                                    else -> EMPTY_STRING
+                            articleList =
+                                runCatching {
+                                    val type =
+                                        object : TypeToken<List<FeedArticleContentBean>>() {}.type
+                                    Gson()
+                                        .fromJson<List<FeedArticleContentBean>>(
+                                            response.messageRawOutput,
+                                            type,
+                                        )
+                                        ?.filter { it.type in listOf("text", "image", "shareUrl") }
                                 }
-                            reply.username = "${reply.username}$unameTag [置顶]"
-                            if (!reply.replyRows.isNullOrEmpty()) {
-                                reply.replyRows =
-                                    reply.replyRows?.map {
-                                        it.copy(
-                                            message =
-                                                generateMess(
-                                                    it,
-                                                    feedUid,
-                                                    reply.uid,
-                                                ),
-                                        )
-                                    }
+                                    .getOrNull()
+                            itemSize = 2
+                            if (!articleList.isNullOrEmpty()) {
+                                if (!response.messageCover.isNullOrEmpty()) itemSize++
+                                if (!response.title.isNullOrEmpty()) itemSize++
+                                if (
+                                    response.targetRow != null ||
+                                        !response.relationRows.isNullOrEmpty()
+                                )
+                                    itemSize++
+                                itemSize += articleList?.size ?: 0
                             }
-                        }
-                    }
-                    if (!response.replyMeRows.isNullOrEmpty()) {
-                        response.replyMeRows?.getOrNull(0)?.let { reply ->
-                            meId = reply.id
-                            if (!reply.replyRows.isNullOrEmpty()) {
-                                reply.replyRows =
-                                    reply.replyRows?.map {
-                                        it.copy(
-                                            message =
-                                                generateMess(
-                                                    it,
-                                                    feedUid,
-                                                    reply.uid,
-                                                ),
-                                        )
-                                    }
-                            }
-                        }
-                    }
-                    fetchData()
 
-                    if (CookieUtil.recordHistory && !historyFavoriteRepo.checkHistory(id)) {
-                        recordHistory(
-                            username = response.username.orEmpty(),
-                            avatar = response.userAvatar.orEmpty(),
-                            device = response.deviceTitle.orEmpty(),
-                            message =
-                                with(response.message.orEmpty()) {
-                                    if (this.length > 150) this.substring(0, 150) else this
-                                },
-                            pubDate = response.dateline.toString(),
-                        )
+                            if (!response.topReplyRows.isNullOrEmpty()) {
+                                response.topReplyRows?.getOrNull(0)?.let { reply ->
+                                    topId = reply.id
+                                    val unameTag =
+                                        when (reply.uid) {
+                                            feedUid -> " [楼主]"
+                                            else -> EMPTY_STRING
+                                        }
+                                    reply.username = "${reply.username}$unameTag [置顶]"
+                                    if (!reply.replyRows.isNullOrEmpty()) {
+                                        reply.replyRows =
+                                            reply.replyRows?.map {
+                                                it.copy(
+                                                    message =
+                                                        generateMess(
+                                                            it,
+                                                            feedUid,
+                                                            reply.uid,
+                                                        ),
+                                                )
+                                            }
+                                    }
+                                }
+                            }
+                            if (!response.replyMeRows.isNullOrEmpty()) {
+                                response.replyMeRows?.getOrNull(0)?.let { reply ->
+                                    meId = reply.id
+                                    if (!reply.replyRows.isNullOrEmpty()) {
+                                        reply.replyRows =
+                                            reply.replyRows?.map {
+                                                it.copy(
+                                                    message =
+                                                        generateMess(
+                                                            it,
+                                                            feedUid,
+                                                            reply.uid,
+                                                        ),
+                                                )
+                                            }
+                                    }
+                                }
+                            }
+                            fetchData()
+
+                            if (CookieUtil.recordHistory && !historyFavoriteRepo.checkHistory(id)) {
+                                recordHistory(
+                                    username = response.username.orEmpty(),
+                                    avatar = response.userAvatar.orEmpty(),
+                                    device = response.deviceTitle.orEmpty(),
+                                    message =
+                                        with(response.message.orEmpty()) {
+                                            if (this.length > 150) this.substring(0, 150) else this
+                                        },
+                                    pubDate = response.dateline.toString(),
+                                )
+                            }
+                            isFav = historyFavoriteRepo.checkFavorite(id)
+                            isBlocked = blackListRepo.checkUid(feedUid)
+                        }
+                        feedState = state
+                        isRefreshing = false
                     }
-                    isFav = historyFavoriteRepo.checkFavorite(id)
-                    isBlocked = blackListRepo.checkUid(feedUid)
-                }
-                feedState = state
-                isRefreshing = false
             }
-        }
     }
 
     lateinit var feedUid: String
@@ -763,6 +779,8 @@ constructor(
     }
 
     fun resetState() {
+        feedJob?.cancel()
+        cancelFetch()
         feedTypeName = EMPTY_STRING
         feedState = LoadingState.Loading
         loadingState = LoadingState.Loading

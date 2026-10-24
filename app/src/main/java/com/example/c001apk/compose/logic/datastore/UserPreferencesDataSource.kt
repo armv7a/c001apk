@@ -19,6 +19,10 @@ constructor(
     val data
         get() = userPreferences.data
 
+    suspend fun setReadingMode(value: Int) = userPreferences.updateData {
+        it.copy(readingMode = value.coerceIn(0, 2))
+    }
+
     suspend fun setThemeMode(value: ThemeMode) =
         withContext(Dispatchers.IO) {
             userPreferences.updateData { it.copy(themeMode = value) }

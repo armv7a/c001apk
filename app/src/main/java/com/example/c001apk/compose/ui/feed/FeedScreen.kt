@@ -202,7 +202,11 @@ fun FeedScreen(
                             onBackClick()
                         }
                     },
-                    title = viewModel.feedTypeName,
+                    title =
+                        viewModel.feedTypeName +
+                            if ((viewModel.feedState as? LoadingState.Success)?.isPublic == true)
+                                " · 公开内容"
+                            else "",
                     modifier =
                         Modifier.noRippleClickable {
                             scope.launch {

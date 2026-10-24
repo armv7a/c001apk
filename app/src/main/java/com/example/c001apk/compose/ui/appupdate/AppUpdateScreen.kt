@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,6 +25,7 @@ import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.logic.model.UpdateCheckItem
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.app.AppViewModel
+import com.example.c001apk.compose.ui.component.AdaptiveCardColumn
 import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
@@ -86,7 +87,7 @@ fun AppUpdateScreen(
             )
         },
     ) { paddingValues ->
-        LazyColumn(
+        AdaptiveCardColumn(
             modifier =
                 Modifier.fillMaxSize()
                     .padding(
@@ -106,8 +107,8 @@ fun AppUpdateScreen(
                 LoadingState.Loading,
                 LoadingState.Empty,
                 is LoadingState.Error -> {
-                    item(key = "updateState") {
-                        Box(modifier = Modifier.fillParentMaxSize()) {
+                    item(key = "updateState", span = StaggeredGridItemSpan.FullLine) {
+                        Box(modifier = Modifier.fillMaxSize()) {
                             LoadingCard(
                                 modifier = Modifier.align(Alignment.Center),
                                 state = viewModel.updateState,

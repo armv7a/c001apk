@@ -228,3 +228,28 @@ fun getReportUrl(id: String, type: ReportType): String =
         ReportType.REPLY -> "https://m.coolapk.com/mp/do?c=feed&m=report&type=feed_reply&id=$id"
         ReportType.USER -> "https://m.coolapk.com/mp/do?c=user&m=report&id=$id"
     }
+
+@androidx.compose.runtime.Composable
+fun androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState.isScrollingUp(): Boolean {
+    var previousIndex by
+        androidx.compose.runtime.remember {
+            androidx.compose.runtime.mutableIntStateOf(firstVisibleItemIndex)
+        }
+    var previousOffset by
+        androidx.compose.runtime.remember {
+            androidx.compose.runtime.mutableIntStateOf(firstVisibleItemScrollOffset)
+        }
+    return androidx.compose.runtime
+        .remember(this) {
+            androidx.compose.runtime.derivedStateOf {
+                val up =
+                    if (firstVisibleItemIndex != previousIndex)
+                        firstVisibleItemIndex < previousIndex
+                    else firstVisibleItemScrollOffset <= previousOffset
+                previousIndex = firstVisibleItemIndex
+                previousOffset = firstVisibleItemScrollOffset
+                up
+            }
+        }
+        .value
+}

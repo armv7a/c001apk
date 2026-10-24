@@ -1,14 +1,15 @@
 package com.example.c001apk.compose.ui.component
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.staggeredgrid.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
@@ -51,7 +52,7 @@ fun CommonScreen(
 
     val view = LocalView.current
     val layoutDirection = LocalLayoutDirection.current
-    val lazyListState = rememberLazyListState()
+    val lazyListState = rememberLazyStaggeredGridState()
 
     LaunchedEffect(refreshState) {
         if (refreshState == true) {
@@ -81,54 +82,70 @@ fun CommonScreen(
                 top = 12.dp + if (needTopPadding) paddingValues.calculateTopPadding() else 0.dp,
             ),
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().scrollEndHaptic(),
-            contentPadding =
-                PaddingValues(
-                    top = 12.dp + if (needTopPadding) paddingValues.calculateTopPadding() else 0.dp,
-                    bottom = 24.dp + paddingValues.calculateBottomPadding(),
-                ),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            state = lazyListState,
-        ) {
-            ItemCard(
-                loadingState = viewModel.loadingState,
-                loadMore = viewModel::loadMore,
-                isEnd = viewModel.isEnd,
-                onViewUser = onViewUser,
-                onViewFeed = onViewFeed,
-                onOpenLink = onOpenLink,
-                onCopyText = onCopyText,
-                isHomeFeed = isHomeFeed,
-                onReport = onReport,
-                onViewFFFList = onViewFFFList,
-                onLike = viewModel::onLike,
-                onDelete = { id, deleteType, _ ->
-                    viewModel.onDelete(id, deleteType)
-                },
-                onBlockUser = { uid, _ ->
-                    viewModel.onBlockUser(uid)
-                },
-                onFollowUser = viewModel::onFollowUser,
-                onHandleRecent = onHandleRecent,
-                onHandleMessage = onHandleMessage,
-                onViewChat = onViewChat,
-                onDeleteNotice = onDeleteNotice,
-                productConfigRows = productConfigRows,
-                selectedProductConfigIds = selectedProductConfigIds,
-                onViewProductConfig = onViewProductConfig,
-                onToggleProductConfigComparison = onToggleProductConfigComparison,
-                onShowProductConfigComparison = onShowProductConfigComparison,
-                onShowGlobalProductComparison = onShowGlobalProductComparison,
-                onToggleProductEntityComparison = onToggleProductEntityComparison,
-            )
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val scale = LocalDensity.current.fontScale.coerceIn(1f, 2f)
+            val columns = ReadingLayout.columns(maxWidth.value, scale)
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(columns),
+                modifier = Modifier.fillMaxSize().scrollEndHaptic(),
+                contentPadding =
+                    PaddingValues(
+                        top =
+                            12.dp +
+                                if (needTopPadding) paddingValues.calculateTopPadding() else 0.dp,
+                        bottom = 24.dp + paddingValues.calculateBottomPadding(),
+                    ),
+                verticalItemSpacing = 12.dp,
+                horizontalArrangement = Arrangement.spacedBy(0.dp),
+                state = lazyListState,
+            ) {
+                GridItemCard(
+                    loadingState = viewModel.loadingState,
+                    loadMore = viewModel::loadMore,
+                    isEnd = viewModel.isEnd,
+                    onViewUser = onViewUser,
+                    onViewFeed = onViewFeed,
+                    onOpenLink = onOpenLink,
+                    onCopyText = onCopyText,
+                    isHomeFeed = isHomeFeed,
+                    onReport = onReport,
+                    onViewFFFList = onViewFFFList,
+                    onLike = viewModel::onLike,
+                    onDelete = { id, deleteType, _ ->
+                        viewModel.onDelete(id, deleteType)
+                    },
+                    onBlockUser = { uid, _ ->
+                        viewModel.onBlockUser(uid)
+                    },
+                    onFollowUser = viewModel::onFollowUser,
+                    onHandleRecent = onHandleRecent,
+                    onHandleMessage = onHandleMessage,
+                    onViewChat = onViewChat,
+                    onDeleteNotice = onDeleteNotice,
+                    productConfigRows = productConfigRows,
+                    selectedProductConfigIds = selectedProductConfigIds,
+                    onViewProductConfig = onViewProductConfig,
+                    onToggleProductConfigComparison = onToggleProductConfigComparison,
+                    onShowProductConfigComparison = onShowProductConfigComparison,
+                    onShowGlobalProductComparison = onShowGlobalProductComparison,
+                    onToggleProductEntityComparison = onToggleProductEntityComparison,
+                )
 
-            FooterCard(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                footerState = viewModel.footerState,
-                loadMore = viewModel::loadMore,
-                isFeed = false,
-            )
+                item(key = "footer", span = StaggeredGridItemSpan.FullLine) {
+                    com.example.c001apk.compose.ui.component.cards.LoadingCard(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        state = viewModel.footerState,
+                        onClick =
+                            if (
+                                viewModel.footerState
+                                    is com.example.c001apk.compose.logic.state.FooterState.Error
+                            )
+                                viewModel::loadMore
+                            else null,
+                        isFeed = false,
+                    )
+                }
+            }
         }
     }
 }

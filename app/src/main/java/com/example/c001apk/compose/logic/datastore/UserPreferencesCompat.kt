@@ -65,6 +65,7 @@ data class UserPreferencesCompat(
     val localFollows: List<com.example.c001apk.compose.logic.follow.LocalFollowUser> = emptyList(),
     val quietFollow: Boolean = false,
     val followSelection: Int = 1,
+    val readingMode: Int = 0,
 ) {
     constructor(
         original: UserPreferences,
@@ -122,6 +123,7 @@ data class UserPreferencesCompat(
                 com.example.c001apk.compose.logic.follow.LocalFollowUser(it.uid, it.name, it.avatar)
             },
         quietFollow = original.quietFollow,
+        readingMode = original.readingMode.coerceIn(0, 2),
         followSelection =
             if (original.followSelectionConfigured) original.followSelection.coerceIn(0, 5)
             else original.followTypeValue.takeIf { it in 1..4 } ?: 1,
@@ -199,6 +201,7 @@ data class UserPreferencesCompat(
             .setQuietFollow(quietFollow)
             .setFollowSelection(followSelection)
             .setFollowSelectionConfigured(true)
+            .setReadingMode(readingMode)
             .build()
 
     companion object {
