@@ -206,6 +206,7 @@ fun MainNavigation(
                     onLocalFollowsClick = { navController.navigate(Router.LOCAL_FOLLOWS.name) },
                     onHomeTabsClick = { navController.navigate(Router.TAB.name) },
                     onParamsClick = { navController.navigate(Router.PARAMS.name) },
+                    onDeviceImport = { navController.navigate(Router.DEVICE_IMPORT.name) },
                     onAboutClick = { navController.navigate(Router.ABOUT.name) },
                     onViewBlackList = navController::navigateToBlackList,
                 )
@@ -227,6 +228,12 @@ fun MainNavigation(
 
             composable(route = Router.TAB.name) {
                 HomeTabEditorScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(route = Router.DEVICE_IMPORT.name) {
+                com.example.c001apk.compose.ui.settings.OfficialDeviceIdentityScreen(
+                    onBack = { navController.popBackStack() },
+                )
             }
 
             composable(route = Router.PARAMS.name) {

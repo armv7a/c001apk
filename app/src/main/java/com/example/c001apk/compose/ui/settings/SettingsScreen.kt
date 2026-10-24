@@ -108,6 +108,7 @@ fun SettingsScreen(
     onAccountsClick: () -> Unit,
     onLocalFollowsClick: () -> Unit,
     onParamsClick: () -> Unit,
+    onDeviceImport: () -> Unit,
     onAboutClick: () -> Unit,
     onViewBlackList: (String) -> Unit,
 ) {
@@ -605,8 +606,12 @@ fun SettingsScreen(
                     generating = viewModel.generatingId,
                     error = viewModel.idError,
                     onGenerate = viewModel::generateSZLMId,
+                    onImport = {
+                        showSZLMIDDialog = false
+                        onDeviceImport()
+                    },
                     onDismiss = { showSZLMIDDialog = false },
-                    onSave = { viewModel.setSZLMId(it) },
+                    onSave = { viewModel.setSZLMId(it) { showSZLMIDDialog = false } },
                 )
             }
 

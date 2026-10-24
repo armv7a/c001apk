@@ -39,6 +39,13 @@ constructor(
             CookieUtil.sdkInt = it.sdkInt
         }
 
+    suspend fun useCurrentDevice() =
+        userPreferencesDataSource.useCurrentDevice().also {
+            CookieUtil.xAppDevice = it.xAppDevice
+            CookieUtil.userAgent = it.userAgent
+            CookieUtil.sdkInt = it.sdkInt
+        }
+
     suspend fun setImageQuality(value: Int) = userPreferencesDataSource.setImageQuality(value)
 
     suspend fun setImageFilter(value: Boolean) = userPreferencesDataSource.setImageFilter(value)

@@ -15,6 +15,7 @@ fun DigitalUnionDialog(
     generating: Boolean,
     error: String?,
     onGenerate: () -> Unit,
+    onImport: () -> Unit,
     onDismiss: () -> Unit,
     onSave: (String) -> Unit,
 ) {
@@ -46,6 +47,7 @@ fun DigitalUnionDialog(
                     }
                     Text(if (generating) "正在获取…" else if (id.isBlank()) "自动获取" else "重新获取")
                 }
+                Button(onClick = onImport, enabled = !generating) { Text("从官方酷安导入") }
                 error?.let { Text(it, color = MiuixTheme.colorScheme.onSurfaceVariantSummary) }
             }
         },
@@ -54,7 +56,6 @@ fun DigitalUnionDialog(
             MiuixDialogButton(
                 onClick = {
                     onSave(value.trim())
-                    onDismiss()
                 },
             ) {
                 Text("保存")

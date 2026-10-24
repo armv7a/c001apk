@@ -159,7 +159,8 @@ fun ParamsScreen(
             )
 
             BasicListItem(
-                headlineText = stringResource(id = R.string.params_regenerate),
+                headlineText = "使用本机设备参数",
+                supportingText = "保留数盟 ID，恢复当前手机的品牌、型号和系统版本",
             ) {
                 viewModel.regenerateParams()
             }

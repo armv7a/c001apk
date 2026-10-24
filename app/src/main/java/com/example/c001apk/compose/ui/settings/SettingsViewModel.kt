@@ -73,9 +73,18 @@ constructor(
         }
     }
 
-    fun setSZLMId(value: String) {
+    fun setSZLMId(value: String, onSaved: () -> Unit = {}) {
         viewModelScope.launch {
-            userPreferencesRepository.setSZLMId(value)
+            try {
+                require(com.example.c001apk.compose.logic.smid.OfficialDeviceIdentity.valid(value))
+                userPreferencesRepository.setSZLMId(value)
+                idError = null
+                onSaved()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                idError = "数盟 ID 格式不正确或保存失败，请检查后重试"
+            }
         }
     }
 

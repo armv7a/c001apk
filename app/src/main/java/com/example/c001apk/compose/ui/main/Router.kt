@@ -58,6 +58,8 @@ sealed class Router(
 
     data object ACCOUNTS : Router(name = "ACCOUNTS")
 
+    data object DEVICE_IMPORT : Router(name = "DEVICE_IMPORT")
+
     data object PARAMS : Router(name = "PARAMS")
 
     data object ABOUT : Router(name = "ABOUT")

@@ -5,6 +5,7 @@ import com.example.c001apk.compose.FollowType
 import com.example.c001apk.compose.ThemeMode
 import com.example.c001apk.compose.ThemeType
 import com.example.c001apk.compose.logic.model.HapticStrength
+import com.example.c001apk.compose.logic.smid.withCurrentDevice
 import com.example.c001apk.compose.logic.smid.withDigitalUnionId
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +48,8 @@ constructor(
         withContext(Dispatchers.IO) {
             userPreferences.updateData { it.withDigitalUnionId(value.trim()) }
         }
+
+    suspend fun useCurrentDevice() = userPreferences.updateData { it.withCurrentDevice() }
 
     suspend fun setImageQuality(value: Int) =
         withContext(Dispatchers.IO) {
