@@ -6,7 +6,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -16,10 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -28,8 +27,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -41,17 +41,19 @@ import com.example.c001apk.compose.R
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.component.BackButton
+import com.example.c001apk.compose.ui.component.ContentShareMenuItems
 import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
 import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
-import com.example.c001apk.compose.ui.component.MiuixTabScaffold
+import com.example.c001apk.compose.ui.component.MiuixTabRow
 import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
 import com.example.c001apk.compose.ui.component.rememberHapticClick
 import com.example.c001apk.compose.ui.feed.reply.ReplyActivity
 import com.example.c001apk.compose.util.CookieUtil.isLogin
 import com.example.c001apk.compose.util.ReportType
+import com.example.c001apk.compose.util.ShareType
 import com.example.c001apk.compose.util.makeToast
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.launch
@@ -97,10 +99,18 @@ fun TopicScreen(
         }
 
     val context = LocalContext.current
-    val layoutDirection = LocalLayoutDirection.current
-    val scrollBehavior = top.yukonga.miuix.kmp.basic.MiuixScrollBehavior(canScroll = { false })
+    val density = LocalDensity.current
+    var titleBarHeight by remember { mutableIntStateOf(0) }
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
-    var pagerState: PagerState = rememberPagerState(pageCount = { 0 })
+    val tabList = viewModel.tabList.orEmpty()
+    val pagerState =
+        if (viewModel.topicState is LoadingState.Success && tabList.isNotEmpty()) {
+            rememberPagerState(
+                initialPage =
+                    tabList.indexOfFirst { it.pageName == viewModel.selectedTab }.coerceAtLeast(0),
+                pageCount = { tabList.size },
+            )
+        } else null
     val scope = rememberCoroutineScope()
     var refreshState by remember { mutableStateOf(false) }
     var sortType by rememberSaveable(tag, id) { mutableStateOf(ProductSortType.REPLY) }
@@ -109,96 +119,125 @@ fun TopicScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                windowInsets =
-                    WindowInsets.systemBars.only(WindowInsetsSides.Start + WindowInsetsSides.Top),
-                navigationIcon = {
-                    BackButton { onBackClick() }
-                },
-                title = {
-                    Text(
-                        text =
-                            (viewModel.topicState as? LoadingState.Success)?.response?.title
-                                ?: EMPTY_STRING,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                actions = {
-                    if (viewModel.topicState is LoadingState.Success) {
-                        Row(Modifier.wrapContentSize(Alignment.TopEnd)) {
-                            IconButton(
-                                onClick = {
-                                    onSearch(
-                                        viewModel.title,
-                                        if (viewModel.entityType == "topic") "tag"
-                                        else "product_phone",
-                                        if (viewModel.entityType == "topic") viewModel.title
-                                        else viewModel.id.orEmpty(),
-                                    )
-                                },
-                            ) {
-                                Icon(MiuixIcons.Search, contentDescription = null)
-                            }
-                            Box {
-                                MoreMenuButton { dropdownMenuExpanded = true }
-                                DropdownMenu(
-                                    expanded = dropdownMenuExpanded,
-                                    onDismissRequest = { dropdownMenuExpanded = false },
+            Column {
+                TopAppBar(
+                    modifier = Modifier.onSizeChanged { titleBarHeight = it.height },
+                    windowInsets =
+                        WindowInsets.systemBars.only(
+                            WindowInsetsSides.Start + WindowInsetsSides.Top,
+                        ),
+                    navigationIcon = {
+                        BackButton { onBackClick() }
+                    },
+                    title = {
+                        Text(
+                            text =
+                                (viewModel.topicState as? LoadingState.Success)?.response?.title
+                                    ?: EMPTY_STRING,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    actions = {
+                        if (viewModel.topicState is LoadingState.Success) {
+                            Row(Modifier.wrapContentSize(Alignment.TopEnd)) {
+                                IconButton(
+                                    onClick = {
+                                        onSearch(
+                                            viewModel.title,
+                                            if (viewModel.entityType == "topic") "tag"
+                                            else "product_phone",
+                                            if (viewModel.entityType == "topic") viewModel.title
+                                            else viewModel.id.orEmpty(),
+                                        )
+                                    },
                                 ) {
-                                    com.example.c001apk.compose.ui.component.ContentShareMenuItems(
-                                        type =
-                                            if (viewModel.entityType == "product")
-                                                com.example.c001apk.compose.util.ShareType.PRODUCT
-                                            else com.example.c001apk.compose.util.ShareType.TOPIC,
-                                        id =
-                                            if (viewModel.entityType == "product")
-                                                viewModel.id.orEmpty()
-                                            else viewModel.title,
-                                        title = viewModel.title,
-                                        dismiss = { dropdownMenuExpanded = false },
-                                    )
-                                    if (isLogin) {
+                                    Icon(MiuixIcons.Search, contentDescription = null)
+                                }
+                                Box {
+                                    MoreMenuButton { dropdownMenuExpanded = true }
+                                    DropdownMenu(
+                                        expanded = dropdownMenuExpanded,
+                                        onDismissRequest = { dropdownMenuExpanded = false },
+                                    ) {
+                                        ContentShareMenuItems(
+                                            type =
+                                                if (viewModel.entityType == "product")
+                                                    ShareType.PRODUCT
+                                                else ShareType.TOPIC,
+                                            id =
+                                                if (viewModel.entityType == "product")
+                                                    viewModel.id.orEmpty()
+                                                else viewModel.title,
+                                            title = viewModel.title,
+                                            dismiss = { dropdownMenuExpanded = false },
+                                        )
+                                        if (isLogin) {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        if (viewModel.isFollowed) {
+                                                            stringResource(
+                                                                id = R.string.menu_unfollow,
+                                                            )
+                                                        } else {
+                                                            stringResource(
+                                                                id = R.string.menu_follow,
+                                                            )
+                                                        },
+                                                    )
+                                                },
+                                                onClick = {
+                                                    dropdownMenuExpanded = false
+                                                    if (viewModel.entityType == "topic")
+                                                        viewModel.onGetFollow()
+                                                    else viewModel.onPostFollow()
+                                                },
+                                            )
+                                        }
                                         DropdownMenuItem(
                                             text = {
                                                 Text(
-                                                    if (viewModel.isFollowed) {
-                                                        stringResource(id = R.string.menu_unfollow)
+                                                    if (viewModel.isBlocked) {
+                                                        stringResource(id = R.string.menu_unblock)
                                                     } else {
-                                                        stringResource(id = R.string.menu_follow)
+                                                        stringResource(id = R.string.menu_block)
                                                     },
                                                 )
                                             },
                                             onClick = {
                                                 dropdownMenuExpanded = false
-                                                if (viewModel.entityType == "topic")
-                                                    viewModel.onGetFollow()
-                                                else viewModel.onPostFollow()
+                                                viewModel.blockTopic()
                                             },
                                         )
                                     }
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                if (viewModel.isBlocked) {
-                                                    stringResource(id = R.string.menu_unblock)
-                                                } else {
-                                                    stringResource(id = R.string.menu_block)
-                                                },
-                                            )
-                                        },
-                                        onClick = {
-                                            dropdownMenuExpanded = false
-                                            viewModel.blockTopic()
-                                        },
-                                    )
                                 }
                             }
                         }
+                    },
+                    color = Color.Transparent,
+                )
+                if (pagerState != null) {
+                    MiuixTabRow(
+                        tabs = tabList.map { it.title.orEmpty() },
+                        selectedTabIndex = pagerState.currentPage,
+                        onTabSelected = { index ->
+                            if (pagerState.currentPage == index) refreshState = true
+                            scope.launch { pagerState.animateScrollToPage(index) }
+                        },
+                    )
+                    val tab = tabList.getOrNull(pagerState.currentPage)
+                    if (
+                        supportsTopicSort(
+                            viewModel.entityType,
+                            tab?.title.orEmpty(),
+                            tab?.url.orEmpty(),
+                        )
+                    ) {
+                        TopicSortOptions(sortType) { sortType = it }
                     }
-                },
-                color = Color.Transparent,
-            )
+                }
+            }
         },
         floatingActionButton = {
             if (isLogin) {
@@ -245,12 +284,12 @@ fun TopicScreen(
             }
         },
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
+        Box(Modifier.fillMaxSize()) {
             when (viewModel.topicState) {
                 LoadingState.Loading,
                 LoadingState.Empty,
                 is LoadingState.Error -> {
-                    Box(modifier = Modifier.fillMaxSize()) {
+                    Box(Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding())) {
                         LoadingCard(
                             modifier = Modifier.align(Alignment.Center).padding(horizontal = 10.dp),
                             state = viewModel.topicState,
@@ -262,72 +301,28 @@ fun TopicScreen(
                 }
 
                 is LoadingState.Success -> {
-
-                    viewModel.tabList?.let { tabList ->
-                        val initialPage =
-                            with(tabList.map { it.pageName }.indexOf(viewModel.selectedTab)) {
-                                if (this == -1) 0 else this
-                            }
-
-                        pagerState =
-                            rememberPagerState(
-                                initialPage = if (initialPage == -1) 0 else initialPage,
-                                pageCount = { tabList.size },
+                    if (pagerState != null) {
+                        HorizontalPager(state = pagerState) { index ->
+                            TopicContentScreen(
+                                refreshState = refreshState,
+                                resetRefreshState = { refreshState = false },
+                                paddingValues = paddingValues,
+                                entityType = viewModel.entityType,
+                                id = viewModel.id,
+                                url = tabList[index].url.orEmpty(),
+                                title = tabList[index].title.orEmpty(),
+                                productTitle = viewModel.title,
+                                productLogo = viewModel.productLogo,
+                                productConfigRows = viewModel.productConfigRows,
+                                productSheetTopPadding = with(density) { titleBarHeight.toDp() },
+                                sortType = sortType,
+                                onViewUser = onViewUser,
+                                onViewFeed = onViewFeed,
+                                onOpenLink = onOpenLink,
+                                onCopyText = onCopyText,
+                                onReport = onReport,
+                                isScrollingUp = { isScrollingUp = it },
                             )
-
-                        MiuixTabScaffold(
-                            tabs = tabList.map { it.title.orEmpty() },
-                            selectedTabIndex = pagerState.currentPage,
-                            belowTabs = {
-                                val tab = tabList.getOrNull(pagerState.currentPage)
-                                if (
-                                    supportsTopicSort(
-                                        viewModel.entityType,
-                                        tab?.title.orEmpty(),
-                                        tab?.url.orEmpty(),
-                                    )
-                                ) {
-                                    TopicSortOptions(sortType) { sortType = it }
-                                }
-                            },
-                            onTabSelected = { index ->
-                                if (pagerState.currentPage == index) refreshState = true
-                                scope.launch { pagerState.animateScrollToPage(index) }
-                            },
-                        ) {
-                            HorizontalPager(
-                                state = pagerState,
-                            ) { index ->
-                                TopicContentScreen(
-                                    refreshState = refreshState,
-                                    resetRefreshState = {
-                                        refreshState = false
-                                    },
-                                    paddingValues =
-                                        PaddingValues(
-                                            start =
-                                                paddingValues.calculateLeftPadding(layoutDirection),
-                                            bottom = paddingValues.calculateBottomPadding(),
-                                        ),
-                                    entityType = viewModel.entityType,
-                                    id = viewModel.id,
-                                    url = tabList[index].url.orEmpty(),
-                                    title = tabList[index].title.orEmpty(),
-                                    productTitle = viewModel.title,
-                                    productLogo = viewModel.productLogo,
-                                    productConfigRows = viewModel.productConfigRows,
-                                    productSheetTopPadding = paddingValues.calculateTopPadding(),
-                                    sortType = sortType,
-                                    onViewUser = onViewUser,
-                                    onViewFeed = onViewFeed,
-                                    onOpenLink = onOpenLink,
-                                    onCopyText = onCopyText,
-                                    onReport = onReport,
-                                    isScrollingUp = {
-                                        isScrollingUp = it
-                                    },
-                                )
-                            }
                         }
                     }
                 }
