@@ -193,6 +193,7 @@ class MainActivity : ComponentActivity() {
                             Modifier.fillMaxSize().background(MiuixTheme.colorScheme.background),
                     ) {
                         if (!viewModel.preparingIdentity) {
+                            com.example.c001apk.compose.ui.update.AppUpdateHost(navController)
                             MainNavigation(
                                 navController = navController,
                                 badge = viewModel.badge,

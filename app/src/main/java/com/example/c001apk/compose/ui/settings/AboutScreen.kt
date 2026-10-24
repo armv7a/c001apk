@@ -84,6 +84,7 @@ fun AboutScreen(
                 headlineText = "版本",
                 supportingText = "${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
             ) {}
+            com.example.c001apk.compose.ui.update.AppUpdateSettings(compact = true)
             BasicListItem(
                 leadingImageVector = MiuixIcons.Create,
                 headlineText = "原项目地址",

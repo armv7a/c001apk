@@ -31,6 +31,11 @@ val gitCommitHash =
         .map { it.trim() }
         .get()
 
+val appVersion = providers.gradleProperty("appVersion").orElse("1.3.5").get()
+require(Regex("[0-9]+\\.[0-9]+\\.[0-9]+").matches(appVersion))
+val updateRepository = providers.gradleProperty("updateRepository").orElse("").get()
+require(updateRepository.isEmpty() || Regex("[A-Za-z0-9-]+/[A-Za-z0-9_.-]+").matches(updateRepository))
+
 android {
     namespace = "com.example.c001apk.compose"
     compileSdkVersion("android-37.0")
@@ -42,7 +47,9 @@ android {
         ndk { abiFilters += "arm64-v8a" }
         targetSdk = 35
         versionCode = gitCommitCount
-        versionName = "$gitCommitHash-miuix"
+        versionName = "$appVersion-miuix+$gitCommitHash"
+        buildConfigField("String", "APP_VERSION", "\"$appVersion\"")
+        buildConfigField("String", "UPDATE_REPOSITORY", "\"$updateRepository\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

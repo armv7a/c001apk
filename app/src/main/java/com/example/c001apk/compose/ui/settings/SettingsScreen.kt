@@ -476,11 +476,15 @@ fun SettingsScreen(
                     SwitchListItem(
                         value = prefs.checkUpdate,
                         leadingImageVector = MiuixIcons.Update,
-                        headlineText = "检查更新",
+                        headlineText = "检查已安装应用更新",
                     ) {
                         viewModel.setCheckUpdate(it)
                     }
                 }
+            }
+            item(key = "app_updates") {
+                BasicListItem(leadingText = "c001apk 更新")
+                com.example.c001apk.compose.ui.update.AppUpdateSettings()
             }
             item(key = "settings_22") {
                 BasicListItem(leadingText = "其他")
