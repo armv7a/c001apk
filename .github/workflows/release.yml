@@ -70,6 +70,7 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           import hashlib
+          import json
           import os
           import re
           from pathlib import Path
@@ -82,10 +83,22 @@ jobs:
           apks = sorted(Path('release-assets').glob('*.apk'))
           if len(apks) != 1:
               raise SystemExit('Expected exactly one verified release APK')
-          Path('release-assets/SHA256SUMS').write_text(''.join(
-              hashlib.sha256(apk.read_bytes()).hexdigest() + '  ' + apk.name + '\n'
-              for apk in apks
-          ))
+          apk = apks[0]
+          report_path = apk.with_name(apk.name + '.json')
+          report = json.loads(report_path.read_text())
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          if report['versionName'] != version or report['sha256'] != digest:
+              raise SystemExit('APK verification report does not match the release')
+          # GitHub rewrites parentheses in uploaded asset names. Normalize first
+          # so the report and checksums refer to the actual downloadable filename.
+          public_apk = apk.with_name(f'c001apk_{version}.{report["versionCode"]}.apk')
+          apk.rename(public_apk)
+          report['apk'] = public_apk.name
+          public_report = public_apk.with_name(public_apk.name + '.json')
+          public_report.write_text(json.dumps(report, indent=2) + '\n')
+          if report_path != public_report:
+              report_path.unlink()
+          Path('release-assets/SHA256SUMS').write_text(digest + '  ' + public_apk.name + '\n')
           PY
       - name: Publish verified APK
         env:
