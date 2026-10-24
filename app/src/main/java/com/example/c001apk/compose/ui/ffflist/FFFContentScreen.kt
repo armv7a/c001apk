@@ -74,6 +74,7 @@ fun FFFContentScreen(
         refreshState = refreshState,
         resetRefreshState = resetRefreshState,
         paddingValues = paddingValues,
+        needTopPadding = true,
         onViewUser = onViewUser,
         onViewFeed = onViewFeed,
         onOpenLink = onOpenLink,

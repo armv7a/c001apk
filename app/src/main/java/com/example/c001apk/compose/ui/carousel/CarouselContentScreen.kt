@@ -8,9 +8,7 @@ import com.example.c001apk.compose.ui.component.CommonScreen
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.makeToast
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/11
- */
+/** Created by bggRGjQaUbCoE on 2024/6/11 */
 @Composable
 fun CarouselContentScreen(
     url: String,
@@ -27,7 +25,8 @@ fun CarouselContentScreen(
 ) {
 
     val viewModel =
-        hiltViewModel<CarouselViewModel, CarouselViewModel.ViewModelFactory>(key = title + url) { factory ->
+        hiltViewModel<CarouselViewModel, CarouselViewModel.ViewModelFactory>(key = title + url) {
+            factory ->
             factory.create(isInit = false, url = url, title = title)
         }
 
@@ -36,6 +35,7 @@ fun CarouselContentScreen(
         refreshState = refreshState,
         resetRefreshState = resetRefreshState,
         paddingValues = paddingValues,
+        needTopPadding = true,
         onViewUser = onViewUser,
         onViewFeed = onViewFeed,
         onOpenLink = onOpenLink,
@@ -49,5 +49,4 @@ fun CarouselContentScreen(
         viewModel.resetToastText()
         context.makeToast(it)
     }
-
 }

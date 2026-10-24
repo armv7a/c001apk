@@ -46,7 +46,7 @@ fun ParamsScreen(
         },
     ) { paddingValues ->
         Column(
-            Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState),
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState).padding(paddingValues),
         ) {
             PreferenceGroup(title = "酷安协议") {
                 ParamsItem(

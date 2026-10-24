@@ -120,7 +120,7 @@ fun HomeTabEditorScreen(
             )
         },
     ) { paddingValues ->
-        LazyColumn(Modifier.fillMaxSize().padding(paddingValues)) {
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = paddingValues) {
             items(homeTabTypes, key = TabType::name) { type ->
                 val checked = type in selectedTabs
                 top.yukonga.miuix.kmp.preference.CheckboxPreference(

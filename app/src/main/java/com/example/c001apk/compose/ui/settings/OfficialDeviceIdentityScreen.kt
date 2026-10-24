@@ -83,8 +83,8 @@ fun OfficialDeviceIdentityScreen(onBack: () -> Unit) {
     ) { padding ->
         Column(
             Modifier.fillMaxSize()
-                .padding(padding)
                 .verticalScroll(rememberScrollState())
+                .padding(padding)
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {

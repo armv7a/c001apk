@@ -1,12 +1,10 @@
 package com.example.c001apk.compose.ui.dyh
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -17,10 +15,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
 import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
-import com.example.c001apk.compose.ui.component.MiuixTabScaffold
+import com.example.c001apk.compose.ui.component.MiuixTabRow
 import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.util.ReportType
 import kotlinx.coroutines.launch
@@ -44,53 +41,47 @@ fun DyhScreen(
         rememberPagerState(
             pageCount = { tabList.size },
         )
-    val layoutDirection = LocalLayoutDirection.current
     val scope = rememberCoroutineScope()
     var refreshState by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                windowInsets =
-                    WindowInsets.systemBars.only(WindowInsetsSides.Start + WindowInsetsSides.Top),
-                navigationIcon = {
-                    BackButton { onBackClick() }
-                },
-                title = title,
-            )
+            Column {
+                TopAppBar(
+                    windowInsets =
+                        WindowInsets.systemBars.only(
+                            WindowInsetsSides.Start + WindowInsetsSides.Top,
+                        ),
+                    navigationIcon = {
+                        BackButton { onBackClick() }
+                    },
+                    title = title,
+                )
+                MiuixTabRow(
+                    tabs = tabList,
+                    selectedTabIndex = pagerState.currentPage,
+                    onTabSelected = { index ->
+                        if (pagerState.currentPage == index) refreshState = true
+                        scope.launch { pagerState.animateScrollToPage(index) }
+                    },
+                )
+            }
         },
     ) { paddingValues ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding()),
-        ) {
-            MiuixTabScaffold(
-                tabs = tabList,
-                selectedTabIndex = pagerState.currentPage,
-                onTabSelected = { index ->
-                    if (pagerState.currentPage == index) refreshState = true
-                    scope.launch { pagerState.animateScrollToPage(index) }
-                },
-            ) {
-                HorizontalPager(state = pagerState) { index ->
-                    DyhContentScreen(
-                        id = id,
-                        type = typeList[index],
-                        refreshState = refreshState,
-                        resetRefreshState = { refreshState = false },
-                        paddingValues =
-                            PaddingValues(
-                                start = paddingValues.calculateLeftPadding(layoutDirection),
-                                bottom = paddingValues.calculateBottomPadding(),
-                            ),
-                        onViewUser = onViewUser,
-                        onViewFeed = onViewFeed,
-                        onOpenLink = onOpenLink,
-                        onCopyText = onCopyText,
-                        onReport = onReport,
-                    )
-                }
-            }
+        HorizontalPager(state = pagerState) { index ->
+            DyhContentScreen(
+                id = id,
+                type = typeList[index],
+                refreshState = refreshState,
+                resetRefreshState = { refreshState = false },
+                paddingValues = paddingValues,
+                onViewUser = onViewUser,
+                onViewFeed = onViewFeed,
+                onOpenLink = onOpenLink,
+                onCopyText = onCopyText,
+                onReport = onReport,
+            )
         }
     }
 }

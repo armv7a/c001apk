@@ -71,7 +71,7 @@ fun HomeTopicScreen(
     var pageState: PagerState
     var tabList: List<TopicBean>?
 
-    Box(modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding())) {
+    Box(modifier = Modifier.fillMaxSize()) {
         when (viewModel.loadingState) {
             LoadingState.Loading,
             LoadingState.Empty,
@@ -126,8 +126,7 @@ fun HomeTopicScreen(
                     ) {
                         LazyColumn(
                             state = listState,
-                            contentPadding =
-                                PaddingValues(bottom = paddingValues.calculateBottomPadding()),
+                            contentPadding = paddingValues,
                             modifier = Modifier.fillMaxHeight().weight(0.22f),
                         ) {
                             itemsIndexed(it, key = { _, item -> item.title }) { index, item ->
@@ -181,8 +180,7 @@ fun HomeTopicScreen(
                             CarouselContentScreen(
                                 url = it[index].url,
                                 title = it[index].title,
-                                paddingValues =
-                                    PaddingValues(bottom = paddingValues.calculateBottomPadding()),
+                                paddingValues = paddingValues,
                                 refreshState = null,
                                 resetRefreshState = {},
                                 onViewUser = onViewUser,

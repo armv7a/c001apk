@@ -374,7 +374,6 @@ fun FeedScreen(
                     refreshTexts = listOf("下拉刷新", "释放刷新", "正在刷新", "刷新完成"),
                     modifier =
                         Modifier.padding(
-                            top = paddingValues.calculateTopPadding(),
                             end =
                                 if (isCompat) 0.dp
                                 else paddingValues.calculateRightPadding(layoutDirection),
@@ -382,6 +381,7 @@ fun FeedScreen(
                                 if (isCompat) paddingValues.calculateLeftPadding(layoutDirection)
                                 else 0.dp,
                         ),
+                    contentPadding = PaddingValues(top = paddingValues.calculateTopPadding()),
                     isRefreshing = viewModel.isRefreshing,
                     onRefresh = {
                         viewModel.isPull = true
@@ -394,7 +394,7 @@ fun FeedScreen(
                             PaddingValues(
                                 start = detailInset,
                                 end = detailInset,
-                                top = 12.dp,
+                                top = paddingValues.calculateTopPadding() + 12.dp,
                                 bottom = paddingValues.calculateBottomPadding() + 16.dp,
                             ),
                         state = lazyListState,

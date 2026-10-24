@@ -1,14 +1,11 @@
 package com.example.c001apk.compose.ui.settings
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
 import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
@@ -20,8 +17,6 @@ import com.example.c001apk.compose.util.openInBrowser
 fun LicenseScreen(
     onBackClick: () -> Unit,
 ) {
-
-    val layoutDirection = LocalLayoutDirection.current
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -35,14 +30,8 @@ fun LicenseScreen(
         },
     ) { paddingValues ->
         LazyColumn(
-            modifier =
-                Modifier.fillMaxSize()
-                    .padding(
-                        top = paddingValues.calculateTopPadding(),
-                        start = paddingValues.calculateLeftPadding(layoutDirection),
-                        end = paddingValues.calculateRightPadding(layoutDirection),
-                    ),
-            contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding()),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = paddingValues,
         ) {
             items(
                 items = licenseList,

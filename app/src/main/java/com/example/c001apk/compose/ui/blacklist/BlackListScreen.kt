@@ -257,7 +257,7 @@ fun BlackListScreen(
     ) { paddingValues ->
         Column(
             modifier =
-                Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState),
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState).padding(paddingValues),
         ) {
             HorizontalDivider()
 

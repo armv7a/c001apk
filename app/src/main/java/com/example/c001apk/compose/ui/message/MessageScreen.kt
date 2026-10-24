@@ -95,8 +95,6 @@ fun MessageScreen(
         Column(
             Modifier.fillMaxSize()
                 .padding(
-                    top = paddingValues.calculateTopPadding(),
-                    bottom = bottomPadding + paddingValues.calculateBottomPadding(),
                     start = paddingValues.calculateLeftPadding(layoutDirection),
                     end = paddingValues.calculateRightPadding(layoutDirection),
                 ),
@@ -105,7 +103,7 @@ fun MessageScreen(
                 modifier = Modifier.fillMaxSize(),
                 isRefreshing = viewModel.isRefreshing,
                 onRefresh = viewModel::refresh,
-                contentPadding = PaddingValues(top = 12.dp),
+                contentPadding = PaddingValues(top = paddingValues.calculateTopPadding() + 12.dp),
                 refreshTexts = listOf("下拉刷新", "释放刷新", "正在刷新", "刷新完成"),
             ) {
                 BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -116,8 +114,9 @@ fun MessageScreen(
                             PaddingValues(
                                 start = sideInset,
                                 end = sideInset,
-                                top = 12.dp,
-                                bottom = 24.dp,
+                                top = paddingValues.calculateTopPadding() + 12.dp,
+                                bottom =
+                                    bottomPadding + paddingValues.calculateBottomPadding() + 24.dp,
                             ),
                     ) {
                         item(key = "profile") {

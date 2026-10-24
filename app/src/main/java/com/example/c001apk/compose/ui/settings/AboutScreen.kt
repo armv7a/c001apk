@@ -57,7 +57,7 @@ fun AboutScreen(
         },
     ) { paddingValues ->
         Column(
-            Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState),
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState).padding(paddingValues),
         ) {
             Box(
                 Modifier.fillMaxWidth().height(125.dp).align(Alignment.CenterHorizontally),

@@ -2,6 +2,8 @@ package com.example.c001apk.compose.ui.home
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
@@ -69,43 +71,57 @@ fun FollowScreen(
     ) { padding ->
         if (local) {
             val model = hiltViewModel<LocalFollowViewModel>()
-            Column(Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
-                BasicComponent(
-                    title = "${label}动态",
-                    summary = "仅保存于本机，不会同步账号关注",
-                    endActions = { MiuixActionButton(onClick = onManage) { Text("管理") } },
-                )
-                model.warning?.let { warning ->
+            val localHeader: @Composable () -> Unit = {
+                Column {
                     BasicComponent(
-                        title = warning,
-                        endActions = {
-                            MiuixActionButton(onClick = model::loadMore) { Text("重试") }
-                        },
+                        title = "${label}动态",
+                        summary = "仅保存于本机，不会同步账号关注",
+                        endActions = { MiuixActionButton(onClick = onManage) { Text("管理") } },
                     )
+                    model.warning?.let { warning ->
+                        BasicComponent(
+                            title = warning,
+                            endActions = {
+                                MiuixActionButton(onClick = model::loadMore) { Text("重试") }
+                            },
+                        )
+                    }
                 }
-                if (prefs.localFollows.isEmpty()) {
+            }
+            if (prefs.localFollows.isEmpty()) {
+                Column(
+                    Modifier.fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(
+                            top = padding.calculateTopPadding(),
+                            bottom = bottomPadding + padding.calculateBottomPadding(),
+                        ),
+                ) {
+                    localHeader()
                     Text(
                         if (prefs.isLogin) "在设置中开启悄悄关注后，长按用户主页的关注按钮即可添加。"
                         else "在用户主页点击“本地关注”，即可在这里查看动态。",
                         Modifier.padding(24.dp),
                     )
-                } else
-                    Box(Modifier.weight(1f)) {
-                        CommonScreen(
-                            viewModel = model,
-                            refreshState = refreshState,
-                            resetRefreshState = resetRefreshState,
-                            paddingValues =
-                                PaddingValues(
-                                    bottom = bottomPadding + padding.calculateBottomPadding(),
-                                ),
-                            onViewUser = onViewUser,
-                            onViewFeed = onViewFeed,
-                            onOpenLink = onOpenLink,
-                            onCopyText = onCopyText,
-                            onReport = onReport,
-                        )
-                    }
+                }
+            } else {
+                CommonScreen(
+                    viewModel = model,
+                    refreshState = refreshState,
+                    resetRefreshState = resetRefreshState,
+                    paddingValues =
+                        PaddingValues(
+                            top = padding.calculateTopPadding(),
+                            bottom = bottomPadding + padding.calculateBottomPadding(),
+                        ),
+                    needTopPadding = true,
+                    listHeader = localHeader,
+                    onViewUser = onViewUser,
+                    onViewFeed = onViewFeed,
+                    onOpenLink = onOpenLink,
+                    onCopyText = onCopyText,
+                    onReport = onReport,
+                )
             }
         } else
             key(prefs.followSelection) {

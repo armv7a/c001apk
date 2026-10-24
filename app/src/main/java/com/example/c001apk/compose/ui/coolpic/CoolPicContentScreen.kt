@@ -8,9 +8,7 @@ import com.example.c001apk.compose.ui.component.CommonScreen
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.makeToast
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/12
- */
+/** Created by bggRGjQaUbCoE on 2024/6/12 */
 @Composable
 fun CoolPicContentScreen(
     title: String,
@@ -26,7 +24,9 @@ fun CoolPicContentScreen(
 ) {
 
     val viewModel =
-        hiltViewModel<CoolPicContentViewModel, CoolPicContentViewModel.ViewModelFactory>(key = title + type) { factory ->
+        hiltViewModel<CoolPicContentViewModel, CoolPicContentViewModel.ViewModelFactory>(
+            key = title + type,
+        ) { factory ->
             factory.create(title, type)
         }
 
@@ -35,6 +35,7 @@ fun CoolPicContentScreen(
         refreshState = refreshState,
         resetRefreshState = resetRefreshState,
         paddingValues = paddingValues,
+        needTopPadding = true,
         onViewUser = onViewUser,
         onViewFeed = onViewFeed,
         onOpenLink = onOpenLink,
@@ -43,9 +44,8 @@ fun CoolPicContentScreen(
     )
 
     val context = LocalContext.current
-    viewModel.toastText?.let{
+    viewModel.toastText?.let {
         viewModel.resetToastText()
         context.makeToast(it)
     }
-
 }
