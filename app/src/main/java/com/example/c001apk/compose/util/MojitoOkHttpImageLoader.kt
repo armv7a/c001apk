@@ -2,31 +2,28 @@ package com.example.c001apk.compose.util
 
 import android.content.Context
 import android.net.Uri
-import net.mikaelzero.mojito.loader.ImageLoader
-import okhttp3.Call
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
+import net.mikaelzero.mojito.loader.ImageLoader
+import okhttp3.Call
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 class MojitoOkHttpImageLoader(context: Context) : ImageLoader {
 
-    private val client = OkHttpClient.Builder()
-        .addNetworkInterceptor(AddCookiesInterceptor)
-        .build()
+    private val client = OkHttpClient.Builder().addNetworkInterceptor(AddCookiesInterceptor).build()
 
-    private val callMap = ConcurrentHashMap<Int, Call>()
+    private val callMap = ConcurrentHashMap<Int, MutableSet<Call>>()
     private val cacheDir = File(context.cacheDir, "mojito").apply { mkdirs() }
 
     override fun loadImage(
         requestId: Int,
         uri: Uri,
         onlyRetrieveFromCache: Boolean,
-        callback: ImageLoader.Callback
+        callback: ImageLoader.Callback,
     ) {
         val scheme = uri.scheme?.lowercase()
         val isNetwork = scheme == "http" || scheme == "https"
@@ -45,7 +42,7 @@ class MojitoOkHttpImageLoader(context: Context) : ImageLoader {
         }
 
         if (onlyRetrieveFromCache) {
-            if (cacheFile.exists()) {
+            if (cacheFile.isFile && cacheFile.length() > 0) {
                 callback.onSuccess(cacheFile)
             } else {
                 callback.onFail(IOException("cache miss"))
@@ -70,7 +67,9 @@ class MojitoOkHttpImageLoader(context: Context) : ImageLoader {
 
         val request = Request.Builder().url(uri.toString()).build()
         val call = client.newCall(request)
-        callMap[requestId] = call
+        callMap.compute(requestId) { _, calls ->
+            (calls ?: mutableSetOf()).apply { add(call) }
+        }
         thread(name = "mojito-loader-$requestId") {
             try {
                 call.execute().use { response ->
@@ -78,29 +77,14 @@ class MojitoOkHttpImageLoader(context: Context) : ImageLoader {
                         throw IOException("http ${response.code}")
                     }
                     val body = response.body ?: throw IOException("empty body")
-                    val total = body.contentLength().coerceAtLeast(0L)
-                    val tempFile = File(cacheDir, "${cacheFile.name}.tmp")
-                    if (tempFile.exists()) {
-                        tempFile.delete()
-                    }
                     body.byteStream().use { input ->
-                        FileOutputStream(tempFile).use { output ->
-                            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                            var read: Int
-                            var current = 0L
-                            while (input.read(buffer).also { read = it } != -1) {
-                                output.write(buffer, 0, read)
-                                if (total > 0L) {
-                                    current += read
-                                    val progress = ((current * 100) / total).toInt()
-                                    callback.onProgress(progress)
-                                }
-                            }
-                            output.flush()
-                        }
-                    }
-                    if (!tempFile.renameTo(cacheFile)) {
-                        throw IOException("cache rename failed")
+                        writeImageCache(
+                            cacheFile,
+                            input,
+                            body.contentLength(),
+                            call::isCanceled,
+                            callback::onProgress,
+                        )
                     }
                     callback.onSuccess(cacheFile)
                 }
@@ -112,28 +96,39 @@ class MojitoOkHttpImageLoader(context: Context) : ImageLoader {
                 }
             } finally {
                 callback.onFinish()
-                callMap.remove(requestId)
+                callMap.computeIfPresent(requestId) { _, calls ->
+                    calls.remove(call)
+                    calls.takeIf { it.isNotEmpty() }
+                }
             }
         }
     }
 
     override fun prefetch(uri: Uri) {
-        loadImage(uri.hashCode(), uri, false, object : ImageLoader.Callback {
-            override fun onStart() {}
-            override fun onProgress(progress: Int) {}
-            override fun onFinish() {}
-            override fun onSuccess(image: File) {}
-            override fun onFail(error: Exception) {}
-        })
+        loadImage(
+            uri.hashCode(),
+            uri,
+            false,
+            object : ImageLoader.Callback {
+                override fun onStart() {}
+
+                override fun onProgress(progress: Int) {}
+
+                override fun onFinish() {}
+
+                override fun onSuccess(image: File) {}
+
+                override fun onFail(error: Exception) {}
+            },
+        )
     }
 
     override fun cancel(requestId: Int) {
-        callMap.remove(requestId)?.cancel()
+        callMap.remove(requestId)?.forEach { it.cancel() }
     }
 
     override fun cancelAll() {
-        callMap.values.forEach { it.cancel() }
-        callMap.clear()
+        callMap.keys.toList().forEach(::cancel)
     }
 
     override fun cleanCache() {
@@ -142,12 +137,12 @@ class MojitoOkHttpImageLoader(context: Context) : ImageLoader {
 
     private fun resolveCacheFile(uri: Uri): File {
         val url = uri.toString()
-        val extension = uri.lastPathSegment
-            ?.substringBefore('?')
-            ?.substringBefore('#')
-            ?.substringAfterLast('.', "")
-            ?.ifBlank { "img" }
-            ?: "img"
+        val extension =
+            uri.lastPathSegment
+                ?.substringBefore('?')
+                ?.substringBefore('#')
+                ?.substringAfterLast('.', "")
+                ?.ifBlank { "img" } ?: "img"
         val name = md5(url)
         return File(cacheDir, "$name.$extension")
     }
