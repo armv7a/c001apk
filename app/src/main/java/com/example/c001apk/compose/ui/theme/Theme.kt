@@ -15,6 +15,8 @@ import com.example.c001apk.compose.constant.Constants.seedColors
 import com.example.c001apk.compose.ui.component.rememberConfiguredHapticFeedback
 import top.yukonga.miuix.kmp.theme.*
 
+private const val BASE_CONTENT_SCALE = 0.90f
+
 @Composable
 fun C001apkComposeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -86,7 +88,10 @@ fun C001apkComposeTheme(
             LocalHapticFeedback provides haptics,
             LocalContentColor provides colors.onSurface,
             LocalDensity provides
-                Density(density.density * contentScale, density.fontScale * fontScale),
+                Density(
+                    density.density * BASE_CONTENT_SCALE * contentScale,
+                    density.fontScale * fontScale,
+                ),
         ) {
             content()
         }

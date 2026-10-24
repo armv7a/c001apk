@@ -12,6 +12,8 @@ import android.widget.EditText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.ColorUtils.setAlphaComponent
 import com.example.c001apk.compose.util.EmojiTextWatcher
@@ -38,6 +40,7 @@ fun ChatEditText(
     val primary = MiuixTheme.colorScheme.primary.toArgb()
     val onSurface = MiuixTheme.colorScheme.onSurface.toArgb()
     val onSurfaceVariant = MiuixTheme.colorScheme.onSurfaceVariantSummary.toArgb()
+    val textSizePx = with(LocalDensity.current) { 16.sp.toPx() }
 
     AndroidView(
         modifier = modifier,
@@ -48,7 +51,7 @@ fun ChatEditText(
                 setHintTextColor(onSurfaceVariant)
                 maxLines = 4
                 hint = "写私信..."
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                setTextSize(TypedValue.COMPLEX_UNIT_PX, textSizePx)
                 setLineSpacing(0.0f, 1.2f)
                 setBackgroundColor(Color.TRANSPARENT)
                 filters = arrayOf(InputFilter.LengthFilter(500))
@@ -89,6 +92,7 @@ fun ChatEditText(
             }
         },
         update = { editText ->
+            editText.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSizePx)
             editText.highlightColor = setAlphaComponent(primary, 128)
             editText.setTextColor(onSurface)
             editText.setHintTextColor(onSurfaceVariant)
