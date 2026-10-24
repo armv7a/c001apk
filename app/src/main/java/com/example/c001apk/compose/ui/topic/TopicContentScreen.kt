@@ -28,6 +28,7 @@ fun TopicContentScreen(
     productConfigRows: List<HomeFeedResponse.ProductConfig>,
     productSheetTopPadding: Dp,
     sortType: ProductSortType,
+    onSortChange: (ProductSortType) -> Unit,
     paddingValues: PaddingValues,
     onViewUser: (String) -> Unit,
     onViewFeed: (String, Boolean) -> Unit,
@@ -61,6 +62,10 @@ fun TopicContentScreen(
             resetRefreshState = resetRefreshState,
             paddingValues = paddingValues,
             needTopPadding = true,
+            listHeader =
+                if (sortable) {
+                    { TopicSortOptions(sortType, onSortChange) }
+                } else null,
             onViewUser = onViewUser,
             onViewFeed = onViewFeed,
             onOpenLink = onOpenLink,

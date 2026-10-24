@@ -29,6 +29,7 @@ fun CommonScreen(
     resetRefreshState: () -> Unit,
     paddingValues: PaddingValues = PaddingValues(),
     needTopPadding: Boolean = false,
+    listHeader: (@Composable () -> Unit)? = null,
     onViewUser: (String) -> Unit,
     onViewFeed: (String, Boolean) -> Unit,
     onOpenLink: (String, String?) -> Unit,
@@ -101,6 +102,9 @@ fun CommonScreen(
                 horizontalArrangement = Arrangement.spacedBy(0.dp),
                 state = lazyListState,
             ) {
+                if (listHeader != null) {
+                    item(key = "listHeader", span = StaggeredGridItemSpan.FullLine) { listHeader() }
+                }
                 GridItemCard(
                     loadingState = viewModel.loadingState,
                     loadMore = viewModel::loadMore,

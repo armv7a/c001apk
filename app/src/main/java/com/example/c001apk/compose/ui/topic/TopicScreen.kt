@@ -226,16 +226,6 @@ fun TopicScreen(
                             scope.launch { pagerState.animateScrollToPage(index) }
                         },
                     )
-                    val tab = tabList.getOrNull(pagerState.currentPage)
-                    if (
-                        supportsTopicSort(
-                            viewModel.entityType,
-                            tab?.title.orEmpty(),
-                            tab?.url.orEmpty(),
-                        )
-                    ) {
-                        TopicSortOptions(sortType) { sortType = it }
-                    }
                 }
             }
         },
@@ -316,6 +306,7 @@ fun TopicScreen(
                                 productConfigRows = viewModel.productConfigRows,
                                 productSheetTopPadding = with(density) { titleBarHeight.toDp() },
                                 sortType = sortType,
+                                onSortChange = { sortType = it },
                                 onViewUser = onViewUser,
                                 onViewFeed = onViewFeed,
                                 onOpenLink = onOpenLink,
