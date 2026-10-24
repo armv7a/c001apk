@@ -39,7 +39,7 @@
 
 | 上游提交 | 内容 | 处理 |
 | --- | --- | --- |
-| [`e9b9262`](https://github.com/TG-Twilight/c001apk/commit/e9b9262d6e4ef3d7e442507749799e7e24b8a3f0) | 网络协议、签名、错误分类、游客详情回退、登录与验证码、缓存清理；Revive c001apk and add reproducible multi-platform Actions builds | `77e6771`、`09db7ee`、`62eb4c1`；协议/会话/验证码单测、真机只读接口通过；原生缓存清理保留 |
+| [`e9b9262`](https://github.com/TG-Twilight/c001apk/commit/e9b9262d6e4ef3d7e442507749799e7e24b8a3f0) | 网络协议、签名、错误分类、游客详情回退、登录与验证码、缓存清理；Revive c001apk and add reproducible multi-platform Actions builds | `77e6771`、`09db7ee`、`62eb4c1`；协议/会话/验证码单测、真机只读接口通过；原生缓存清理保留；补齐点赞 `detail=0` 与 `trace` 表单合同测试，用户已确认真机点赞成功 |
 | [`b0f87eb`](https://github.com/TG-Twilight/c001apk/commit/b0f87eb32442a65b6b53206a9df416baacdba66f) | Android SDK CI 安装；Install Android SDK command-line tools explicitly in CI | `8db4df6`；CI 显式安装 command-line tools 和各模块所需平台 |
 | [`934a736`](https://github.com/TG-Twilight/c001apk/commit/934a73684600871820fc83172dd38f10ddb7760d) | Android SDK CI 安装；Avoid requesting the discontinued Android tools package | `8db4df6`；不请求废弃 tools 包 |
 | [`735ca56`](https://github.com/TG-Twilight/c001apk/commit/735ca56126a3c02c06a3075b38efc880586ada07) | iOS 构建；Pass the iOS binary before lipo architecture verification flags | 不适用于 Android 原生工程 |
