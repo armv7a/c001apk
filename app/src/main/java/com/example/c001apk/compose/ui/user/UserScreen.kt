@@ -136,7 +136,13 @@ fun UserScreen(
 
                                                     1 ->
                                                         context.shareText(
-                                                            getShareText(ShareType.USER, uid),
+                                                            com.example.c001apk.compose.util
+                                                                .ShareContent
+                                                                .text(
+                                                                    ShareType.USER,
+                                                                    uid,
+                                                                    title = viewModel.username,
+                                                                ),
                                                         )
 
                                                     2 -> showUserInfoDialog = true

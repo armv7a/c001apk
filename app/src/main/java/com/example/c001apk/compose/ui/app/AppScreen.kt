@@ -143,6 +143,15 @@ fun AppScreen(
                                     expanded = dropdownMenuExpanded,
                                     onDismissRequest = { dropdownMenuExpanded = false },
                                 ) {
+                                    com.example.c001apk.compose.ui.component.ContentShareMenuItems(
+                                        type = com.example.c001apk.compose.util.ShareType.APP,
+                                        id = packageName,
+                                        title =
+                                            (viewModel.appState as LoadingState.Success)
+                                                .response
+                                                .title,
+                                        dismiss = { dropdownMenuExpanded = false },
+                                    )
                                     if (isLogin) {
                                         DropdownMenuItem(
                                             text = {

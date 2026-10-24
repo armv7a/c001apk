@@ -69,29 +69,36 @@ class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<MainViewModel>()
     private val searchViewModel by viewModels<SearchViewModel>()
     private var stableStatusBarInset: Int? = null
+    private val pendingLinks = androidx.compose.runtime.mutableStateListOf<String>()
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (!viewModel.preparingIdentity) handleIntent(intent)
+        enqueueIntent(intent)
     }
 
-    private fun handleIntent(intent: Intent) {
-        intent.data?.let {
-            navController.onOpenLink(
-                context = this,
-                url = it.toString(),
-                title = null,
-                needConvert = true,
-                onSearch = { keyword ->
-                    searchViewModel.saveHistory(keyword)
-                },
-            )
-        }
+    private fun enqueueIntent(intent: Intent) {
+        val url =
+            when (intent.action) {
+                Intent.ACTION_VIEW -> intent.dataString
+                Intent.ACTION_SEND ->
+                    com.example.c001apk.compose.util.CoolapkLink.fromSharedText(
+                        intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty(),
+                    )
+                else -> null
+            } ?: return
+        if (pendingLinks.lastOrNull() != url && pendingLinks.size < 16) pendingLinks.add(url)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putStringArrayList("pending_links", ArrayList(pendingLinks))
+        super.onSaveInstanceState(outState)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) enqueueIntent(intent)
+        else pendingLinks.addAll(savedInstanceState.getStringArrayList("pending_links").orEmpty())
         enableEdgeToEdge()
         setupStableStatusBarInsets()
 
@@ -205,9 +212,20 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            LaunchedEffect(navController, viewModel.preparingIdentity) {
-                if (!viewModel.preparingIdentity && savedInstanceState == null) {
-                    handleIntent(intent)
+            LaunchedEffect(navController, viewModel.preparingIdentity, pendingLinks.size) {
+                if (!viewModel.preparingIdentity) {
+                    androidx.compose.runtime.withFrameNanos {}
+                    while (pendingLinks.isNotEmpty()) {
+                        val url = pendingLinks.first()
+                        navController.onOpenLink(
+                            context = this@MainActivity,
+                            url = url,
+                            needConvert = true,
+                            onSearch = searchViewModel::saveHistory,
+                        )
+                        pendingLinks.removeAt(0)
+                        androidx.compose.runtime.withFrameNanos {}
+                    }
                 }
             }
         }

@@ -152,6 +152,18 @@ fun TopicScreen(
                                     expanded = dropdownMenuExpanded,
                                     onDismissRequest = { dropdownMenuExpanded = false },
                                 ) {
+                                    com.example.c001apk.compose.ui.component.ContentShareMenuItems(
+                                        type =
+                                            if (viewModel.entityType == "product")
+                                                com.example.c001apk.compose.util.ShareType.PRODUCT
+                                            else com.example.c001apk.compose.util.ShareType.TOPIC,
+                                        id =
+                                            if (viewModel.entityType == "product")
+                                                viewModel.id.orEmpty()
+                                            else viewModel.title,
+                                        title = viewModel.title,
+                                        dismiss = { dropdownMenuExpanded = false },
+                                    )
                                     if (
                                         viewModel.entityType == "product" &&
                                             viewModel.tabList

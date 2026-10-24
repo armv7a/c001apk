@@ -71,11 +71,9 @@ import com.example.c001apk.compose.util.ShareType
 import com.example.c001apk.compose.util.Utils.richToString
 import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.getAllLinkAndText
-import com.example.c001apk.compose.util.getShareText
 import com.example.c001apk.compose.util.isScrollingUp
 import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.noRippleClickable
-import com.example.c001apk.compose.util.shareText
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
@@ -238,25 +236,19 @@ fun FeedScreen(
                                             rawMarkdown = !rawMarkdown
                                         },
                                     )
-                                    listOf("复制", "分享").forEachIndexed { index, menu ->
-                                        DropdownMenuItem(
-                                            text = { Text(menu) },
-                                            onClick = {
-                                                dropdownMenuExpanded = false
-                                                when (index) {
-                                                    0 ->
-                                                        context.copyText(
-                                                            getShareText(ShareType.FEED, id),
-                                                        )
-
-                                                    1 ->
-                                                        context.shareText(
-                                                            getShareText(ShareType.FEED, id),
-                                                        )
-                                                }
-                                            },
-                                        )
-                                    }
+                                    com.example.c001apk.compose.ui.component.ContentShareMenuItems(
+                                        type = ShareType.FEED,
+                                        id = id,
+                                        title =
+                                            (viewModel.feedState as LoadingState.Success)
+                                                .response
+                                                .messageTitle,
+                                        message =
+                                            (viewModel.feedState as LoadingState.Success)
+                                                .response
+                                                .message,
+                                        dismiss = { dropdownMenuExpanded = false },
+                                    )
                                     DropdownMenuItem(
                                         text = { Text(if (viewModel.isFav) "取消收藏" else "收藏") },
                                         onClick = {

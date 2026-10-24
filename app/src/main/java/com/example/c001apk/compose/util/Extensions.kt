@@ -27,28 +27,27 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
-import com.example.c001apk.compose.constant.Constants.PREFIX_APP
-import com.example.c001apk.compose.constant.Constants.PREFIX_FEED
-import com.example.c001apk.compose.constant.Constants.PREFIX_TOPIC
-import com.example.c001apk.compose.constant.Constants.PREFIX_USER
 import com.example.c001apk.compose.constant.Constants.UTF8
-import org.jsoup.nodes.Document
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.regex.Pattern
+import org.jsoup.nodes.Document
 
-inline val Number.dp get() = (toFloat() * Resources.getSystem().displayMetrics.density).toInt()
+inline val Number.dp
+    get() = (toFloat() * Resources.getSystem().displayMetrics.density).toInt()
 
 inline val Number.sp: Float
-    get() = TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_SP,
-        this.toFloat(),
-        Resources.getSystem().displayMetrics
-    )
+    get() =
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_SP,
+            this.toFloat(),
+            Resources.getSystem().displayMetrics,
+        )
 
 inline val String.http2https: String
-    get() = if (this.getOrElse(4) { 's' } == 's') this
-    else StringBuilder(this).insert(4, 's').toString()
+    get() =
+        if (this.getOrElse(4) { 's' } == 's') this
+        else StringBuilder(this).insert(4, 's').toString()
 
 inline val String.isGifUrl: Boolean
     get() = substringBefore('?').substringBefore('#').endsWith(".gif", ignoreCase = true)
@@ -59,24 +58,25 @@ fun Context.makeToast(text: String) {
 
 fun Modifier.noRippleToggleable(
     value: Boolean,
-    onValueChange: (Boolean) -> Unit
+    onValueChange: (Boolean) -> Unit,
 ): Modifier = composed {
     toggleable(
         value = value,
         indication = null,
         interactionSource = remember { MutableInteractionSource() },
-        onValueChange = onValueChange
+        onValueChange = onValueChange,
     )
 }
 
 inline fun Modifier.noRippleClickable(
     enabled: Boolean = true,
-    crossinline onClick: () -> Unit
+    crossinline onClick: () -> Unit,
 ): Modifier = composed {
     clickable(
         enabled = enabled,
         indication = null,
-        interactionSource = remember { MutableInteractionSource() }) {
+        interactionSource = remember { MutableInteractionSource() },
+    ) {
         onClick()
     }
 }
@@ -85,8 +85,7 @@ fun Context.copyText(text: String?, showToast: Boolean = true) {
     text?.let {
         val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         ClipData.newPlainText("copy text", it)?.let { clipboardManager.setPrimaryClip(it) }
-        if (showToast)
-            makeToast("已复制: " + it)
+        if (showToast) makeToast("已复制: " + it)
     }
 }
 
@@ -105,23 +104,24 @@ fun Context.shareText(text: String) {
 }
 
 enum class ShareType {
-    FEED, APP, TOPIC, USER
+    FEED,
+    APP,
+    TOPIC,
+    USER,
+    PRODUCT,
 }
 
 fun getShareText(type: ShareType, id: String): String {
-    val prefix = when (type) {
-        ShareType.APP -> PREFIX_APP
-        ShareType.FEED -> PREFIX_FEED
-        ShareType.TOPIC -> PREFIX_TOPIC
-        ShareType.USER -> PREFIX_USER
-    }
-    return "https://www.coolapk1s.com$prefix$id"
+    return ShareContent.link(type, id)
 }
 
 inline val String.getAllLinkAndText: String
-    get() = if (isEmpty()) EMPTY_STRING else
-        Pattern.compile("<a class=\"feed-link-url\"\\s+href=\"([^<>\"]*)\"[^>]*>.*?</a>")
-            .matcher(this).replaceAll(" $1 ")
+    get() =
+        if (isEmpty()) EMPTY_STRING
+        else
+            Pattern.compile("<a class=\"feed-link-url\"\\s+href=\"([^<>\"]*)\"[^>]*>.*?</a>")
+                .matcher(this)
+                .replaceAll(" $1 ")
 
 // onDoubleClick = {} //双击时回调
 // onPress = {} //按下时回调
@@ -130,21 +130,21 @@ inline val String.getAllLinkAndText: String
 fun Modifier.doubleClick(onDoubleClick: (Offset) -> Unit): Modifier =
     pointerInput(this) {
         detectTapGestures(
-            onDoubleTap = onDoubleClick
+            onDoubleTap = onDoubleClick,
         )
     }
 
 fun Modifier.longClick(onLongClick: (Offset) -> Unit): Modifier =
     pointerInput(this) {
         detectTapGestures(
-            onLongPress = onLongClick
+            onLongPress = onLongClick,
         )
     }
 
 @Composable
 inline fun composeClick(
     time: Int = 500,
-    crossinline onClick: () -> Unit
+    crossinline onClick: () -> Unit,
 ): () -> Unit {
     var lastClickTime by remember { mutableLongStateOf(value = 0L) }
     return {
@@ -161,17 +161,19 @@ fun LazyListState.isScrollingUp(): Boolean {
     var previousIndex by remember(this) { mutableIntStateOf(firstVisibleItemIndex) }
     var previousScrollOffset by remember(this) { mutableIntStateOf(firstVisibleItemScrollOffset) }
     return remember(this) {
-        derivedStateOf {
-            if (previousIndex != firstVisibleItemIndex) {
-                previousIndex > firstVisibleItemIndex
-            } else {
-                previousScrollOffset >= firstVisibleItemScrollOffset
-            }.also {
-                previousIndex = firstVisibleItemIndex
-                previousScrollOffset = firstVisibleItemScrollOffset
+            derivedStateOf {
+                if (previousIndex != firstVisibleItemIndex) {
+                        previousIndex > firstVisibleItemIndex
+                    } else {
+                        previousScrollOffset >= firstVisibleItemScrollOffset
+                    }
+                    .also {
+                        previousIndex = firstVisibleItemIndex
+                        previousScrollOffset = firstVisibleItemScrollOffset
+                    }
             }
         }
-    }.value
+        .value
 }
 
 inline val String?.encode: String
@@ -192,14 +194,10 @@ fun Context.openInBrowser(url: String) {
 @Suppress("DEPRECATION")
 inline val PackageInfo.longVersionCodeCompat: Long
     get() {
-        return if (SDK_INT >= 28)
-            longVersionCode
-        else
-            versionCode.toLong()
+        return if (SDK_INT >= 28) longVersionCode else versionCode.toLong()
     }
 
-fun Document.createRequestHash(): String =
-    this.getElementsByTag("Body").attr("data-request-hash")
+fun Document.createRequestHash(): String = this.getElementsByTag("Body").attr("data-request-hash")
 
 fun createRandomNumber() = Math.random().toString().replace(".", "undefined")
 
@@ -219,7 +217,9 @@ fun Context.downloadApk(downloadUrl: String, name: String) {
 }
 
 enum class ReportType {
-    FEED, REPLY, USER
+    FEED,
+    REPLY,
+    USER,
 }
 
 fun getReportUrl(id: String, type: ReportType): String =

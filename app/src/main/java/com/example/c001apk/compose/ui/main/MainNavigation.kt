@@ -28,23 +28,8 @@ import androidx.navigation.Navigator
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.c001apk.compose.constant.Constants.CHANNEL
-import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
-import com.example.c001apk.compose.constant.Constants.PREFIX_APP
 import com.example.c001apk.compose.constant.Constants.PREFIX_CAROUSEL
 import com.example.c001apk.compose.constant.Constants.PREFIX_CAROUSEL1
-import com.example.c001apk.compose.constant.Constants.PREFIX_COLLECTION
-import com.example.c001apk.compose.constant.Constants.PREFIX_COOLMARKET
-import com.example.c001apk.compose.constant.Constants.PREFIX_DYH
-import com.example.c001apk.compose.constant.Constants.PREFIX_EVENT
-import com.example.c001apk.compose.constant.Constants.PREFIX_FEED
-import com.example.c001apk.compose.constant.Constants.PREFIX_GAME
-import com.example.c001apk.compose.constant.Constants.PREFIX_HTTP
-import com.example.c001apk.compose.constant.Constants.PREFIX_PRODUCT
-import com.example.c001apk.compose.constant.Constants.PREFIX_SEARCH
-import com.example.c001apk.compose.constant.Constants.PREFIX_TOPIC
-import com.example.c001apk.compose.constant.Constants.PREFIX_USER
-import com.example.c001apk.compose.constant.Constants.PREFIX_USER_LIST
 import com.example.c001apk.compose.constant.Constants.URL_LOGIN
 import com.example.c001apk.compose.logic.model.UpdateCheckItem
 import com.example.c001apk.compose.ui.app.AppScreen
@@ -78,8 +63,6 @@ import com.example.c001apk.compose.ui.webview.WebViewScreen
 import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.CookieUtil.openInBrowser
 import com.example.c001apk.compose.util.ReportType
-import com.example.c001apk.compose.util.copyText
-import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.encode
 import com.example.c001apk.compose.util.getReportUrl
 import com.example.c001apk.compose.util.makeToast
@@ -814,113 +797,61 @@ fun NavHostController.onOpenLink(
     onSearch: ((String) -> Unit)? = null,
     onViewFeed: ((String, Boolean) -> Unit)? = null,
 ) {
-    if (url.isEmpty()) return
-    val path =
-        with(url.decode) {
-            if (needConvert) {
-                if (this.startsWith(PREFIX_COOLMARKET)) this.replaceFirst(PREFIX_COOLMARKET, "/")
-                else {
-                    val uri = Uri.parse(this)
-                    if (uri.host?.contains(CHANNEL) == true) uri.path ?: url else url
-                }
-            } else this
-        }
+    val link = com.example.c001apk.compose.util.CoolapkLink.parse(url)
+    val parts = link?.segments.orEmpty()
+    val target = parts.getOrNull(1).orEmpty()
+    fun unsupported() {
+        context.makeToast("暂不支持此链接")
+    }
     when {
-        path.startsWith(PREFIX_USER) -> {
-            navigateToUser(path.replaceFirst(PREFIX_USER, EMPTY_STRING))
+        link == null -> {
+            if (com.example.c001apk.compose.util.CoolapkLink.external(url)) {
+                if (openInBrowser) context.openInBrowser(url) else navigateToWebView(url)
+            } else unsupported()
         }
-
-        path.startsWith(PREFIX_FEED) -> {
-            val id = path.replaceFirst(PREFIX_FEED, EMPTY_STRING).replace("?", "&")
-            if (onViewFeed == null) {
-                navigateToFeed(id, id.contains("rid"))
-            } else {
-                onViewFeed(id, id.contains("rid"))
-            }
+        parts.firstOrNull() == "feed" -> {
+            if (parts.size != 2 || !target.matches(Regex("[0-9]+"))) unsupported()
+            else if (onViewFeed != null) onViewFeed(target, link.query.containsKey("rid"))
+            else navigateToFeed(target, link.query.containsKey("rid"))
         }
-
-        path.startsWith(PREFIX_TOPIC) -> {
-            val tag =
-                path
-                    .replaceFirst(PREFIX_TOPIC, EMPTY_STRING)
-                    .replace("\\?type=[A-Za-z0-9]+".toRegex(), EMPTY_STRING)
-            if (path.contains("type=8")) navigateToCoolPic(tag)
-            else navigateToTopic(id = null, tag = tag)
+        parts.firstOrNull() == "event" -> {
+            if (parts.size == 2 && target.matches(Regex("[0-9]+"))) navigateToEvent(target)
+            else unsupported()
         }
-
-        path.startsWith(PREFIX_PRODUCT) -> {
-            navigateToTopic(
-                id = path.replaceFirst(PREFIX_PRODUCT, EMPTY_STRING),
-                tag = null,
-            )
+        parts.firstOrNull() == "u" ->
+            if (target.isNotBlank()) navigateToUser(target) else unsupported()
+        parts.firstOrNull() == "t" -> {
+            if (target.isBlank()) unsupported()
+            else if (link.query["type"] == "8") navigateToCoolPic(target)
+            else navigateToTopic(tag = target, id = null)
         }
-
-        path.startsWith(PREFIX_APP) -> {
-            navigateToApp(packageName = path.replaceFirst(PREFIX_APP, EMPTY_STRING))
-        }
-
-        path.startsWith(PREFIX_GAME) -> {
-            navigateToApp(packageName = path.replaceFirst(PREFIX_GAME, EMPTY_STRING))
-        }
-
-        path.startsWith(PREFIX_CAROUSEL) -> {
-            navigateToCarousel(
-                path.replaceFirst(PREFIX_CAROUSEL, EMPTY_STRING),
-                title.orEmpty(),
-            )
-        }
-
-        path.startsWith(PREFIX_CAROUSEL1) -> {
-            navigateToCarousel(path.replaceFirst("#", EMPTY_STRING), title.orEmpty())
-        }
-
-        path.startsWith(PREFIX_USER_LIST) -> {
-            val type =
-                when {
-                    path.contains("myFollowList") -> FFFListType.USER_FOLLOW.name
-                    else -> EMPTY_STRING
-                }
-            navigateToFFFList(CookieUtil.uid, type, null, null)
-        }
-
-        path.startsWith(PREFIX_DYH) -> {
-            navigateToDyh(path.replaceFirst(PREFIX_DYH, EMPTY_STRING), title.orEmpty())
-        }
-
-        path.startsWith(PREFIX_COLLECTION) -> {
-            navigateToCollection(path.replaceFirst(PREFIX_COLLECTION, EMPTY_STRING))
-        }
-
-        path.startsWith(PREFIX_EVENT) -> {
-            val id = path.removePrefix(PREFIX_EVENT).substringBefore('?').substringBefore('/')
-            if (id.isNotEmpty()) navigateToEvent(id)
-        }
-
-        path.startsWith(PREFIX_SEARCH) -> {
-            val sourceUri =
-                Uri.parse(url).takeIf {
-                    it.scheme.equals(PREFIX_COOLMARKET.removeSuffix("://"), ignoreCase = true)
-                } ?: Uri.parse(path)
-            val keyword = sourceUri.getQueryParameter("searchValue").orEmpty()
-            if (keyword.isEmpty()) {
-                navigateToSearch(null, null, null)
-            } else {
+        parts.firstOrNull() == "product" ->
+            if (target.isNotBlank()) navigateToTopic(tag = null, id = target) else unsupported()
+        parts.firstOrNull() in listOf("apk", "game") ->
+            if (target.isNotBlank()) navigateToApp(target) else unsupported()
+        link.path.startsWith(PREFIX_CAROUSEL) ->
+            link.query["url"]?.let { navigateToCarousel(it, title.orEmpty()) } ?: unsupported()
+        link.path.startsWith(PREFIX_CAROUSEL1) ->
+            navigateToCarousel(link.path.removePrefix("#"), title.orEmpty())
+        parts.firstOrNull() == "user" && target == "myFollowList" ->
+            navigateToFFFList(CookieUtil.uid, FFFListType.USER_FOLLOW.name, null, null)
+        parts.firstOrNull() == "dyh" ->
+            if (target.isNotBlank()) navigateToDyh(target, title.orEmpty()) else unsupported()
+        parts.firstOrNull() == "collection" ->
+            if (target.isNotBlank()) navigateToCollection(target) else unsupported()
+        parts.firstOrNull() == "search" ||
+            (parts.firstOrNull() == "com.coolapk.market" && target == "search") -> {
+            val keyword = link.query["searchValue"].orEmpty()
+            if (keyword.isBlank()) navigateToSearch(null, null, null)
+            else {
                 onSearch?.invoke(keyword)
                 navigateToSearchResult(keyword, null, null, null)
             }
         }
-
-        else -> {
-            if (!needConvert) onOpenLink(context, url, title, true)
-            else {
-                if (url.startsWith(PREFIX_HTTP)) {
-                    if (openInBrowser) context.openInBrowser(url) else navigateToWebView(url)
-                } else {
-                    context.makeToast("unsupported url: $url")
-                    context.copyText(url, false)
-                }
-            }
+        com.example.c001apk.compose.util.CoolapkLink.external(url) -> {
+            if (openInBrowser) context.openInBrowser(url) else navigateToWebView(url)
         }
+        else -> unsupported()
     }
 }
 
@@ -933,11 +864,11 @@ fun NavHostController.navigateToFeed(id: String, isViewReply: Boolean = false) {
 }
 
 fun NavHostController.navigateToUser(uid: String) {
-    navigate("${Router.USER.name}/$uid")
+    navigate("${Router.USER.name}/${Uri.encode(uid)}")
 }
 
 fun NavHostController.navigateToTopic(tag: String?, id: String?) {
-    navigate("${Router.TOPIC.name}/$tag/$id")
+    navigate("${Router.TOPIC.name}/${tag?.let(Uri::encode)}/${id?.let(Uri::encode)}")
 }
 
 fun NavHostController.navigateToWebView(url: String, isLogin: Boolean = false) {
@@ -958,7 +889,7 @@ fun NavHostController.navigateToSearchResult(
 }
 
 fun NavHostController.navigateToApp(packageName: String) {
-    navigate("${Router.APP.name}/$packageName")
+    navigate("${Router.APP.name}/${Uri.encode(packageName)}")
 }
 
 fun NavHostController.navigateToCarousel(url: String, title: String) {
