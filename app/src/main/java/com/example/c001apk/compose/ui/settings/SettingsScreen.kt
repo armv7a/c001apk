@@ -1,7 +1,6 @@
 package com.example.c001apk.compose.ui.settings
 
 import android.os.Build
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -105,6 +104,8 @@ private enum class SettingsSection(val title: String, val summary: String) {
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
+    section: String?,
+    onSectionClick: (String) -> Unit,
     onBackClick: () -> Unit,
     onHomeTabsClick: () -> Unit,
     onAccountsClick: () -> Unit,
@@ -119,12 +120,13 @@ fun SettingsScreen(
     val layoutDirection = LocalLayoutDirection.current
     val context = LocalContext.current
     val wide = LocalWindowInfo.current.containerDpSize.width >= 840.dp
-    var selectedSection by rememberSaveable { mutableStateOf<SettingsSection?>(null) }
-    val activeSection = selectedSection ?: if (wide) SettingsSection.Appearance else null
-    fun back() {
-        if (!wide && selectedSection != null) selectedSection = null else onBackClick()
-    }
-    BackHandler(enabled = !wide && selectedSection != null) { selectedSection = null }
+    val routeSection = SettingsSection.entries.firstOrNull { it.name == section }
+    var wideSection by
+        rememberSaveable(section) {
+            mutableStateOf(routeSection ?: SettingsSection.Appearance)
+        }
+    // Narrow categories use the app navigation stack, including its predictive back preview.
+    val activeSection = if (wide) wideSection else routeSection
 
     val imageQualityList by lazy { listOf("网络自适应", "原图", "普清") }
     val themeList by lazy { listOf("跟随系统", "总是开启", "总是关闭") }
@@ -150,7 +152,7 @@ fun SettingsScreen(
                 color = com.example.c001apk.compose.ui.component.LocalBarColor.current,
                 title = if (wide) "设置" else activeSection?.title ?: "设置",
                 navigationIcon = {
-                    IconButton(onClick = ::back) {
+                    IconButton(onClick = onBackClick) {
                         Icon(MiuixIcons.Back, contentDescription = "返回")
                     }
                 },
@@ -202,7 +204,10 @@ fun SettingsScreen(
                                 headlineText = section.title,
                                 supportingText = section.summary,
                                 holdDownState = wide && activeSection == section,
-                                onClick = { selectedSection = section },
+                                onClick = {
+                                    if (wide) wideSection = section
+                                    else onSectionClick(section.name)
+                                },
                             )
                         }
                     }
@@ -542,7 +547,6 @@ fun SettingsScreen(
                                 }
                             }
                         }
-                        null -> Unit
                     }
                 }
             }

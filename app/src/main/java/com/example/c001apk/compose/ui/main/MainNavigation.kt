@@ -211,8 +211,22 @@ fun MainNavigation(
                 )
             }
 
-            composable(route = Router.SETTINGS.name) {
+            composable(
+                route = "${Router.SETTINGS.name}?section={section}",
+                arguments =
+                    listOf(
+                        navArgument("section") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
+                    ),
+            ) { settingsEntry ->
                 SettingsScreen(
+                    section = settingsEntry.arguments?.getString("section"),
+                    onSectionClick = { section ->
+                        navController.navigate("${Router.SETTINGS.name}?section=$section")
+                    },
                     onBackClick = { navController.popBackStack() },
                     onAccountsClick = { navController.navigate(Router.ACCOUNTS.name) },
                     onLocalFollowsClick = { navController.navigate(Router.LOCAL_FOLLOWS.name) },
