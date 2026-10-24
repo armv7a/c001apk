@@ -63,7 +63,9 @@ fun LazyListScope.ArticleItem(
     item(key = "bottom") {
         ReadingSurface(last = !hasRows) {
             FeedBottomInfo(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier =
+                    Modifier.padding(horizontal = 16.dp)
+                        .padding(top = 12.dp, bottom = if (hasRows) 4.dp else 12.dp),
                 isFeedContent = true,
                 ip = response.ipLocation.orEmpty(),
                 dateline = response.dateline ?: 0,
@@ -79,7 +81,6 @@ fun LazyListScope.ArticleItem(
         item(key = "rows") {
             ReadingSurface(last = true) {
                 FeedRows(
-                    modifier = Modifier.padding(bottom = 12.dp),
                     isFeedContent = true,
                     relationRows = response.relationRows,
                     targetRow = response.targetRow,

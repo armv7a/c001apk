@@ -141,7 +141,7 @@ fun FeedCard(
             like = data.userAction?.like,
         )
         FeedRows(
-            modifier = Modifier.padding(bottom = 10.dp),
+            modifier = Modifier.padding(bottom = if (isFeedContent) 6.dp else 10.dp),
             isFeedContent = isFeedContent,
             relationRows = data.relationRows,
             targetRow = data.targetRow,
@@ -174,7 +174,7 @@ fun FeedRows(
 
     if (dataList.isNotEmpty()) {
         LazyRow(
-            modifier = modifier.fillMaxWidth().padding(top = 10.dp),
+            modifier = modifier.fillMaxWidth().padding(top = if (isFeedContent) 4.dp else 10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(horizontal = if (isFeedContent) 16.dp else 10.dp),
         ) {
