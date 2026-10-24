@@ -12,6 +12,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -54,7 +55,9 @@ import com.example.c001apk.compose.ui.component.FeedListEntry
 import com.example.c001apk.compose.ui.component.FooterCard
 import com.example.c001apk.compose.ui.component.ItemCard
 import com.example.c001apk.compose.ui.component.LocalMarkdownRaw
+import com.example.c001apk.compose.ui.component.MiuixAlertDialog
 import com.example.c001apk.compose.ui.component.MiuixBottomSheet as ModalBottomSheet
+import com.example.c001apk.compose.ui.component.MiuixDialogButton
 import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
@@ -66,6 +69,7 @@ import com.example.c001apk.compose.ui.component.cards.FeedReplySortCard
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
 import com.example.c001apk.compose.ui.component.rememberHapticClick
 import com.example.c001apk.compose.ui.feed.reply.ReplyActivity
+import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.CookieUtil.isLogin
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.ShareType
@@ -81,6 +85,7 @@ import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Reply
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** Created by bggRGjQaUbCoE on 2024/6/4 */
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
@@ -109,7 +114,21 @@ fun FeedScreen(
     val context = LocalContext.current
     val layoutDirection = LocalLayoutDirection.current
     val lazyListState = rememberLazyListState()
-    var dropdownMenuExpanded by remember { mutableStateOf(false) }
+    var dropdownMenuExpanded by remember(id) { mutableStateOf(false) }
+    var confirmDelete by remember(id) { mutableStateOf(false) }
+    val ownFeed =
+        isLogin && (viewModel.feedState as? LoadingState.Success)?.response?.uid == CookieUtil.uid
+    val localFavoriteClick = rememberHapticClick {
+        dropdownMenuExpanded = false
+        viewModel.toggleLocalFavorite()
+    }
+    LaunchedEffect(viewModel.deletedFeedId) {
+        if (viewModel.deletedFeedId == id) {
+            confirmDelete = false
+            viewModel.consumeFeedDeletion()
+            onBackClick()
+        }
+    }
 
     val scope = rememberCoroutineScope()
     var openBottomSheet by remember { mutableStateOf(false) }
@@ -261,37 +280,77 @@ fun FeedScreen(
                                                 dismiss = { dropdownMenuExpanded = false },
                                             )
                                         DropdownMenuItem(
-                                            text = { Text(if (viewModel.isFav) "取消收藏" else "收藏") },
-                                            onClick = {
-                                                dropdownMenuExpanded = false
-                                                viewModel.onFav()
-                                            },
-                                        )
-                                        DropdownMenuItem(
                                             text = {
-                                                Text(
-                                                    if (viewModel.isBlocked) {
-                                                        stringResource(id = R.string.menu_unblock)
-                                                    } else {
-                                                        "拉黑"
-                                                    },
-                                                )
+                                                Column {
+                                                    Text(
+                                                        if (viewModel.isAccountCollected) "管理账号收藏"
+                                                        else "收藏",
+                                                    )
+                                                    Text(
+                                                        if (viewModel.isFav) "已本地收藏 · 长按取消"
+                                                        else "长按保存到本地",
+                                                        style = MiuixTheme.textStyles.footnote1,
+                                                        color =
+                                                            MiuixTheme.colorScheme
+                                                                .onSurfaceVariantSummary,
+                                                    )
+                                                }
                                             },
                                             onClick = {
                                                 dropdownMenuExpanded = false
-                                                viewModel.blockUser()
+                                                viewModel.collections.open(id)
                                             },
+                                            onLongClick = localFavoriteClick,
+                                            onLongClickLabel =
+                                                if (viewModel.isFav) "取消本地收藏" else "保存到本地收藏",
                                         )
-                                        if (isLogin) {
+                                        if (ownFeed) {
                                             DropdownMenuItem(
                                                 text = {
-                                                    Text(stringResource(id = R.string.menu_report))
+                                                    Text(
+                                                        "删除",
+                                                        color = MiuixTheme.colorScheme.error,
+                                                    )
+                                                },
+                                                enabled = !viewModel.deletingFeed,
+                                                onClick = {
+                                                    dropdownMenuExpanded = false
+                                                    confirmDelete = true
+                                                },
+                                            )
+                                        } else {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        if (viewModel.isBlocked) {
+                                                            stringResource(
+                                                                id = R.string.menu_unblock,
+                                                            )
+                                                        } else {
+                                                            "拉黑"
+                                                        },
+                                                    )
                                                 },
                                                 onClick = {
                                                     dropdownMenuExpanded = false
-                                                    onReport(id, ReportType.FEED)
+                                                    viewModel.blockUser()
                                                 },
                                             )
+                                            if (isLogin) {
+                                                DropdownMenuItem(
+                                                    text = {
+                                                        Text(
+                                                            stringResource(
+                                                                id = R.string.menu_report,
+                                                            ),
+                                                        )
+                                                    },
+                                                    onClick = {
+                                                        dropdownMenuExpanded = false
+                                                        onReport(id, ReportType.FEED)
+                                                    },
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -639,6 +698,30 @@ fun FeedScreen(
                 }
             }
         }
+    }
+    FeedCollectionDialog(viewModel.collections)
+    if (confirmDelete && ownFeed) {
+        MiuixAlertDialog(
+            onDismissRequest = { if (!viewModel.deletingFeed) confirmDelete = false },
+            title = { Text("删除动态") },
+            text = { Text("确定删除这条动态吗？删除后无法恢复。") },
+            dismissButton = {
+                MiuixDialogButton(
+                    onClick = { confirmDelete = false },
+                    enabled = !viewModel.deletingFeed,
+                ) {
+                    Text("取消")
+                }
+            },
+            confirmButton = {
+                MiuixDialogButton(
+                    onClick = viewModel::deleteOwnFeed,
+                    enabled = !viewModel.deletingFeed,
+                ) {
+                    Text(if (viewModel.deletingFeed) "删除中…" else "删除")
+                }
+            },
+        )
     }
     viewModel.toastText?.let {
         viewModel.resetToastText()

@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.component
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -134,6 +135,8 @@ fun MiuixMoreMenu(
 fun MiuixMenuItem(
     text: @Composable () -> Unit,
     onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+    onLongClickLabel: String? = null,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     leadingIcon: (@Composable () -> Unit)? = null,
@@ -145,8 +148,19 @@ fun MiuixMenuItem(
             else MiuixTheme.colorScheme.disabledOnSurface,
     ) {
         BasicComponent(
-            modifier = modifier,
-            onClick = onClick,
+            modifier =
+                modifier.then(
+                    if (onLongClick != null)
+                        Modifier.combinedClickable(
+                            enabled = enabled,
+                            role = Role.Button,
+                            onClick = onClick,
+                            onLongClick = onLongClick,
+                            onLongClickLabel = onLongClickLabel,
+                        )
+                    else Modifier,
+                ),
+            onClick = if (onLongClick == null) onClick else null,
             enabled = enabled,
             role = Role.Button,
             startAction = leadingIcon,

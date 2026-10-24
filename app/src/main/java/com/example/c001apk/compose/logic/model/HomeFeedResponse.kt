@@ -339,7 +339,7 @@ data class HomeFeedResponse(
         var like: Int?,
         //val favorite: Int?,
         var follow: Int? = 0,
-        //val collect: Int?,
+        val collect: Int? = 0,
         //var followAuthor: Int?,
         //val authorFollowYou: Int?
     ) : Parcelable

@@ -1,8 +1,11 @@
 package com.example.c001apk.compose.logic.network
 
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
+import com.example.c001apk.compose.logic.model.AccountCollection
+import com.example.c001apk.compose.logic.model.AccountCollectionResponse
 import com.example.c001apk.compose.logic.model.CheckCountResponse
 import com.example.c001apk.compose.logic.model.CheckResponse
+import com.example.c001apk.compose.logic.model.CollectionSaveResult
 import com.example.c001apk.compose.logic.model.CreateFeedResponse
 import com.example.c001apk.compose.logic.model.EventDetailResponse
 import com.example.c001apk.compose.logic.model.FeedContentResponse
@@ -13,6 +16,7 @@ import com.example.c001apk.compose.logic.model.OSSUploadPrepareResponse
 import com.example.c001apk.compose.logic.model.ProductConfigResponse
 import com.example.c001apk.compose.logic.model.TotalReplyResponse
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Field
@@ -273,6 +277,35 @@ interface ApiService {
         @Query("page") page: Int,
         @Query("lastItem") lastItem: String?,
     ): Call<HomeFeedResponse>
+
+    @GET("/v6/collection/list")
+    fun getFeedCollections(
+        @Query("uid") uid: String = "",
+        @Query("id") feedId: String,
+        @Query("type") type: String = "feed",
+        @Query("showDefault") showDefault: Int = 1,
+        @Query("page") page: Int,
+        @Query("lastItem") lastItem: String?,
+    ): Call<AccountCollectionResponse<List<AccountCollection>>>
+
+    @POST("/v6/collection/addItem")
+    @FormUrlEncoded
+    fun saveFeedCollections(
+        @Field("id") ids: String,
+        @Field("cancelId") cancelIds: String,
+        @Field("targetId") feedId: String,
+        @Field("type") type: String = "feed",
+    ): Call<AccountCollectionResponse<CollectionSaveResult>>
+
+    @POST("/v6/collection/create")
+    @Multipart
+    fun createCollection(
+        @Part("title") title: RequestBody,
+        @Part("isOpen") isOpen: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("pic") picture: RequestBody,
+        @Part("sourceId") sourceId: RequestBody,
+    ): Call<AccountCollectionResponse<AccountCollection>>
 
     @POST
     fun postDelete(

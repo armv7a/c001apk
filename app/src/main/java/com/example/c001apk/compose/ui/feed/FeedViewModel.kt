@@ -8,9 +8,11 @@ import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.logic.model.FeedArticleContentBean
 import com.example.c001apk.compose.logic.model.FeedEntity
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
+import com.example.c001apk.compose.logic.network.ApiFailures
 import com.example.c001apk.compose.logic.repository.BlackListRepo
 import com.example.c001apk.compose.logic.repository.HistoryFavoriteRepo
 import com.example.c001apk.compose.logic.repository.NetworkRepo
+import com.example.c001apk.compose.logic.state.FeedDeletionEvents
 import com.example.c001apk.compose.logic.state.FooterState
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.base.BaseViewModel
@@ -65,6 +67,66 @@ constructor(
     var isFav by mutableStateOf(false)
     var isBlocked by mutableStateOf(false)
     private var feedJob: kotlinx.coroutines.Job? = null
+
+    var isAccountCollected by mutableStateOf(false)
+        private set
+
+    var deletingFeed by mutableStateOf(false)
+        private set
+
+    var deletedFeedId by mutableStateOf<String?>(null)
+        private set
+
+    private var deleteJob: kotlinx.coroutines.Job? = null
+    private var localFavoriteBusy = false
+    val collections =
+        FeedCollections(
+            viewModelScope,
+            networkRepo,
+            onSaved = { feedId, collected -> if (feedId == id) isAccountCollected = collected },
+            notify = { toastText = it },
+        )
+
+    fun deleteOwnFeed() {
+        val feed = (feedState as? LoadingState.Success)?.response ?: return
+        if (deletingFeed || !CookieUtil.isLogin || feed.uid != CookieUtil.uid) return
+        val requestedId = id
+        val revision = CookieUtil.accountSession.revision
+        deletingFeed = true
+        deleteJob = viewModelScope.launch {
+            try {
+                networkRepo.postDelete("/v6/feed/deleteFeed", requestedId).collect { result ->
+                    if (requestedId != id || revision != CookieUtil.accountSession.revision)
+                        return@collect
+                    val response = result.getOrNull()
+                    val success =
+                        response != null &&
+                            (response.error == null || response.error == 0) &&
+                            (response.data?.count == "删除成功" || response.message == "删除成功")
+                    if (success) {
+                        deletedFeedId = requestedId
+                        FeedDeletionEvents.deleted(
+                            requestedId,
+                        )
+                        toastText = "动态已删除"
+                    } else {
+                        toastText =
+                            response?.message
+                                ?: (result.exceptionOrNull() as? Exception)?.let {
+                                    ApiFailures.safeMessage(it)
+                                }
+                                ?: "删除失败，请重试"
+                    }
+                }
+            } finally {
+                deletingFeed = false
+            }
+        }
+    }
+
+    fun consumeFeedDeletion() {
+        deletedFeedId = null
+    }
 
     init {
         fetchFeedData()
@@ -189,6 +251,7 @@ constructor(
                                     pubDate = response.dateline.toString(),
                                 )
                             }
+                            isAccountCollected = response.userAction?.collect == 1
                             isFav = historyFavoriteRepo.checkFavorite(id)
                             isBlocked = blackListRepo.checkUid(feedUid)
                         }
@@ -501,25 +564,37 @@ constructor(
         }
     }
 
-    fun onFav() {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (isFav) {
-                historyFavoriteRepo.deleteFavorite(id)
-            } else {
-                val response = (feedState as LoadingState.Success).response
-                recordHistory(
-                    username = response.username.orEmpty(),
-                    avatar = response.userAvatar.orEmpty(),
-                    device = response.deviceTitle.orEmpty(),
-                    message =
-                        with(response.message.orEmpty()) {
-                            if (this.length > 150) this.substring(0, 150) else this
-                        },
-                    pubDate = response.dateline.toString(),
-                    type = HistoryType.FAV,
-                )
+    fun toggleLocalFavorite() {
+        val response = (feedState as? LoadingState.Success)?.response ?: return
+        if (localFavoriteBusy) return
+        val requestedId = id
+        val wasFavorite = isFav
+        val entry =
+            FeedEntity(
+                requestedId,
+                response.uid.orEmpty(),
+                response.username.orEmpty(),
+                response.userAvatar.orEmpty(),
+                response.deviceTitle.orEmpty(),
+                response.message.orEmpty().take(150),
+                response.dateline.toString(),
+            )
+        localFavoriteBusy = true
+        viewModelScope.launch {
+            try {
+                if (wasFavorite) historyFavoriteRepo.deleteFavorite(requestedId)
+                else historyFavoriteRepo.insertFavorite(entry)
+                if (requestedId == id) {
+                    isFav = !wasFavorite
+                    toastText = if (isFav) "已保存到本地收藏" else "已取消本地收藏"
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                toastText = "本地收藏保存失败，请重试"
+            } finally {
+                localFavoriteBusy = false
             }
-            isFav = !isFav
         }
     }
 
@@ -784,6 +859,12 @@ constructor(
     }
 
     fun resetState() {
+        collections.reset()
+        deleteJob?.cancel()
+        deletingFeed = false
+        deletedFeedId = null
+        isAccountCollected = false
+        isFav = false
         feedJob?.cancel()
         cancelFetch()
         feedTypeName = EMPTY_STRING

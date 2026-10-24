@@ -10,6 +10,7 @@ import com.example.c001apk.compose.constant.Constants.entityTypeList
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.logic.repository.BlackListRepo
 import com.example.c001apk.compose.logic.repository.NetworkRepo
+import com.example.c001apk.compose.logic.state.FeedDeletionEvents
 import com.example.c001apk.compose.logic.state.FooterState
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.util.CookieUtil
@@ -47,6 +48,20 @@ abstract class BaseViewModel(
     abstract suspend fun customFetchData(): Flow<LoadingState<List<HomeFeedResponse.Data>>>
 
     private var fetchJob: kotlinx.coroutines.Job? = null
+
+    init {
+        viewModelScope.launch {
+            FeedDeletionEvents.events.collect { deletedId ->
+                val state = loadingState as? LoadingState.Success ?: return@collect
+                loadingState =
+                    LoadingState.Success(
+                        state.response.filterNot {
+                            it.entityType == "feed" && it.id == deletedId
+                        },
+                    )
+            }
+        }
+    }
 
     protected fun cancelFetch() {
         fetchJob?.cancel()

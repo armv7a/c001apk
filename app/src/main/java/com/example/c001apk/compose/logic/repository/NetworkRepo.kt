@@ -5,6 +5,7 @@ import com.example.c001apk.compose.di.AccountService
 import com.example.c001apk.compose.di.Api1Service
 import com.example.c001apk.compose.di.Api1ServiceNoRedirect
 import com.example.c001apk.compose.di.Api2Service
+import com.example.c001apk.compose.logic.model.AccountCollection
 import com.example.c001apk.compose.logic.model.FeedContentResponse
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.logic.model.ProductConfigData
@@ -23,7 +24,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -324,6 +327,35 @@ constructor(
         Result.success(
             apiService.getCollectionList(url, uid, id, showDefault, page, lastItem).await(),
         )
+    }
+
+    suspend fun getFeedCollections(feedId: String, page: Int, lastItem: String?) =
+        apiService
+            .getFeedCollections(feedId = feedId, page = page, lastItem = lastItem)
+            .await()
+            .requireData()
+
+    suspend fun saveFeedCollections(feedId: String, ids: Set<String>, cancelIds: Set<String>) =
+        apiService
+            .saveFeedCollections(ids.joinToString(","), cancelIds.joinToString(","), feedId)
+            .await()
+            .requireData()
+
+    suspend fun createCollection(
+        title: String,
+        isOpen: Boolean,
+    ): AccountCollection {
+        val text = "text/plain; charset=utf-8".toMediaType()
+        return apiService
+            .createCollection(
+                title.toRequestBody(text),
+                (if (isOpen) "1" else "0").toRequestBody(text),
+                "".toRequestBody(text),
+                "".toRequestBody(text),
+                "".toRequestBody(text),
+            )
+            .await()
+            .requireData()
     }
 
     suspend fun postDelete(url: String, id: String) = fire {
