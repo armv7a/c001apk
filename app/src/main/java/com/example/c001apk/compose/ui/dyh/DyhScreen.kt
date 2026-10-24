@@ -18,13 +18,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MiuixTabScaffold
 import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.util.ReportType
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
 
 /** Created by bggRGjQaUbCoE on 2024/6/12 */
 @Composable
@@ -65,35 +64,32 @@ fun DyhScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding()),
         ) {
-            top.yukonga.miuix.kmp.basic.TabRow(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            MiuixTabScaffold(
                 tabs = tabList,
                 selectedTabIndex = pagerState.currentPage,
                 onTabSelected = { index ->
                     if (pagerState.currentPage == index) refreshState = true
                     scope.launch { pagerState.animateScrollToPage(index) }
                 },
-            )
-
-            HorizontalDivider()
-
-            HorizontalPager(state = pagerState) { index ->
-                DyhContentScreen(
-                    id = id,
-                    type = typeList[index],
-                    refreshState = refreshState,
-                    resetRefreshState = { refreshState = false },
-                    paddingValues =
-                        PaddingValues(
-                            start = paddingValues.calculateLeftPadding(layoutDirection),
-                            bottom = paddingValues.calculateBottomPadding(),
-                        ),
-                    onViewUser = onViewUser,
-                    onViewFeed = onViewFeed,
-                    onOpenLink = onOpenLink,
-                    onCopyText = onCopyText,
-                    onReport = onReport,
-                )
+            ) {
+                HorizontalPager(state = pagerState) { index ->
+                    DyhContentScreen(
+                        id = id,
+                        type = typeList[index],
+                        refreshState = refreshState,
+                        resetRefreshState = { refreshState = false },
+                        paddingValues =
+                            PaddingValues(
+                                start = paddingValues.calculateLeftPadding(layoutDirection),
+                                bottom = paddingValues.calculateBottomPadding(),
+                            ),
+                        onViewUser = onViewUser,
+                        onViewFeed = onViewFeed,
+                        onOpenLink = onOpenLink,
+                        onCopyText = onCopyText,
+                        onReport = onReport,
+                    )
+                }
             }
         }
     }

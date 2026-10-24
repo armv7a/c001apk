@@ -52,6 +52,10 @@ fun CommonScreen(
 
     val view = LocalView.current
     val layoutDirection = LocalLayoutDirection.current
+    val contentTopPadding =
+        12.dp +
+            LocalTabContentPadding.current.calculateTopPadding() +
+            if (needTopPadding) paddingValues.calculateTopPadding() else 0.dp
     val lazyListState = rememberLazyStaggeredGridState()
 
     LaunchedEffect(refreshState) {
@@ -79,7 +83,7 @@ fun CommonScreen(
         refreshTexts = listOf("下拉刷新", "释放刷新", "正在刷新", "刷新完成"),
         contentPadding =
             PaddingValues(
-                top = 12.dp + if (needTopPadding) paddingValues.calculateTopPadding() else 0.dp,
+                top = contentTopPadding,
             ),
     ) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -90,9 +94,7 @@ fun CommonScreen(
                 modifier = Modifier.fillMaxSize().scrollEndHaptic(),
                 contentPadding =
                     PaddingValues(
-                        top =
-                            12.dp +
-                                if (needTopPadding) paddingValues.calculateTopPadding() else 0.dp,
+                        top = contentTopPadding,
                         bottom = 24.dp + paddingValues.calculateBottomPadding(),
                     ),
                 verticalItemSpacing = 12.dp,

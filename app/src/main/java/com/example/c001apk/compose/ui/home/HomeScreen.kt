@@ -35,6 +35,7 @@ import com.example.c001apk.compose.logic.model.UpdateCheckItem
 import com.example.c001apk.compose.ui.component.MiuixActionButton as TextButton
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.MiuixScaffoldDefaults as ScaffoldDefaults
+import com.example.c001apk.compose.ui.component.MiuixTabRow
 import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.ui.component.rememberHapticClick
 import com.example.c001apk.compose.ui.feed.reply.ReplyActivity
@@ -48,7 +49,6 @@ import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
-import top.yukonga.miuix.kmp.basic.TabRow as MiuixTabRow
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Add
@@ -213,7 +213,6 @@ fun HomeScreen(
                 bottomContent = {
                     MiuixTabRow(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        indication = androidx.compose.foundation.LocalIndication.current,
                         tabs = tabList.map(::tabTitle),
                         selectedTabIndex = selectedTabIndex,
                         onTabSelected = { index ->

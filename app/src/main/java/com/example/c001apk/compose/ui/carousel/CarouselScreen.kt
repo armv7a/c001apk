@@ -32,6 +32,7 @@ import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.CommonScreen
 import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MiuixTabScaffold
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.decode
@@ -139,41 +140,37 @@ fun CarouselScreen(
                             }
                             ?.let { tabList ->
                                 pagerState = rememberPagerState(pageCount = { tabList.size })
-                                top.yukonga.miuix.kmp.basic.TabRow(
-                                    modifier =
-                                        Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                MiuixTabScaffold(
                                     tabs = tabList.map { it.title },
                                     selectedTabIndex = pagerState.currentPage,
                                     onTabSelected = { index ->
                                         if (pagerState.currentPage == index) refreshState = true
                                         scope.launch { pagerState.animateScrollToPage(index) }
                                     },
-                                )
-
-                                HorizontalDivider()
-
-                                HorizontalPager(
-                                    state = pagerState,
-                                ) { index ->
-                                    CarouselContentScreen(
-                                        url = tabList[index].url,
-                                        title = tabList[index].title,
-                                        paddingValues =
-                                            PaddingValues(
-                                                start =
-                                                    paddingValues.calculateLeftPadding(
-                                                        layoutDirection,
-                                                    ),
-                                                bottom = paddingValues.calculateBottomPadding(),
-                                            ),
-                                        refreshState = refreshState,
-                                        resetRefreshState = { refreshState = false },
-                                        onViewUser = onViewUser,
-                                        onViewFeed = onViewFeed,
-                                        onOpenLink = onOpenLink,
-                                        onCopyText = onCopyText,
-                                        onReport = onReport,
-                                    )
+                                ) {
+                                    HorizontalPager(
+                                        state = pagerState,
+                                    ) { index ->
+                                        CarouselContentScreen(
+                                            url = tabList[index].url,
+                                            title = tabList[index].title,
+                                            paddingValues =
+                                                PaddingValues(
+                                                    start =
+                                                        paddingValues.calculateLeftPadding(
+                                                            layoutDirection,
+                                                        ),
+                                                    bottom = paddingValues.calculateBottomPadding(),
+                                                ),
+                                            refreshState = refreshState,
+                                            resetRefreshState = { refreshState = false },
+                                            onViewUser = onViewUser,
+                                            onViewFeed = onViewFeed,
+                                            onOpenLink = onOpenLink,
+                                            onCopyText = onCopyText,
+                                            onReport = onReport,
+                                        )
+                                    }
                                 }
                             }
                     }

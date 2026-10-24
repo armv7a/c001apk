@@ -43,6 +43,7 @@ import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
 import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
+import com.example.c001apk.compose.ui.component.MiuixTabScaffold
 import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.ui.component.cards.AppInfoCard
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
@@ -228,50 +229,47 @@ fun AppScreen(
 
                     if (viewModel.commentStatus == 1) {
 
-                        top.yukonga.miuix.kmp.basic.TabRow(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        MiuixTabScaffold(
                             tabs = tabList,
                             selectedTabIndex = pagerState.currentPage,
                             onTabSelected = { index ->
                                 if (pagerState.currentPage == index) refreshState = true
                                 scope.launch { pagerState.animateScrollToPage(index) }
                             },
-                        )
-
-                        HorizontalDivider()
-
-                        HorizontalPager(
-                            state = pagerState,
-                        ) { index ->
-                            AppContentScreen(
-                                refreshState = refreshState,
-                                resetRefreshState = {
-                                    refreshState = false
-                                },
-                                id = viewModel.id,
-                                appCommentSort =
-                                    when (index) {
-                                        0 -> EMPTY_STRING
-                                        1 -> "&sort=dateline_desc"
-                                        2 -> "&sort=popular"
-                                        else -> EMPTY_STRING
+                        ) {
+                            HorizontalPager(
+                                state = pagerState,
+                            ) { index ->
+                                AppContentScreen(
+                                    refreshState = refreshState,
+                                    resetRefreshState = {
+                                        refreshState = false
                                     },
-                                appCommentTitle =
-                                    when (index) {
-                                        0 -> "最近回复"
-                                        1 -> "最新发布"
-                                        2 -> "热度排序"
-                                        else -> "最近回复"
+                                    id = viewModel.id,
+                                    appCommentSort =
+                                        when (index) {
+                                            0 -> EMPTY_STRING
+                                            1 -> "&sort=dateline_desc"
+                                            2 -> "&sort=popular"
+                                            else -> EMPTY_STRING
+                                        },
+                                    appCommentTitle =
+                                        when (index) {
+                                            0 -> "最近回复"
+                                            1 -> "最新发布"
+                                            2 -> "热度排序"
+                                            else -> "最近回复"
+                                        },
+                                    onViewUser = onViewUser,
+                                    onViewFeed = onViewFeed,
+                                    onOpenLink = onOpenLink,
+                                    onCopyText = onCopyText,
+                                    onReport = onReport,
+                                    isScrollingUp = {
+                                        isScrollingUp = it
                                     },
-                                onViewUser = onViewUser,
-                                onViewFeed = onViewFeed,
-                                onOpenLink = onOpenLink,
-                                onCopyText = onCopyText,
-                                onReport = onReport,
-                                isScrollingUp = {
-                                    isScrollingUp = it
-                                },
-                            )
+                                )
+                            }
                         }
                     } else {
                         HorizontalDivider()

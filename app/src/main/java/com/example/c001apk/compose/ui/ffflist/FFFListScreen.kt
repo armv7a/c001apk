@@ -19,12 +19,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.ui.carousel.CarouselContentScreen
 import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MiuixTabScaffold
 import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.ReportType
 import kotlinx.coroutines.launch
@@ -125,87 +125,85 @@ fun FFFListScreen(
             when (type) {
                 FFFListType.FOLLOW.name,
                 FFFListType.REPLY.name -> {
-                    top.yukonga.miuix.kmp.basic.TabRow(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    MiuixTabScaffold(
                         tabs = tabList,
                         selectedTabIndex = pagerState.currentPage,
                         onTabSelected = { index ->
                             if (pagerState.currentPage == index) refreshState = true
                             scope.launch { pagerState.animateScrollToPage(index) }
                         },
-                    )
+                    ) {
+                        HorizontalPager(
+                            state = pagerState,
+                        ) { index ->
+                            if (type == FFFListType.FOLLOW.name) {
+                                when (index) {
+                                    0,
+                                    3 ->
+                                        FFFContentScreen(
+                                            id = id,
+                                            uid = uid,
+                                            type =
+                                                if (index == 0) FFFListType.FOLLOW.name
+                                                else FFFListType.APK.name,
+                                            paddingValues =
+                                                PaddingValues(
+                                                    start =
+                                                        paddingValues.calculateLeftPadding(
+                                                            layoutDirection,
+                                                        ),
+                                                    bottom = paddingValues.calculateBottomPadding(),
+                                                ),
+                                            refreshState = refreshState,
+                                            resetRefreshState = { refreshState = false },
+                                            onViewUser = onViewUser,
+                                            onViewFeed = onViewFeed,
+                                            onOpenLink = onOpenLink,
+                                            onCopyText = onCopyText,
+                                            onReport = onReport,
+                                            onViewFFFList = onViewFFFList,
+                                        )
 
-                    HorizontalDivider()
-
-                    HorizontalPager(
-                        state = pagerState,
-                    ) { index ->
-                        if (type == FFFListType.FOLLOW.name) {
-                            when (index) {
-                                0,
-                                3 ->
-                                    FFFContentScreen(
-                                        id = id,
-                                        uid = uid,
-                                        type =
-                                            if (index == 0) FFFListType.FOLLOW.name
-                                            else FFFListType.APK.name,
-                                        paddingValues =
-                                            PaddingValues(
-                                                start =
-                                                    paddingValues.calculateLeftPadding(
-                                                        layoutDirection,
-                                                    ),
-                                                bottom = paddingValues.calculateBottomPadding(),
-                                            ),
-                                        refreshState = refreshState,
-                                        resetRefreshState = { refreshState = false },
-                                        onViewUser = onViewUser,
-                                        onViewFeed = onViewFeed,
-                                        onOpenLink = onOpenLink,
-                                        onCopyText = onCopyText,
-                                        onReport = onReport,
-                                        onViewFFFList = onViewFFFList,
-                                    )
-
-                                1,
-                                2 ->
-                                    CarouselContentScreen(
-                                        url =
-                                            if (index == 1) "#/topic/userFollowTagList"
-                                            else "#/product/followProductList",
-                                        title = if (index == 1) "我关注的话题" else "我关注的数码吧",
-                                        paddingValues = paddingValues,
-                                        refreshState = refreshState,
-                                        resetRefreshState = { refreshState = false },
-                                        onViewUser = onViewUser,
-                                        onViewFeed = onViewFeed,
-                                        onOpenLink = onOpenLink,
-                                        onCopyText = onCopyText,
-                                        onReport = onReport,
-                                    )
+                                    1,
+                                    2 ->
+                                        CarouselContentScreen(
+                                            url =
+                                                if (index == 1) "#/topic/userFollowTagList"
+                                                else "#/product/followProductList",
+                                            title = if (index == 1) "我关注的话题" else "我关注的数码吧",
+                                            paddingValues = paddingValues,
+                                            refreshState = refreshState,
+                                            resetRefreshState = { refreshState = false },
+                                            onViewUser = onViewUser,
+                                            onViewFeed = onViewFeed,
+                                            onOpenLink = onOpenLink,
+                                            onCopyText = onCopyText,
+                                            onReport = onReport,
+                                        )
+                                }
+                            } else if (type == FFFListType.REPLY.name) {
+                                FFFContentScreen(
+                                    id = id,
+                                    uid = uid,
+                                    type =
+                                        if (index == 0) FFFListType.REPLY.name
+                                        else FFFListType.REPLYME.name,
+                                    paddingValues =
+                                        PaddingValues(
+                                            start =
+                                                paddingValues.calculateLeftPadding(layoutDirection),
+                                            bottom = paddingValues.calculateBottomPadding(),
+                                        ),
+                                    refreshState = refreshState,
+                                    resetRefreshState = { refreshState = false },
+                                    onViewUser = onViewUser,
+                                    onViewFeed = onViewFeed,
+                                    onOpenLink = onOpenLink,
+                                    onCopyText = onCopyText,
+                                    onReport = onReport,
+                                    onViewFFFList = onViewFFFList,
+                                )
                             }
-                        } else if (type == FFFListType.REPLY.name) {
-                            FFFContentScreen(
-                                id = id,
-                                uid = uid,
-                                type =
-                                    if (index == 0) FFFListType.REPLY.name
-                                    else FFFListType.REPLYME.name,
-                                paddingValues =
-                                    PaddingValues(
-                                        start = paddingValues.calculateLeftPadding(layoutDirection),
-                                        bottom = paddingValues.calculateBottomPadding(),
-                                    ),
-                                refreshState = refreshState,
-                                resetRefreshState = { refreshState = false },
-                                onViewUser = onViewUser,
-                                onViewFeed = onViewFeed,
-                                onOpenLink = onOpenLink,
-                                onCopyText = onCopyText,
-                                onReport = onReport,
-                                onViewFFFList = onViewFFFList,
-                            )
                         }
                     }
                 }

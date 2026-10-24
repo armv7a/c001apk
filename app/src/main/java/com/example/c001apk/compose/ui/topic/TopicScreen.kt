@@ -47,6 +47,7 @@ import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
 import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MiuixTabScaffold
 import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
 import com.example.c001apk.compose.ui.component.rememberHapticClick
@@ -57,7 +58,6 @@ import com.example.c001apk.compose.util.makeToast
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.RadioButton
@@ -343,49 +343,47 @@ fun TopicScreen(
                                 pageCount = { tabList.size },
                             )
 
-                        top.yukonga.miuix.kmp.basic.TabRow(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        MiuixTabScaffold(
                             tabs = tabList.map { it.title.orEmpty() },
                             selectedTabIndex = pagerState.currentPage,
                             onTabSelected = { index ->
                                 if (pagerState.currentPage == index) refreshState = true
                                 scope.launch { pagerState.animateScrollToPage(index) }
                             },
-                        )
-
-                        HorizontalDivider()
-
-                        HorizontalPager(
-                            state = pagerState,
-                        ) { index ->
-                            TopicContentScreen(
-                                refreshState = refreshState,
-                                resetRefreshState = {
-                                    refreshState = false
-                                },
-                                paddingValues =
-                                    PaddingValues(
-                                        start = paddingValues.calculateLeftPadding(layoutDirection),
-                                        bottom = paddingValues.calculateBottomPadding(),
-                                    ),
-                                entityType = viewModel.entityType,
-                                id = viewModel.id,
-                                url = tabList[index].url.orEmpty(),
-                                title = tabList[index].title.orEmpty(),
-                                productTitle = viewModel.title,
-                                productLogo = viewModel.productLogo,
-                                productConfigRows = viewModel.productConfigRows,
-                                productSheetTopPadding = paddingValues.calculateTopPadding(),
-                                sortType = sortType,
-                                onViewUser = onViewUser,
-                                onViewFeed = onViewFeed,
-                                onOpenLink = onOpenLink,
-                                onCopyText = onCopyText,
-                                onReport = onReport,
-                                isScrollingUp = {
-                                    isScrollingUp = it
-                                },
-                            )
+                        ) {
+                            HorizontalPager(
+                                state = pagerState,
+                            ) { index ->
+                                TopicContentScreen(
+                                    refreshState = refreshState,
+                                    resetRefreshState = {
+                                        refreshState = false
+                                    },
+                                    paddingValues =
+                                        PaddingValues(
+                                            start =
+                                                paddingValues.calculateLeftPadding(layoutDirection),
+                                            bottom = paddingValues.calculateBottomPadding(),
+                                        ),
+                                    entityType = viewModel.entityType,
+                                    id = viewModel.id,
+                                    url = tabList[index].url.orEmpty(),
+                                    title = tabList[index].title.orEmpty(),
+                                    productTitle = viewModel.title,
+                                    productLogo = viewModel.productLogo,
+                                    productConfigRows = viewModel.productConfigRows,
+                                    productSheetTopPadding = paddingValues.calculateTopPadding(),
+                                    sortType = sortType,
+                                    onViewUser = onViewUser,
+                                    onViewFeed = onViewFeed,
+                                    onOpenLink = onOpenLink,
+                                    onCopyText = onCopyText,
+                                    onReport = onReport,
+                                    isScrollingUp = {
+                                        isScrollingUp = it
+                                    },
+                                )
+                            }
                         }
                     }
                 }

@@ -31,13 +31,13 @@ import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MiuixTabScaffold
 import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.noRippleClickable
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.RadioButton
 import top.yukonga.miuix.kmp.basic.Text
@@ -251,48 +251,44 @@ fun SearchResultScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding()),
         ) {
-            if (pageType.isNullOrEmpty()) {
-                top.yukonga.miuix.kmp.basic.TabRow(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    tabs = tabList.map(::searchTypeTitle),
-                    selectedTabIndex = pagerState.currentPage,
-                    onTabSelected = { index ->
-                        if (pagerState.currentPage == index) refreshState = true
-                        scope.launch { pagerState.animateScrollToPage(index) }
-                    },
-                )
-            }
-
-            HorizontalDivider()
-
-            HorizontalPager(
-                state = pagerState,
-            ) { index ->
-                SearchContentScreen(
-                    searchType = SearchType.valueOf(SearchType.entries[index].name),
-                    keyword = keyword.decode,
-                    pageType = pageType,
-                    pageParam = pageParam,
-                    refreshState = refreshState,
-                    resetRefreshState = {
-                        refreshState = false
-                    },
-                    feedType = feedType,
-                    orderType = orderType,
-                    paddingValues =
-                        PaddingValues(
-                            start = paddingValues.calculateLeftPadding(layoutDirection),
-                            bottom = paddingValues.calculateBottomPadding(),
-                        ),
-                    onViewUser = onViewUser,
-                    onViewFeed = onViewFeed,
-                    onOpenLink = onOpenLink,
-                    onCopyText = onCopyText,
-                    updateInitPage = {
-                        updateInitPage(pagerState.currentPage)
-                    },
-                    onReport = onReport,
-                )
+            MiuixTabScaffold(
+                tabs = tabList.map(::searchTypeTitle),
+                selectedTabIndex = pagerState.currentPage,
+                onTabSelected = { index ->
+                    if (pagerState.currentPage == index) refreshState = true
+                    scope.launch { pagerState.animateScrollToPage(index) }
+                },
+                visible = pageType.isNullOrEmpty(),
+            ) {
+                HorizontalPager(
+                    state = pagerState,
+                ) { index ->
+                    SearchContentScreen(
+                        searchType = SearchType.valueOf(SearchType.entries[index].name),
+                        keyword = keyword.decode,
+                        pageType = pageType,
+                        pageParam = pageParam,
+                        refreshState = refreshState,
+                        resetRefreshState = {
+                            refreshState = false
+                        },
+                        feedType = feedType,
+                        orderType = orderType,
+                        paddingValues =
+                            PaddingValues(
+                                start = paddingValues.calculateLeftPadding(layoutDirection),
+                                bottom = paddingValues.calculateBottomPadding(),
+                            ),
+                        onViewUser = onViewUser,
+                        onViewFeed = onViewFeed,
+                        onOpenLink = onOpenLink,
+                        onCopyText = onCopyText,
+                        updateInitPage = {
+                            updateInitPage(pagerState.currentPage)
+                        },
+                        onReport = onReport,
+                    )
+                }
             }
         }
     }
