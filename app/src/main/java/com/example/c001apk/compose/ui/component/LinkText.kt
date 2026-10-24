@@ -2,13 +2,10 @@ package com.example.c001apk.compose.ui.component
 
 import android.graphics.Typeface
 import android.text.TextUtils
-import android.util.TypedValue
 import android.widget.TextView
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
 import androidx.core.text.method.LinkMovementMethodCompat
@@ -38,11 +35,15 @@ fun LinkText(
     val userPreference = LocalUserPreferences.current
 
     val primary = MiuixTheme.colorScheme.primary.toArgb()
-    val textSizePx = with(LocalDensity.current) { textSize.sp.toPx() }
     AndroidView(
         modifier = modifier,
         factory = { context ->
             LinkTextView(context).apply {
+                setParams(
+                    isReply = isReply,
+                    size = textSize,
+                    fontScale = userPreference.fontScale,
+                )
                 if (isBold) setTypeface(typeface, Typeface.BOLD)
                 setLineSpacing(0.0f, lineSpacingMultiplier)
                 maxLines?.let {
@@ -56,7 +57,6 @@ fun LinkText(
             }
         },
         update = { textView ->
-            textView.setParams(isReply = isReply, sizePx = textSizePx)
             textView.setSpText(
                 text = text.orEmpty(),
                 color = primary,
@@ -80,19 +80,15 @@ fun LinkText(
 fun HtmlText(html: String, modifier: Modifier = Modifier) {
     val contentColor = LocalContentColor.current.toArgb()
     val primary = MiuixTheme.colorScheme.primary.toArgb()
-    val textSizePx = with(LocalDensity.current) { 14.sp.toPx() }
     AndroidView(
         modifier = modifier,
         factory = { context ->
             TextView(context).apply {
                 movementMethod = LinkMovementMethodCompat.getInstance()
+                setTextColor(contentColor)
+                setLinkTextColor(primary)
+                text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_COMPACT)
             }
-        },
-        update = { textView ->
-            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSizePx)
-            textView.setTextColor(contentColor)
-            textView.setLinkTextColor(primary)
-            textView.text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_COMPACT)
         },
     )
 }

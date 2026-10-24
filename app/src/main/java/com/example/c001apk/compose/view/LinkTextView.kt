@@ -14,7 +14,7 @@ import android.view.MotionEvent
 import android.widget.TextView
 import com.example.c001apk.compose.util.SpannableStringBuilderUtil
 
-// https://stackoverflow.com/questions/8558732
+//https://stackoverflow.com/questions/8558732
 class LinkTextView : androidx.appcompat.widget.AppCompatTextView {
 
     override fun getHighlightColor(): Int {
@@ -25,14 +25,9 @@ class LinkTextView : androidx.appcompat.widget.AppCompatTextView {
     var linkHit = false
 
     constructor(context: Context) : super(context)
-
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-
-    constructor(
-        context: Context,
-        attrs: AttributeSet?,
-        defStyleAttr: Int,
-    ) : super(context, attrs, defStyleAttr)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
+            super(context, attrs, defStyleAttr)
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -44,11 +39,12 @@ class LinkTextView : androidx.appcompat.widget.AppCompatTextView {
     class LocalLinkMovementMethod(private val isReply: Boolean) : LinkMovementMethod() {
         override fun onTouchEvent(
             widget: TextView,
-            buffer: Spannable,
-            event: MotionEvent,
+            buffer: Spannable, event: MotionEvent
         ): Boolean {
             val action = event.action
-            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_DOWN) {
+            if (action == MotionEvent.ACTION_UP ||
+                action == MotionEvent.ACTION_DOWN
+            ) {
                 var x = event.x.toInt()
                 var y = event.y.toInt()
                 x -= widget.totalPaddingLeft
@@ -56,25 +52,21 @@ class LinkTextView : androidx.appcompat.widget.AppCompatTextView {
                 x += widget.scrollX
                 y += widget.scrollY
                 val layout = widget.layout
-                val isOutOfLineBounds: Boolean =
-                    if (y < 0 || y > layout.height) {
-                        true
-                    } else {
-                        val line = layout.getLineForVertical(y)
-                        (x < layout.getLineLeft(line) || x > layout.getLineRight(line))
-                    }
+                val isOutOfLineBounds: Boolean = if (y < 0 || y > layout.height) {
+                    true
+                } else {
+                    val line = layout.getLineForVertical(y)
+                    (x < layout.getLineLeft(line) || x > layout.getLineRight(line))
+                }
                 if (isOutOfLineBounds) {
                     Selection.removeSelection(buffer)
                     return Touch.onTouchEvent(widget, buffer, event)
                 }
                 val line = layout.getLineForVertical(y)
                 val off = layout.getOffsetForHorizontal(line, x.toFloat())
-                val link =
-                    buffer.getSpans(
-                        off,
-                        off,
-                        ClickableSpan::class.java,
-                    )
+                val link = buffer.getSpans(
+                    off, off, ClickableSpan::class.java
+                )
                 if (link.isNotEmpty()) {
                     if (action == MotionEvent.ACTION_UP) {
                         link[0].onClick(widget)
@@ -118,12 +110,14 @@ class LinkTextView : androidx.appcompat.widget.AppCompatTextView {
 
     fun setParams(
         isReply: Boolean = false,
-        sizePx: Float,
+        size: Float,
+        fontScale: Float,
     ) {
         movementMethod =
             if (isReply) LocalLinkMovementMethod.instanceR else LocalLinkMovementMethod.instance
-        setTextSize(TypedValue.COMPLEX_UNIT_PX, sizePx)
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, size * fontScale)
     }
+
 
     fun setSpText(
         text: String,
@@ -132,16 +126,16 @@ class LinkTextView : androidx.appcompat.widget.AppCompatTextView {
         onOpenLink: (String, String?) -> Unit,
         onShowImages: (String) -> Unit,
     ) {
-        val spText =
-            SpannableStringBuilderUtil.setText(
-                context,
-                text,
-                textSize,
-                color,
-                onShowTotalReply,
-                onOpenLink,
-                onShowImages,
-            )
+        val spText = SpannableStringBuilderUtil.setText(
+            context,
+            text,
+            textSize,
+            color,
+            onShowTotalReply,
+            onOpenLink,
+            onShowImages,
+        )
         setText(spText)
     }
+
 }
