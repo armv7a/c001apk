@@ -4,7 +4,7 @@
 
 ## 自动验证
 
-- `:app:testDebugUnitTest`：52 项通过，无失败/跳过。
+- `:app:testDebugUnitTest`：53 项通过，无失败/跳过。
 - `:media-support:testDebugUnitTest`：8 项通过，无失败/跳过。
 - `:app:lintDebug`：通过，0 error；保留已有 warning，没有把 warning 当作 error 隐藏。
 - `:app:assembleRelease`：R8 和资源压缩构建通过。
@@ -17,10 +17,15 @@
 
 - 保留既有数据覆盖安装，native 数盟 ID 继续复用。
 - `ProtocolReadTest` 两项通过：APK 包含 Cookie/Markdown 运行资源；已配置的数盟与 V3 请求可读取真实首页数据。不记录 ID、Cookie、token 或响应正文。
+- `ProtocolReadTest.nativeImagesDecodeAvatarThumbnailAndFullSize` 显式启用真实图片网络后通过：关闭内存/磁盘缓存，头像解码为 800×800，原图和缩略图分别解码为 800×601。未记录图片 URL 或用户请求凭据。
+- 图片回归根因已实测：清除 API 设备 User-Agent 后未补充公共 User-Agent，CDN 对头像、原图、缩略图均返回 HTTP 567；固定通用浏览器 User-Agent 的对照请求返回 HTTP 200 / image/jpeg，无需 Referer。修复仍在每次重定向清除外域 Cookie、token 和设备身份，并新增边界测试。
+- 手动确认新版用户主页的封面/头像、动态详情缩略图和全屏原图均显示。图片失败时提供点击重试；未将失败后手动重试计为已完成的真机用例。
+- 动态详情作者资料并入正文卡片，子评论使用独立底色，保留正文后的评论和登录后的回复浮钮，移除独立“查看评论”底栏；评论分类改为 13 sp 文字选项，无 TabRow 容器或滑块。用户主页采用封面、头像、资料操作和统计卡片。
+- 手动确认新版“我的”页资料卡、快捷入口与消息分组；首页快捷图标顶部留白及三点图标缩放。
 - 手动确认：首页数据加载、动态详情、首页三点菜单展开及返回关闭、保存格式弹窗、游客“我的”和本地关注入口。
 - Markdown 通过系统 SAF 实际保存，核对文件正文及来源链接后删除本次测试文件。
 - `MiuixPreferencesTest.clickingSwitchRowSavesExactlyOnce` 通过。
-- 单选弹窗自动测试被设备切换到其他应用打断，未计为通过。此前数盟身份适配和横竖屏 Editable 编辑器测试已通过；未将旧测试结果当作整套最终仪器测试通过。
+- 单选弹窗自动测试被设备切换到其他应用打断，未计为通过；Release 手动选择、立即生效与自动关闭已确认，并恢复原设置。此前数盟身份适配和横竖屏 Editable 编辑器测试已通过；未将旧测试结果当作整套最终仪器测试通过。
 - 修复实机暴露的两个崩溃：打包排除 OkHttp publicsuffixes.gz，以及旧 Activity 不提供 miuix 窗口所需 NavigationEventDispatcher。
 
 ## 范围与限制
