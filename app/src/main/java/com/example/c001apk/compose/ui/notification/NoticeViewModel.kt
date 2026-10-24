@@ -14,11 +14,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/13
- */
+/** Created by bggRGjQaUbCoE on 2024/6/13 */
 @HiltViewModel(assistedFactory = NoticeViewModel.ViewModelFactory::class)
-class NoticeViewModel @AssistedInject constructor(
+class NoticeViewModel
+@AssistedInject
+constructor(
     @Assisted val url: String,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
@@ -39,21 +39,22 @@ class NoticeViewModel @AssistedInject constructor(
     lateinit var ukey: String
 
     fun onHandleMessage(actionType: ActionType) {
-        val url = when (actionType) {
-            ActionType.TOP -> "/v6/message/${if (isTop == 1) "removeTop" else "addTop"}"
-            ActionType.DELETE -> "/v6/message/deleteChat"
-            ActionType.DELETE_ALL -> EMPTY_STRING
-        }
+        val url =
+            when (actionType) {
+                ActionType.TOP -> "/v6/message/${if (isTop == 1) "removeTop" else "addTop"}"
+                ActionType.DELETE -> "/v6/message/deleteChat"
+                ActionType.DELETE_ALL -> EMPTY_STRING
+            }
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.deleteMessage(url, ukey, null)
-                .collect { result ->
-                    val data = result.getOrNull()
-                    if (data != null) {
-                        if (!data.message.isNullOrEmpty()) {
-                            toastText = data.message
-                        } else if (data.data?.count?.contains("成功") == true) {
-                            var response = (loadingState as LoadingState.Success).response
-                            response = when (actionType) {
+            networkRepo.deleteMessage(url, ukey, null).collect { result ->
+                val data = result.getOrNull()
+                if (data != null) {
+                    if (!data.message.isNullOrEmpty()) {
+                        toastText = data.message
+                    } else if (data.data?.count?.contains("成功") == true) {
+                        var response = (loadingState as LoadingState.Success).response
+                        response =
+                            when (actionType) {
                                 ActionType.TOP -> {
                                     if (isTop == 0) {
                                         val actionItem = response.find { it.ukey == ukey }
@@ -66,8 +67,7 @@ class NoticeViewModel @AssistedInject constructor(
                                         }
                                     } else {
                                         response.map {
-                                            if (it.ukey == ukey) it.copy(isTop = 0)
-                                            else it
+                                            if (it.ukey == ukey) it.copy(isTop = 0) else it
                                         }
                                     }
                                 }
@@ -75,14 +75,33 @@ class NoticeViewModel @AssistedInject constructor(
                                 ActionType.DELETE -> response.filterNot { it.ukey == ukey }
                                 ActionType.DELETE_ALL -> response
                             }
-                            loadingState = LoadingState.Success(response)
-                            toastText = data.data.count
-                        }
-                    } else {
-                        toastText = result.exceptionOrNull()?.message ?: "response is null"
-                        result.exceptionOrNull()?.printStackTrace()
+                        loadingState = LoadingState.Success(response)
+                        toastText = data.data.count
                     }
+                } else {
+                    toastText = result.exceptionOrNull()?.message ?: "response is null"
+                    result.exceptionOrNull()?.printStackTrace()
                 }
+            }
+        }
+    }
+
+    fun deleteNotice(id: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            networkRepo.postDelete("/v6/notification/delete", id).collect { result ->
+                val data = result.getOrNull()
+                val error = data?.message
+                if (!error.isNullOrBlank()) toastText = error
+                else if (data?.data?.count?.contains("成功") == true) {
+                    (loadingState as? LoadingState.Success)?.let { current ->
+                        loadingState =
+                            LoadingState.Success(current.response.filterNot { it.id == id })
+                    }
+                    toastText = data.data.count
+                } else {
+                    toastText = result.exceptionOrNull()?.message ?: "删除失败，请稍后重试"
+                }
+            }
         }
     }
 
@@ -90,13 +109,9 @@ class NoticeViewModel @AssistedInject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             var response = (loadingState as LoadingState.Success).response
             response = response.map { item ->
-                if (item.ukey == ukey)
-                    item.copy(unreadNum = 0)
-                else
-                    item
+                if (item.ukey == ukey) item.copy(unreadNum = 0) else item
             }
             loadingState = LoadingState.Success(response)
         }
     }
-
 }

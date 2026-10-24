@@ -2,16 +2,18 @@ package com.example.c001apk.compose.ui.component.cards
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
@@ -19,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.ui.ffflist.FFFListType
 import com.example.c001apk.compose.ui.history.HistoryType
 import com.example.c001apk.compose.ui.theme.cardBg
@@ -126,17 +127,19 @@ fun FFFCardItem(
                 .clickable {
                     onViewFFFList()
                 }
-                .padding(vertical = 5.dp),
+                .heightIn(min = 68.dp)
+                .padding(vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (imageVector == null) {
             Text(
-                text = value ?: EMPTY_STRING,
+                text = value ?: "—",
                 style =
                     MiuixTheme.textStyles.subtitle.copy(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = FontFamily.SansSerif,
                     ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -144,6 +147,7 @@ fun FFFCardItem(
         } else {
             Image(
                 imageVector = imageVector,
+                modifier = Modifier.size(24.dp),
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(MiuixTheme.colorScheme.onSurfaceVariantSummary),
             )
@@ -151,8 +155,7 @@ fun FFFCardItem(
 
         Text(
             text = title,
-            style = MiuixTheme.textStyles.body1,
-            modifier = Modifier.alpha(if (value.isNullOrEmpty() && imageVector == null) 0f else 1f),
+            style = MiuixTheme.textStyles.body2.copy(fontSize = 14.sp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

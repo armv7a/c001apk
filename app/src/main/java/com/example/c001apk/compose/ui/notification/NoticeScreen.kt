@@ -41,6 +41,7 @@ enum class NoticeType {
     LIKE,
     FOLLOW,
     MESSAGE,
+    NOTIFICATION,
 }
 
 @Composable
@@ -65,6 +66,7 @@ fun NoticeScreen(
                         NoticeType.LIKE.name -> "/v6/notification/feedLikeList"
                         NoticeType.FOLLOW.name -> "/v6/notification/contactsFollowList"
                         NoticeType.MESSAGE.name -> "/v6/message/list"
+                        NoticeType.NOTIFICATION.name -> "/v6/notification/list"
                         else -> throw IllegalArgumentException("invalid type: $type")
                     },
             )
@@ -77,6 +79,7 @@ fun NoticeScreen(
         context.makeToast(it)
     }
     var showMessageDialog by remember { mutableStateOf(false) }
+    var deleteNoticeId by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -96,6 +99,7 @@ fun NoticeScreen(
                                 NoticeType.LIKE.name -> "我收到的赞"
                                 NoticeType.FOLLOW.name -> "好友关注"
                                 NoticeType.MESSAGE.name -> "私信"
+                                NoticeType.NOTIFICATION.name -> "通知"
                                 else -> throw IllegalArgumentException("invalid type: $type")
                             },
                         maxLines = 1,
@@ -126,9 +130,36 @@ fun NoticeScreen(
                 viewModel.isTop = isTop
                 showMessageDialog = true
             },
+            onDeleteNotice = { deleteNoticeId = it },
             onViewChat = { ukey, uid, username ->
                 viewModel.resetUnRead(ukey)
                 onViewChat(ukey, uid, username)
+            },
+        )
+    }
+
+    deleteNoticeId?.let { id ->
+        com.example.c001apk.compose.ui.component.MiuixAlertDialog(
+            title = { Text("删除这条通知？") },
+            onDismissRequest = { deleteNoticeId = null },
+            confirmButton = {
+                com.example.c001apk.compose.ui.component.MiuixDialogButton(
+                    onClick = {
+                        deleteNoticeId = null
+                        viewModel.deleteNotice(id)
+                    },
+                ) {
+                    Text("删除")
+                }
+            },
+            dismissButton = {
+                com.example.c001apk.compose.ui.component.MiuixDialogButton(
+                    onClick = {
+                        deleteNoticeId = null
+                    },
+                ) {
+                    Text("取消")
+                }
             },
         )
     }

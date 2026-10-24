@@ -16,6 +16,7 @@
 - 输入框、按钮、图标按钮、单选/多选/开关、进度条、分隔线、通知条、菜单、底部弹层和下拉刷新使用原生 miuix。窗口弹窗限制内容高度，按钮独立于滚动区。
 - 动态、评论、历史与通知卡片的三点菜单统一使用 miuix IconButton / BasicComponent / WindowListPopup。按钮使用透明底色，展开后不保持灰色按压底；菜单以实际按钮为锚点右对齐，按压与开合动画由 miuix 实现。
 - 发帖编辑器保留 Android Editable、表情 span、选区和输入法处理；输入区使用 squircle 背景，勾选框和加载指示器通过 ComposeView 使用原生 miuix。View 页面上的确认、验证码和下载弹窗使用 miuix 内容。
+- “我的”页按 Flutter 参考版采用固定个人资料区、两行三列快捷入口和紧凑消息分组；私信与通知分别保留入口。对应 14 个 Flutter 图标提取为独立矢量，许可见 [图标声明](THIRD_PARTY_ICONS.md)。
 - 主要图标使用 MiuixIcons。点赞、表情、退格等少量社区动作保留独立 AOSP 矢量源码，附原始 Apache 2.0 许可头，不依赖 Material 图标库；Swatch 保留上游署名。机型名称使用本地绘制的现代手机轮廓，动态与评论操作菜单使用三点 More 图标。
 - 删除直接 Material 3、Material Components、Material 图标库及旧 MaterialKolor Compose 配色依赖。miuix 自身内部使用的颜色算法和窗口尺寸分类工具由 miuix 管理。折叠工具栏库未使用 Material API，已排除其发布时附带的 Material 和预览工具依赖。
 

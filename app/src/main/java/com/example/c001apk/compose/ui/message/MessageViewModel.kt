@@ -24,14 +24,14 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/11
- */
+/** Created by bggRGjQaUbCoE on 2024/6/11 */
 @HiltViewModel(assistedFactory = MessageViewModel.ViewModelFactory::class)
-class MessageViewModel @AssistedInject constructor(
+class MessageViewModel
+@AssistedInject
+constructor(
     @Assisted val url: String,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
@@ -40,6 +40,7 @@ class MessageViewModel @AssistedInject constructor(
 
     var fffList by mutableStateOf<List<String>>(emptyList())
         private set
+
     var badgeList by mutableStateOf(listOf(atme, atcommentme, feedlike, contacts_follow, message))
         private set
 
@@ -52,33 +53,31 @@ class MessageViewModel @AssistedInject constructor(
         fun create(url: String): MessageViewModel
     }
 
-    override suspend fun customFetchData() =
-        networkRepo.getMessage(url, page, lastItem)
+    override suspend fun customFetchData() = networkRepo.getMessage(url, page, lastItem)
 
-    private fun fetchProfile() {
+    private fun fetchProfile() =
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.getProfile(uid)
-                .collect { result ->
-                    val data = result.getOrNull()
-                    if (data?.data != null) {
-                        fffList = listOf(
+            networkRepo.getProfile(uid).collect { result ->
+                val data = result.getOrNull()
+                if (data?.data != null) {
+                    fffList =
+                        listOf(
                             data.data.feed?.id ?: "0",
                             data.data.follow ?: "0",
-                            data.data.fans ?: "0"
+                            data.data.fans ?: "0",
                         )
-                        userPreferencesRepository.apply {
-                            setUserAvatar(data.data.userAvatar.orEmpty())
-                            setUsername(data.data.username.encode)
-                            setLevel(data.data.level ?: "0")
-                            setExperience(data.data.experience ?: "0")
-                            setNextLevelExperience(data.data.nextLevelExperience ?: "0")
-                        }
-                    } else {
-                        result.exceptionOrNull()?.printStackTrace()
+                    userPreferencesRepository.apply {
+                        setUserAvatar(data.data.userAvatar.orEmpty())
+                        setUsername(data.data.username.encode)
+                        setLevel(data.data.level ?: "0")
+                        setExperience(data.data.experience ?: "0")
+                        setNextLevelExperience(data.data.nextLevelExperience ?: "0")
                     }
+                } else {
+                    result.exceptionOrNull()?.printStackTrace()
                 }
+            }
         }
-    }
 
     fun onLogout() {
         viewModelScope.launch {
@@ -96,67 +95,35 @@ class MessageViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onCheckCount() {
+    private fun onCheckCount() =
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.checkCount()
-                .collect { result ->
-                    result.getOrNull()?.data?.let {
-                        badgeList = listOf(
-                            it.atme, it.atcommentme, it.feedlike, it.contactsFollow, it.message
+            networkRepo.checkCount().collect { result ->
+                result.getOrNull()?.data?.let {
+                    badgeList =
+                        listOf(
+                            it.atme,
+                            it.atcommentme,
+                            it.feedlike,
+                            it.contactsFollow,
+                            it.message,
                         )
-                    }
                 }
+            }
         }
-    }
 
     override fun refresh() {
-        if (isLogin && !isRefreshing && !isLoadMore) {
-            page = 1
-            isEnd = false
-            isLoadMore = false
-            isRefreshing = true
-            firstItem = null
-            lastItem = null
-            fetchProfile()
-            onCheckCount()
-            fetchData()
-        } else {
-            viewModelScope.launch {
-                isRefreshing = true
-                delay(50)
+        if (!isLogin || isRefreshing) return
+        isRefreshing = true
+        viewModelScope.launch {
+            try {
+                joinAll(fetchProfile(), onCheckCount())
+            } finally {
                 isRefreshing = false
             }
         }
     }
 
     fun clearBadge(index: Int) {
-        badgeList = badgeList.mapIndexed { i, count ->
-            if (index == i) null
-            else count
-        }
+        badgeList = badgeList.mapIndexed { i, count -> if (index == i) null else count }
     }
-
-    lateinit var deleteId: String
-    fun onPostDelete() {
-        viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.postDelete("/v6/notification/delete", deleteId)
-                .collect { result ->
-                    val data = result.getOrNull()
-                    if (data != null) {
-                        if (!data.message.isNullOrEmpty()) {
-                            toastText = data.message
-                        } else if (data.data?.count?.contains("成功") == true) {
-                            var response = (loadingState as LoadingState.Success).response
-                            response = response.filterNot { it.id == deleteId }
-                            loadingState = LoadingState.Success(response)
-                            toastText = data.data.count
-                        }
-                    } else {
-                        toastText = result.exceptionOrNull()?.message ?: "response is null"
-                        result.exceptionOrNull()?.printStackTrace()
-                    }
-                }
-        }
-    }
-
 }

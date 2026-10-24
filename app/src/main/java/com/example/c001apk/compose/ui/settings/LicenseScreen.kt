@@ -57,6 +57,12 @@ fun LicenseScreen(
 private val licenseList =
     listOf(
         LicenseItem(
+            "Google LLC",
+            "Flutter profile icon glyphs (local vectors)",
+            "https://creativecommons.org/licenses/by/4.0/",
+            LicenseType.CCBY4,
+        ),
+        LicenseItem(
             "Google",
             "Jetpack Compose",
             "https://github.com/androidx/androidx",
@@ -171,10 +177,12 @@ enum class LicenseType {
     Apache2,
     MIT,
     GPL3,
+    CCBY4,
 }
 
 private fun getLicense(type: LicenseType): String =
     when (type) {
+        LicenseType.CCBY4 -> "Creative Commons Attribution 4.0 International"
         LicenseType.Apache2 -> "Apache Software License 2.0"
         LicenseType.MIT -> "MIT License"
         LicenseType.GPL3 -> "GNU general public license Version 3"
