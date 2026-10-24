@@ -3,7 +3,7 @@
 ## 基线与设计依据
 
 - 上游：[frisk1127/c001apk-compose](https://github.com/frisk1127/c001apk-compose)，基线提交 `82ffea3c746955420c1d4f00380f5a6d7a6cad02`。
-- 视觉参考：[flutter_miuix](https://github.com/ChuxinNeko/flutter_miuix)。实现采用 Kotlin 原生 Compose，不引入 Flutter 引擎。
+- 实现采用 Kotlin 原生 Compose。
 - 设计规范参考：[Mishka UI guidelines](https://github.com/YuKongA/Mishka/blob/main/docs/ui-guidelines.md)。采用 squircle 圆角、12 dp 外边距、分段设置卡片、选中即生效的单选弹窗、窗口弹窗与毛玻璃背景采样。
 - 组件：[miuix v0.9.4](https://github.com/compose-miuix-ui/miuix/tree/v0.9.4)，使用 `miuix-ui`、`miuix-preference`、`miuix-icons`、`miuix-blur`。
 

@@ -20,7 +20,7 @@
 
 基于 [frisk1127/c001apk-compose](https://github.com/frisk1127/c001apk-compose) 继续开发，使用 Kotlin、Jetpack Compose 和原生 [miuix](https://github.com/compose-miuix-ui/miuix) 组件，围绕动态浏览、图文阅读和日常互动重新整理界面。
 
-功能参考 [TG-Twilight/c001apk](https://github.com/TG-Twilight/c001apk) 的 Android 增量，采用「主页 / 关注 / 我的」导航，补齐多账号、本地关注、Markdown、正文导出和应用更新等能力。视觉参考 [flutter_miuix](https://github.com/ChuxinNeko/flutter_miuix) 与 [Mishka UI 规范](https://github.com/YuKongA/Mishka/blob/main/docs/ui-guidelines.md)，在 Android 上使用原生 Compose 实现。
+功能参考 [TG-Twilight/c001apk](https://github.com/TG-Twilight/c001apk) 的 Android 增量，采用「主页 / 关注 / 我的」导航，补齐多账号、本地关注、Markdown、正文导出和应用更新等能力。视觉与交互规范参考 [Mishka UI 规范](https://github.com/YuKongA/Mishka/blob/main/docs/ui-guidelines.md)，在 Android 上使用原生 Compose 实现。
 
 ## 界面预览
 
@@ -188,7 +188,7 @@ bash ./gradlew :app:assembleRelease -PupdateRepository=owner/repo
 | [验证记录](docs/VERIFICATION.md) | 已执行检查、真机结果与尚未覆盖的场景 |
 | [账号收藏](docs/ACCOUNT_COLLECTIONS.md) | 账号收藏与本地收藏的交互和实现 |
 | [功能与协议来源](docs/THIRD_PARTY_PORTS.md) | 功能移植、协议和第三方许可 |
-| [图标来源](docs/THIRD_PARTY_ICONS.md) | Flutter 参考图标的来源与许可 |
+| [图标来源](docs/THIRD_PARTY_ICONS.md) | “我的”页图标的来源与许可 |
 
 ## 反馈与参与
 
@@ -201,7 +201,7 @@ bash ./gradlew :app:assembleRelease -PupdateRepository=owner/repo
 - [frisk1127/c001apk-compose](https://github.com/frisk1127/c001apk-compose)：原生 Compose 工程基线与原作者的实现。
 - [TG-Twilight/c001apk](https://github.com/TG-Twilight/c001apk)：功能增量、页面布局及本 README 的结构参考。
 - [compose-miuix-ui/miuix](https://github.com/compose-miuix-ui/miuix)：原生 Compose 组件、图标、动画与模糊效果。
-- [ChuxinNeko/flutter_miuix](https://github.com/ChuxinNeko/flutter_miuix) 与 [YuKongA/Mishka](https://github.com/YuKongA/Mishka)：视觉与交互规范参考。
+- [YuKongA/Mishka](https://github.com/YuKongA/Mishka)：视觉与交互规范参考。
 - [daimiaopeng/coolapk-desktop](https://github.com/daimiaopeng/coolapk-desktop)：协议兼容实现参考。
 
 项目沿用 [GNU AGPL v3](LICENSE)。第三方代码、图标、SDK 和素材按各自许可及权利声明使用，详见 [功能与协议来源](docs/THIRD_PARTY_PORTS.md)、[图标来源](docs/THIRD_PARTY_ICONS.md) 及 [随包许可证](app/src/main/assets/licenses)。
