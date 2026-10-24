@@ -3,8 +3,9 @@ package com.example.c001apk.compose.ui.webview
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,12 +14,14 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -86,6 +89,7 @@ fun WebViewScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        blurBars = false,
         topBar = {
             TopAppBar(
                 windowInsets =
@@ -136,7 +140,7 @@ fun WebViewScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { paddingValues ->
-        Column(
+        Box(
             modifier =
                 Modifier.fillMaxSize()
                     .padding(
@@ -145,13 +149,6 @@ fun WebViewScreen(
                         start = paddingValues.calculateLeftPadding(layoutDirection),
                     ),
         ) {
-            AnimatedVisibility(visible = progress != 1.0f) {
-                LinearProgressIndicator(
-                    modifier = Modifier.fillMaxWidth(),
-                    progress = animatedProgress,
-                )
-            }
-
             WebView(
                 url = url.decode,
                 isLogin = isLogin,
@@ -216,11 +213,23 @@ fun WebViewScreen(
                     }
                 },
             )
+            // Overlay progress without changing the webpage's viewport on every load.
+            AnimatedVisibility(
+                visible = progress < 1.0f,
+                modifier = Modifier.align(Alignment.TopCenter),
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                    progress = animatedProgress,
+                )
+            }
         }
     }
 
-    if (isLogin && prefs.accountRevision != initialAccountRevision) {
-        onBackClick()
+    LaunchedEffect(isLogin, prefs.accountRevision) {
+        if (isLogin && prefs.accountRevision != initialAccountRevision) onBackClick()
     }
 
     viewModel.error?.let { Text(it) }

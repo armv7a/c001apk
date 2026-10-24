@@ -17,6 +17,7 @@ import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.webkit.WebSettingsCompat
@@ -30,6 +31,7 @@ import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.openInBrowser
 import java.net.URISyntaxException
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** Created by bggRGjQaUbCoE on 2024/6/9 */
 @SuppressLint("SetJavaScriptEnabled")
@@ -51,11 +53,13 @@ fun WebView(
 
     val prefs = LocalUserPreferences.current
     val isDarkMode = prefs.isDarkMode()
+    val backgroundColor = MiuixTheme.colorScheme.surface.toArgb()
 
     AndroidView(
         modifier = modifier.fillMaxSize(),
         factory = { context ->
             WebView(context).apply {
+                setBackgroundColor(backgroundColor)
                 layoutParams =
                     ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -242,7 +246,14 @@ fun WebView(
                 loadUrl(url, mapOf("X-Requested-With" to APP_ID))
             }
         },
+        onRelease = { webView ->
+            webView.stopLoading()
+            webView.webViewClient = WebViewClient()
+            webView.webChromeClient = null
+            webView.destroy()
+        },
         update = { webView ->
+            webView.setBackgroundColor(backgroundColor)
             when (actionType) {
                 ActionType.REFRESH -> {
                     resetActionType()

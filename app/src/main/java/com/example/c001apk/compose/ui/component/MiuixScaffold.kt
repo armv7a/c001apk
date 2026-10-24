@@ -17,11 +17,13 @@ fun MiuixScaffold(
     bottomBar: (@Composable () -> Unit)? = null,
     floatingActionButton: @Composable () -> Unit = {},
     snackbarHost: @Composable () -> Unit = {},
+    blurBars: Boolean = true,
     containerColor: Color = MiuixTheme.colorScheme.surface,
     contentWindowInsets: WindowInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout),
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    val backdrop = rememberBarBackdrop()
+    // WebView's hardware compositor must draw once, outside the backdrop recording pass.
+    val backdrop = if (blurBars) rememberBarBackdrop() else null
     Scaffold(
         modifier =
             modifier.windowInsetsPadding(
@@ -30,24 +32,45 @@ fun MiuixScaffold(
                     .only(WindowInsetsSides.Horizontal),
             ),
         topBar = {
-            if (topBar != null)
-                BlurredBar(backdrop) {
-                    CompositionLocalProvider(LocalBarColor provides Color.Transparent) { topBar() }
-                }
+            if (topBar != null) {
+                if (backdrop != null)
+                    BlurredBar(backdrop) {
+                        CompositionLocalProvider(LocalBarColor provides Color.Transparent) {
+                            topBar()
+                        }
+                    }
+                else
+                    CompositionLocalProvider(LocalBarColor provides containerColor) {
+                        topBar()
+                    }
+            }
         },
         bottomBar = {
-            if (bottomBar != null)
-                BlurredBar(backdrop) {
-                    CompositionLocalProvider(LocalBarColor provides Color.Transparent) {
+            if (bottomBar != null) {
+                if (backdrop != null)
+                    BlurredBar(backdrop) {
+                        CompositionLocalProvider(LocalBarColor provides Color.Transparent) {
+                            bottomBar()
+                        }
+                    }
+                else
+                    CompositionLocalProvider(LocalBarColor provides containerColor) {
                         bottomBar()
                     }
-                }
+            }
         },
         floatingActionButton = floatingActionButton,
         snackbarHost = snackbarHost,
         containerColor = containerColor,
         contentWindowInsets = contentWindowInsets,
     ) { padding ->
-        Box(Modifier.fillMaxSize().layerBackdrop(backdrop)) { content(padding) }
+        Box(
+            Modifier.fillMaxSize()
+                .then(
+                    if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier,
+                ),
+        ) {
+            content(padding)
+        }
     }
 }
