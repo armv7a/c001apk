@@ -169,6 +169,8 @@ git push origin v1.3.7
 
 [发布工作流](.github/workflows/release.yml) 从标签读取版本号，依次执行单元测试、Lint、Release 构建和签名校验。全部成功后才发布 Release，并使用对应版本的更新记录作为说明；重新运行同一标签时更新已有资产。正式签名已配置在本仓库的 Actions Secrets，私钥不存入 Git。其他 fork 需要自行配置签名 Secrets。
 
+若发布因 CI 环境配置失败，可在 Actions 中手动运行 `Publish Release`，选择 `main` 并填写原标签（例如 `v1.3.7`）。重试使用当前工作流，但源码与更新记录仍检出该标签，无需移动或重建标签。
+
 ### 应用更新
 
 自更新从配置的 GitHub 仓库读取正式 Release，可在设置中填写 `owner/repo`，或在构建时传入：

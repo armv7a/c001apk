@@ -1,6 +1,12 @@
 name: Publish Release
 
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to publish or retry (vMAJOR.MINOR.PATCH)
+        required: true
+        type: string
   push:
     tags:
       - 'v*.*.*'
@@ -9,7 +15,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -17,11 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.tag.outputs.version }}
+      tag: ${{ steps.tag.outputs.tag }}
     steps:
       - name: Validate release tag
         id: tag
         env:
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           python3 - <<'PY'
           import os
@@ -31,6 +38,7 @@ jobs:
               raise SystemExit('Release tags must use vMAJOR.MINOR.PATCH')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write(f'version={tag[1:]}\n')
+              output.write(f'tag={tag}\n')
           PY
 
   build:
@@ -39,6 +47,7 @@ jobs:
     with:
       variant: release
       app_version: ${{ needs.version.outputs.version }}
+      source_ref: refs/tags/${{ needs.version.outputs.tag }}
     secrets: inherit
 
   publish:
@@ -48,6 +57,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          ref: refs/tags/${{ needs.version.outputs.tag }}
       - uses: actions/download-artifact@v8.0.2
         with:
           name: c001apk-release
@@ -79,7 +90,7 @@ jobs:
       - name: Publish verified APK
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ needs.version.outputs.tag }}
         run: |
           set -euo pipefail
           assets=(release-assets/*.apk release-assets/*.json release-assets/SHA256SUMS)
