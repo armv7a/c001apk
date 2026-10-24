@@ -9,131 +9,133 @@ import com.example.c001apk.compose.util.CookieUtil.isGetSmsLoginParam
 import com.example.c001apk.compose.util.CookieUtil.isGetSmsToken
 import com.example.c001apk.compose.util.CookieUtil.isPreGetLoginParam
 import com.example.c001apk.compose.util.CookieUtil.isTryLogin
+import java.io.IOException
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
-import java.io.IOException
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/3
- */
+/** Created by bggRGjQaUbCoE on 2024/6/3 */
 object LoginCookiesInterceptor : Interceptor {
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
+        if (!CoolapkRequestPolicy.isAccount(chain.request().url)) {
+            return chain.proceed(
+                CoolapkRequestPolicy.withoutPrivateHeaders(chain.request()).build(),
+            )
+        }
         val builder: Request.Builder = chain.request().newBuilder()
         builder.apply {
             if (isGetLoginParam) {
                 isGetLoginParam = false
 
-                addHeader(
+                header(
                     "sec-ch-ua",
-                    """"Android WebView";v="117", "Not;A=Brand";v="8", "Chromium";v="117""""
+                    """"Android WebView";v="117", "Not;A=Brand";v="8", "Chromium";v="117"""",
                 )
-                addHeader("sec-ch-ua-mobile", "?1")
-                addHeader("sec-ch-ua-platform", "Android")
-                addHeader("Upgrade-Insecure-Requests", "1")
-                addHeader("User-Agent", CookieUtil.userAgent)
-                addHeader(
+                header("sec-ch-ua-mobile", "?1")
+                header("sec-ch-ua-platform", "Android")
+                header("Upgrade-Insecure-Requests", "1")
+                header("User-Agent", CookieUtil.userAgent)
+                header(
                     "Accept",
-                    """text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"""
+                    """text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7""",
                 )
-                addHeader("User-Agent", CookieUtil.userAgent)
-                addHeader("X-Requested-With", APP_ID)
-                addHeader("Cookie", SESSID)
+                header("User-Agent", CookieUtil.userAgent)
+                header("X-Requested-With", APP_ID)
+                header("Cookie", SESSID)
             }
             if (isPreGetLoginParam) {
                 isPreGetLoginParam = false
 
-                addHeader(
+                header(
                     "sec-ch-ua",
-                    """"Android WebView";v="117", "Not;A=Brand";v="8", "Chromium";v="117""""
+                    """"Android WebView";v="117", "Not;A=Brand";v="8", "Chromium";v="117"""",
                 )
-                addHeader("sec-ch-ua-mobile", "?1")
-                addHeader("sec-ch-ua-platform", "Android")
-                addHeader("Upgrade-Insecure-Requests", "1")
-                addHeader("User-Agent", CookieUtil.userAgent)
-                addHeader(
+                header("sec-ch-ua-mobile", "?1")
+                header("sec-ch-ua-platform", "Android")
+                header("Upgrade-Insecure-Requests", "1")
+                header("User-Agent", CookieUtil.userAgent)
+                header(
                     "Accept",
-                    """text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"""
+                    """text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7""",
                 )
-                addHeader("X-Requested-With", APP_ID)
-                /*addHeader("Sec-Fetch-Site", "none")
-                addHeader("Sec-Fetch-Mode", "navigate")
-                addHeader("Sec-Fetch-User", "?1")
-                addHeader("Sec-Fetch-Dest", "document")
-                addHeader("Accept-Encoding", "gzip, deflate, br")
-                addHeader("Accept-Language", "zh-CM,zh;q=0.9,en-US;q=0.8,en;q=0.7")*/
+                header("X-Requested-With", APP_ID)
+                /*header("Sec-Fetch-Site", "none")
+                header("Sec-Fetch-Mode", "navigate")
+                header("Sec-Fetch-User", "?1")
+                header("Sec-Fetch-Dest", "document")
+                header("Accept-Encoding", "gzip, deflate, br")
+                header("Accept-Language", "zh-CM,zh;q=0.9,en-US;q=0.8,en;q=0.7")*/
             } else if (isTryLogin) {
                 isTryLogin = false
 
-                addHeader("User-Agent", CookieUtil.userAgent)
-                addHeader("Cookie", "$SESSID; forward=https://www.coolapk.com")
-                addHeader("X-Requested-With", REQUEST_WITH)
-                addHeader("Content-Type", "application/x-www-form-urlencoded")
+                header("User-Agent", CookieUtil.userAgent)
+                header("Cookie", "$SESSID; forward=https://www.coolapk.com")
+                header("X-Requested-With", REQUEST_WITH)
+                header("Content-Type", "application/x-www-form-urlencoded")
             } else if (isGetCaptcha) {
                 isGetCaptcha = false
 
-                addHeader("User-Agent", CookieUtil.userAgent)
-                addHeader(
+                header("User-Agent", CookieUtil.userAgent)
+                header(
                     "sec-ch-ua",
-                    """"Android WebView";v="117", "Not;A=Brand";v="8", "Chromium";v="117""""
+                    """"Android WebView";v="117", "Not;A=Brand";v="8", "Chromium";v="117"""",
                 )
-                addHeader("sec-ch-ua-mobile", "?1")
-                addHeader("User-Agent", CookieUtil.userAgent)
-                addHeader("sec-ch-ua-platform", "Android")
-                addHeader(
+                header("sec-ch-ua-mobile", "?1")
+                header("User-Agent", CookieUtil.userAgent)
+                header("sec-ch-ua-platform", "Android")
+                header(
                     "Accept",
-                    """image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"""
+                    """image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8""",
                 )
-                addHeader("X-Requested-With", APP_ID)
-                addHeader("Sec-Fetch-Site", "same-origin")
-                addHeader("Sec-Fetch-Mode", "no-cors")
-                addHeader("Sec-Fetch-Dest", "image")
-                addHeader("Referer", "https://account.coolapk.com/auth/loginByCoolapk")
-                addHeader("Cookie", "$SESSID; forward=https://www.coolapk.com")
+                header("X-Requested-With", APP_ID)
+                header("Sec-Fetch-Site", "same-origin")
+                header("Sec-Fetch-Mode", "no-cors")
+                header("Sec-Fetch-Dest", "image")
+                header("Referer", "https://account.coolapk.com/auth/loginByCoolapk")
+                header("Cookie", "$SESSID; forward=https://www.coolapk.com")
             } else if (isGetSmsToken) {
                 isGetSmsToken = false
-                addHeader(
+                header(
                     "sec-ch-ua",
-                    """"Android WebView";v="117", "Not;A=Brand";v="8", "Chromium";v="117""""
+                    """"Android WebView";v="117", "Not;A=Brand";v="8", "Chromium";v="117"""",
                 )
-                addHeader("Content-Type", "application/x-www-form-urlencoded")
-                addHeader("X-Requested-With", REQUEST_WITH)
-                addHeader("sec-ch-ua-mobile", "?1")
-                addHeader("User-Agent", CookieUtil.userAgent)
-                addHeader("sec-ch-ua-platform", "Android")
-                addHeader("Accept", "*/*")
-                addHeader("Origin", "https://account.coolapk.com")
-                addHeader("Sec-Fetch-Site", "same-origin")
-                addHeader("Sec-Fetch-Mode", "cors")
-                addHeader("Sec-Fetch-Dest", "empty")
-                addHeader("Referer", "https://account.coolapk.com/auth/login?type=mobile")
-                addHeader("Accept-Encoding", "gzip, deflate, br")
-                addHeader("Accept-Language", "zh-CM,zh;q=0.9,en-US;q=0.8,en;q=0.7")
-                addHeader("Cookie", "$SESSID; forward=https://www.coolapk.com")
+                header("Content-Type", "application/x-www-form-urlencoded")
+                header("X-Requested-With", REQUEST_WITH)
+                header("sec-ch-ua-mobile", "?1")
+                header("User-Agent", CookieUtil.userAgent)
+                header("sec-ch-ua-platform", "Android")
+                header("Accept", "*/*")
+                header("Origin", "https://account.coolapk.com")
+                header("Sec-Fetch-Site", "same-origin")
+                header("Sec-Fetch-Mode", "cors")
+                header("Sec-Fetch-Dest", "empty")
+                header("Referer", "https://account.coolapk.com/auth/login?type=mobile")
+                header("Accept-Encoding", "gzip, deflate, br")
+                header("Accept-Language", "zh-CM,zh;q=0.9,en-US;q=0.8,en;q=0.7")
+                header("Cookie", "$SESSID; forward=https://www.coolapk.com")
             } else if (isGetSmsLoginParam) {
                 isGetSmsLoginParam = false
-                addHeader(
+                header(
                     "sec-ch-ua",
-                    """"Android WebView";v="117", "Not;A=Brand";v="8", "Chromium";v="117""""
+                    """"Android WebView";v="117", "Not;A=Brand";v="8", "Chromium";v="117"""",
                 )
-                addHeader("sec-ch-ua-mobile", "?1")
-                addHeader("sec-ch-ua-platform", "Android")
-                addHeader("Upgrade=Insecure-Requests", "1")
-                addHeader("User-Agent", CookieUtil.userAgent)
-                addHeader(
+                header("sec-ch-ua-mobile", "?1")
+                header("sec-ch-ua-platform", "Android")
+                header("Upgrade=Insecure-Requests", "1")
+                header("User-Agent", CookieUtil.userAgent)
+                header(
                     "Accept",
-                    """text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"""
+                    """text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7""",
                 )
-                addHeader("X-Requested-With", APP_ID)
-                addHeader("Sec-Fetch-Site", "none")
-                addHeader("Sec-Fetch-Mode", "navigate")
-                addHeader("Sec-Fetch-User", "?1")
-                addHeader("Sec-Fetch-Dest", "document")
-                addHeader("Accept-Encoding", "gzip, deflate, br")
-                addHeader("Accept-Language", "zh-CM,zh;q=0.9,en-US;q=0.8,en;q=0.7")
+                header("X-Requested-With", APP_ID)
+                header("Sec-Fetch-Site", "none")
+                header("Sec-Fetch-Mode", "navigate")
+                header("Sec-Fetch-User", "?1")
+                header("Sec-Fetch-Dest", "document")
+                header("Accept-Encoding", "gzip, deflate, br")
+                header("Accept-Language", "zh-CM,zh;q=0.9,en-US;q=0.8,en;q=0.7")
             }
-
         }
         return chain.proceed(builder.build())
     }

@@ -197,7 +197,7 @@ dependencies {
     ksp(libs.google.dagger.hilt.android.compiler)
     implementation(libs.google.protobuf.kotlin.lite)
 
-    implementation(libs.squareup.okhttp3.logging.interceptor)
+    implementation(libs.squareup.okhttp)
     implementation(libs.squareup.retrofit)
     implementation(libs.squareup.retrofit.converter.gson)
 

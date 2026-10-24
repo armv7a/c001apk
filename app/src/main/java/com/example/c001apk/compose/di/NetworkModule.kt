@@ -1,35 +1,26 @@
 package com.example.c001apk.compose.di
 
-import com.example.c001apk.compose.BuildConfig
 import com.example.c001apk.compose.logic.network.ApiService
 import com.example.c001apk.compose.util.AddCookiesInterceptor
+import com.example.c001apk.compose.util.CoolapkRequestPolicy
 import com.example.c001apk.compose.util.LoginCookiesInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Qualifier
 import javax.inject.Singleton
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class Api1Service
+@Qualifier @Retention(AnnotationRetention.BINARY) annotation class Api1Service
 
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class Api1ServiceNoRedirect
+@Qualifier @Retention(AnnotationRetention.BINARY) annotation class Api1ServiceNoRedirect
 
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class Api2Service
+@Qualifier @Retention(AnnotationRetention.BINARY) annotation class Api2Service
 
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class AccountService
+@Qualifier @Retention(AnnotationRetention.BINARY) annotation class AccountService
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -116,13 +107,7 @@ object NetworkModule {
     @Provides
     fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(AddCookiesInterceptor)
-            .addInterceptor(
-                HttpLoggingInterceptor().setLevel(
-                    if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-                    else HttpLoggingInterceptor.Level.NONE
-                )
-            )
+            .addNetworkInterceptor(AddCookiesInterceptor)
             .followRedirects(true)
             .build()
     }
@@ -132,13 +117,7 @@ object NetworkModule {
     @Provides
     fun provideNoOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(AddCookiesInterceptor)
-            .addInterceptor(
-                HttpLoggingInterceptor().setLevel(
-                    if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-                    else HttpLoggingInterceptor.Level.NONE
-                )
-            )
+            .addNetworkInterceptor(AddCookiesInterceptor)
             .followRedirects(false)
             .build()
     }
@@ -149,13 +128,7 @@ object NetworkModule {
     fun provideAccountServiceOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(LoginCookiesInterceptor)
-            .addInterceptor(
-                HttpLoggingInterceptor().setLevel(
-                    if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-                    else HttpLoggingInterceptor.Level.NONE
-                )
-            )
+            .addNetworkInterceptor(CoolapkRequestPolicy.accountBoundary)
             .build()
     }
-
 }

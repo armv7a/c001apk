@@ -28,7 +28,7 @@ class C001Application : Application() {
             ImageLoader.Builder(this)
                 .crossfade(true)
                 .okHttpClient {
-                    OkHttpClient.Builder().addInterceptor(AddCookiesInterceptor).build()
+                    OkHttpClient.Builder().addNetworkInterceptor(AddCookiesInterceptor).build()
                 }
                 .components {
                     add(AppIconKeyer())
