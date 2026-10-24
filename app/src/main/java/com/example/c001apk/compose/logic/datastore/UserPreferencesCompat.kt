@@ -59,7 +59,9 @@ data class UserPreferencesCompat(
     val customHaptics: Boolean,
     val reverseHapticEffects: Boolean,
 ) {
-    constructor(original: UserPreferences) : this(
+    constructor(
+        original: UserPreferences,
+    ) : this(
         themeMode = original.themeMode,
         materialYou = original.materialYou,
         pureBlack = original.pureBlack,
@@ -108,107 +110,110 @@ data class UserPreferencesCompat(
     )
 
     @Composable
-    fun isDarkMode() = when (themeMode) {
-        ThemeMode.ALWAYS_OFF -> false
-        ThemeMode.ALWAYS_ON -> true
-        else -> isSystemInDarkTheme()
-    }
+    fun isDarkMode() =
+        when (themeMode) {
+            ThemeMode.ALWAYS_OFF -> false
+            ThemeMode.ALWAYS_ON -> true
+            else -> isSystemInDarkTheme()
+        }
 
-    fun toProto(): UserPreferences = UserPreferences.newBuilder()
-        .setThemeMode(themeMode)
-        .setMaterialYou(materialYou)
-        .setPureBlack(pureBlack)
-        .setFontScale(fontScale)
-        .setContentScale(contentScale)
-        .setSzlmId(szlmId)
-        .setImageQuality(imageQuality)
-        .setImageFilter(imageFilter)
-        .setOpenInBrowser(openInBrowser)
-        .setShowSquare(showSquare)
-        .setRecordHistory(recordHistory)
-        .setShowEmoji(showEmoji)
-        .setCheckUpdate(checkUpdate)
-        .setCheckCount(checkCount)
-        .setVersionName(versionName)
-        .setApiVersion(apiVersion)
-        .setVersionCode(versionCode)
-        .setManufacturer(manufacturer)
-        .setBrand(brand)
-        .setModel(model)
-        .setBuildNumber(buildNumber)
-        .setSdkInt(sdkInt)
-        .setAndroidVersion(androidVersion)
-        .setUserAgent(userAgent)
-        .setXAppDevice(xAppDevice)
-        .setXAppToken(xAppToken)
-        .setIsLogin(isLogin)
-        .setUserAvatar(userAvatar)
-        .setUsername(username)
-        .setLevel(level)
-        .setExperience(experience)
-        .setNextLevelExperience(nextLevelExperience)
-        .setUid(uid)
-        .setToken(token)
-        .setFollowType(followType)
-        .setRecentIds(recentIds)
-        .setCheckCountPeriod(checkCountPeriod)
-        .setInstallTime(installTime)
-        .setThemeType(themeType)
-        .setSeedColor(seedColor)
-        .setPaletteStyle(paletteStyle)
-        .setDisableHapticFeedback(!hapticFeedback)
-        .setHapticStrength(hapticStrength.protoValue)
-        .setCustomHaptics(customHaptics)
-        .setReverseHapticEffects(reverseHapticEffects)
-        .build()
+    fun toProto(): UserPreferences =
+        UserPreferences.newBuilder()
+            .setThemeMode(themeMode)
+            .setMaterialYou(materialYou)
+            .setPureBlack(pureBlack)
+            .setFontScale(fontScale)
+            .setContentScale(contentScale)
+            .setSzlmId(szlmId)
+            .setImageQuality(imageQuality)
+            .setImageFilter(imageFilter)
+            .setOpenInBrowser(openInBrowser)
+            .setShowSquare(showSquare)
+            .setRecordHistory(recordHistory)
+            .setShowEmoji(showEmoji)
+            .setCheckUpdate(checkUpdate)
+            .setCheckCount(checkCount)
+            .setVersionName(versionName)
+            .setApiVersion(apiVersion)
+            .setVersionCode(versionCode)
+            .setManufacturer(manufacturer)
+            .setBrand(brand)
+            .setModel(model)
+            .setBuildNumber(buildNumber)
+            .setSdkInt(sdkInt)
+            .setAndroidVersion(androidVersion)
+            .setUserAgent(userAgent)
+            .setXAppDevice(xAppDevice)
+            .setXAppToken(xAppToken)
+            .setIsLogin(isLogin)
+            .setUserAvatar(userAvatar)
+            .setUsername(username)
+            .setLevel(level)
+            .setExperience(experience)
+            .setNextLevelExperience(nextLevelExperience)
+            .setUid(uid)
+            .setToken(token)
+            .setFollowType(followType)
+            .setRecentIds(recentIds)
+            .setCheckCountPeriod(checkCountPeriod)
+            .setInstallTime(installTime)
+            .setThemeType(themeType)
+            .setSeedColor(seedColor)
+            .setPaletteStyle(paletteStyle)
+            .setDisableHapticFeedback(!hapticFeedback)
+            .setHapticStrength(hapticStrength.protoValue)
+            .setCustomHaptics(customHaptics)
+            .setReverseHapticEffects(reverseHapticEffects)
+            .build()
 
     companion object {
-        fun default() = UserPreferencesCompat(
-            themeMode = ThemeMode.FOLLOW_SYSTEM,
-            materialYou = true,
-            pureBlack = false,
-            fontScale = 1.00f,
-            contentScale = 1.00f,
-            szlmId = EMPTY_STRING,
-            imageQuality = 0,
-            imageFilter = true,
-            openInBrowser = false,
-            showSquare = true,
-            recordHistory = true,
-            showEmoji = true,
-            checkUpdate = true,
-            checkCount = true,
-            versionName = VERSION_NAME,
-            apiVersion = API_VERSION,
-            versionCode = VERSION_CODE,
-            manufacturer = EMPTY_STRING,
-            brand = EMPTY_STRING,
-            model = EMPTY_STRING,
-            buildNumber = EMPTY_STRING,
-            sdkInt = EMPTY_STRING,
-            androidVersion = EMPTY_STRING,
-            userAgent = EMPTY_STRING,
-            xAppDevice = EMPTY_STRING,
-            xAppToken = EMPTY_STRING,
-            isLogin = false,
-            userAvatar = EMPTY_STRING,
-            username = EMPTY_STRING,
-            level = EMPTY_STRING,
-            experience = EMPTY_STRING,
-            nextLevelExperience = EMPTY_STRING,
-            uid = EMPTY_STRING,
-            token = EMPTY_STRING,
-            followType = FollowType.ALL,
-            recentIds = EMPTY_STRING,
-            checkCountPeriod = 5,
-            installTime = EMPTY_STRING,
-            themeType = ThemeType.Default,
-            seedColor = EMPTY_STRING,
-            paletteStyle = 0,
-            hapticFeedback = true,
-            hapticStrength = HapticStrength.Medium,
-            customHaptics = false,
-            reverseHapticEffects = false,
-        )
+        fun default() =
+            UserPreferencesCompat(
+                themeMode = ThemeMode.FOLLOW_SYSTEM,
+                materialYou = false,
+                pureBlack = false,
+                fontScale = 1.00f,
+                contentScale = 1.00f,
+                szlmId = EMPTY_STRING,
+                imageQuality = 0,
+                imageFilter = true,
+                openInBrowser = false,
+                showSquare = true,
+                recordHistory = true,
+                showEmoji = true,
+                checkUpdate = true,
+                checkCount = true,
+                versionName = VERSION_NAME,
+                apiVersion = API_VERSION,
+                versionCode = VERSION_CODE,
+                manufacturer = EMPTY_STRING,
+                brand = EMPTY_STRING,
+                model = EMPTY_STRING,
+                buildNumber = EMPTY_STRING,
+                sdkInt = EMPTY_STRING,
+                androidVersion = EMPTY_STRING,
+                userAgent = EMPTY_STRING,
+                xAppDevice = EMPTY_STRING,
+                xAppToken = EMPTY_STRING,
+                isLogin = false,
+                userAvatar = EMPTY_STRING,
+                username = EMPTY_STRING,
+                level = EMPTY_STRING,
+                experience = EMPTY_STRING,
+                nextLevelExperience = EMPTY_STRING,
+                uid = EMPTY_STRING,
+                token = EMPTY_STRING,
+                followType = FollowType.ALL,
+                recentIds = EMPTY_STRING,
+                checkCountPeriod = 5,
+                installTime = EMPTY_STRING,
+                themeType = ThemeType.Default,
+                seedColor = EMPTY_STRING,
+                paletteStyle = 0,
+                hapticFeedback = true,
+                hapticStrength = HapticStrength.Medium,
+                customHaptics = false,
+                reverseHapticEffects = false,
+            )
     }
 }

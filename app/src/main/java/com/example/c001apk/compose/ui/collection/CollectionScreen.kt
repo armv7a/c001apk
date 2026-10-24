@@ -18,14 +18,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -45,14 +37,15 @@ import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.component.FooterCard
 import com.example.c001apk.compose.ui.component.ItemCard
+import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
 import com.example.c001apk.compose.util.DateUtils.fromToday
 import com.example.c001apk.compose.util.ReportType
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/21
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Created by bggRGjQaUbCoE on 2024/6/21 */
 @Composable
 fun CollectionScreen(
     onBackClick: () -> Unit,
@@ -65,11 +58,11 @@ fun CollectionScreen(
 ) {
 
     val viewModel =
-        hiltViewModel<CollectionViewModel, CollectionViewModel.ViewModelFactory>(key = id) { factory ->
+        hiltViewModel<CollectionViewModel, CollectionViewModel.ViewModelFactory>(key = id) { factory
+            ->
             factory.create(id = id)
         }
     val layoutDirection = LocalLayoutDirection.current
-    val state = rememberPullToRefreshState()
     val lazyListState = rememberLazyListState()
     val shouldShowTitle by remember {
         derivedStateOf { lazyListState.firstVisibleItemIndex > 0 }
@@ -79,8 +72,8 @@ fun CollectionScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                windowInsets = WindowInsets.systemBars
-                    .only(WindowInsetsSides.Start + WindowInsetsSides.Top),
+                windowInsets =
+                    WindowInsets.systemBars.only(WindowInsetsSides.Start + WindowInsetsSides.Top),
                 navigationIcon = {
                     BackButton {
                         onBackClick()
@@ -97,49 +90,44 @@ fun CollectionScreen(
                             Text(text = "收藏单")
                         }
                     }
-                }
+                },
             )
-        }
+        },
     ) { paddingValues ->
-
-        PullToRefreshBox(
-            modifier = Modifier.padding(
-                top = paddingValues.calculateTopPadding(),
-                start = paddingValues.calculateLeftPadding(layoutDirection),
-            ),
-            state = state,
+        top.yukonga.miuix.kmp.basic.PullToRefresh(
+            refreshTexts = listOf("下拉刷新", "释放刷新", "正在刷新", "刷新完成"),
+            modifier =
+                Modifier.padding(
+                    top = paddingValues.calculateTopPadding(),
+                    start = paddingValues.calculateLeftPadding(layoutDirection),
+                ),
             isRefreshing = viewModel.isRefreshing,
             onRefresh = {
                 viewModel.isPull = true
                 viewModel.refresh()
             },
-            indicator = {
-                PullToRefreshDefaults.Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = viewModel.isRefreshing,
-                    state = state,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
         ) {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 10.dp + paddingValues.calculateBottomPadding()),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding =
+                    PaddingValues(bottom = 10.dp + paddingValues.calculateBottomPadding()),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                state = lazyListState
+                state = lazyListState,
             ) {
                 when (viewModel.collectionState) {
-                    LoadingState.Loading, LoadingState.Empty, is LoadingState.Error -> {
+                    LoadingState.Loading,
+                    LoadingState.Empty,
+                    is LoadingState.Error -> {
                         item(key = "collectionState") {
                             Box(modifier = Modifier.fillParentMaxSize()) {
                                 LoadingCard(
-                                    modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .padding(horizontal = 10.dp),
+                                    modifier =
+                                        Modifier.align(Alignment.Center)
+                                            .padding(horizontal = 10.dp),
                                     state = viewModel.collectionState,
-                                    onClick = if (viewModel.collectionState is LoadingState.Loading) null
-                                    else viewModel::refresh
+                                    onClick =
+                                        if (viewModel.collectionState is LoadingState.Loading) null
+                                        else viewModel::refresh,
                                 )
                             }
                         }
@@ -150,54 +138,52 @@ fun CollectionScreen(
                         item(key = "title") {
                             Text(
                                 text = viewModel.title,
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 20.sp
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp)
+                                style =
+                                    MiuixTheme.textStyles.title3.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 20.sp,
+                                    ),
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                             )
                         }
                         item(key = "info") {
                             Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp)
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                             ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     CoilLoader(
                                         url = response.userAvatar,
-                                        modifier = Modifier
-                                            .size(30.dp)
-                                            .clip(CircleShape)
-                                            .clickable { onViewUser(response.uid.orEmpty()) }
+                                        modifier =
+                                            Modifier.size(30.dp).clip(CircleShape).clickable {
+                                                onViewUser(response.uid.orEmpty())
+                                            },
                                     )
                                     Text(
                                         text = response.username.orEmpty(),
-                                        color = MaterialTheme.colorScheme.outline,
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
+                                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                        style =
+                                            MiuixTheme.textStyles.body1.copy(
+                                                fontSize = 16.sp,
+                                            ),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         modifier = Modifier.padding(start = 10.dp),
                                     )
                                     Text(
                                         text = "${fromToday(response.lastupdate ?: 0)}更新",
-                                        color = MaterialTheme.colorScheme.outline,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(start = 10.dp),
+                                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                        style = MiuixTheme.textStyles.body1,
+                                        modifier = Modifier.weight(1f).padding(start = 10.dp),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                     )
                                     Text(
                                         text = response.followNum.toString() + "人关注",
-                                        color = MaterialTheme.colorScheme.outline,
-                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                        style = MiuixTheme.textStyles.body1,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                     )
@@ -205,8 +191,8 @@ fun CollectionScreen(
                                 response.description?.let {
                                     Text(
                                         text = it,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        modifier = Modifier.padding(top = 10.dp)
+                                        style = MiuixTheme.textStyles.headline2,
+                                        modifier = Modifier.padding(top = 10.dp),
                                     )
                                 }
                             }
@@ -242,7 +228,5 @@ fun CollectionScreen(
                 }
             }
         }
-
     }
-
 }

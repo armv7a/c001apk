@@ -8,12 +8,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -22,10 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.ui.component.CoilLoader
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.squircle.squircleClip
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/6
- */
+/** Created by bggRGjQaUbCoE on 2024/6/6 */
 @Composable
 fun ImageSquareScrollCard(
     modifier: Modifier = Modifier,
@@ -34,15 +31,13 @@ fun ImageSquareScrollCard(
 ) {
 
     BoxWithConstraints {
-
         val itemWidth = (maxWidth - 60.dp) / 5f
 
         LazyRow(
             modifier = modifier,
             contentPadding = PaddingValues(horizontal = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-
             entities?.forEach {
                 item(it.title) {
                     ImageSquareScrollCardItem(
@@ -54,10 +49,8 @@ fun ImageSquareScrollCard(
                     )
                 }
             }
-
         }
     }
-
 }
 
 @Composable
@@ -71,18 +64,15 @@ fun ImageSquareScrollCardItem(
 ) {
 
     Box(
-        modifier = modifier
-            .size(itemWidth)
-            .clip(MaterialTheme.shapes.medium)
-            .clickable {
+        modifier =
+            modifier.size(itemWidth).squircleClip(16.dp).clickable {
                 onOpenLink(url, title)
-            }
+            },
     ) {
-
         CoilLoader(
             url = pic,
             colorFilter = 0x8D000000,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         )
 
         Text(
@@ -94,6 +84,5 @@ fun ImageSquareScrollCardItem(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-
     }
 }

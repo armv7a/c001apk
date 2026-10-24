@@ -1,7 +1,6 @@
 package com.example.c001apk.compose.ui.component.cards
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -9,14 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,16 +25,23 @@ import com.example.c001apk.compose.R
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.component.LinkText
+import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
+import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
 import com.example.c001apk.compose.ui.theme.cardBg
 import com.example.c001apk.compose.util.DateUtils
 import com.example.c001apk.compose.util.ReportType
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.More
+import top.yukonga.miuix.kmp.squircle.squircleSurface
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/11
- */
+/** Created by bggRGjQaUbCoE on 2024/6/11 */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NotificationCard(
@@ -59,55 +57,50 @@ fun NotificationCard(
     val isFollow by lazy { data.type == "contacts_follow" }
 
     ConstraintLayout(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .background(cardBg())
-            .combinedClickable(
-                onClick = {
-                    if (isFollow) {
-                        onOpenLink(data.url.orEmpty(), null)
-                    } else {
-                        val doc: Document = Jsoup.parse(data.note.orEmpty())
-                        val links: Elements = doc.select("a[href]")
-                        onOpenLink(
-                            links
-                                .getOrNull(0)
-                                ?.attr("href")
-                                .orEmpty(),
-                            null
-                        )
-                    }
-                },
-                onLongClick = {
-                    onDeleteNotice?.let { it(data.id.orEmpty()) }
-                }
-            )
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp)
+                .squircleSurface(cardBg(), 16.dp)
+                .combinedClickable(
+                    onClick = {
+                        if (isFollow) {
+                            onOpenLink(data.url.orEmpty(), null)
+                        } else {
+                            val doc: Document = Jsoup.parse(data.note.orEmpty())
+                            val links: Elements = doc.select("a[href]")
+                            onOpenLink(
+                                links.getOrNull(0)?.attr("href").orEmpty(),
+                                null,
+                            )
+                        }
+                    },
+                    onLongClick = {
+                        onDeleteNotice?.let { it(data.id.orEmpty()) }
+                    },
+                ),
     ) {
-
         val (avatar, username, expand, message, dateLine) = createRefs()
 
         CoilLoader(
             url = data.fromUserAvatar,
-            modifier = Modifier
-                .padding(start = 10.dp, top = 10.dp)
-                .size(30.dp)
-                .clip(CircleShape)
-                .constrainAs(avatar) {
-                    start.linkTo(parent.start)
-                    top.linkTo(parent.top)
-                }
-                .clickable {
-                    onViewUser(data.fromuid.orEmpty())
-                }
+            modifier =
+                Modifier.padding(start = 10.dp, top = 10.dp)
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .constrainAs(avatar) {
+                        start.linkTo(parent.start)
+                        top.linkTo(parent.top)
+                    }
+                    .clickable {
+                        onViewUser(data.fromuid.orEmpty())
+                    },
         )
 
         Text(
             text = data.fromusername.orEmpty(),
-            modifier = Modifier
-                .padding(start = 10.dp, top = 10.dp, end = 10.dp)
-                .constrainAs(username) {
+            modifier =
+                Modifier.padding(start = 10.dp, top = 10.dp, end = 10.dp).constrainAs(username) {
                     start.linkTo(avatar.end)
                     top.linkTo(parent.top)
                     end.linkTo(expand.start)
@@ -115,14 +108,13 @@ fun NotificationCard(
                 },
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.titleSmall,
+            style = MiuixTheme.textStyles.headline2,
         )
 
         LinkText(
             text = data.note.orEmpty(),
-            modifier = Modifier
-                .padding(start = 10.dp, top = 5.dp, end = 10.dp)
-                .constrainAs(message) {
+            modifier =
+                Modifier.padding(start = 10.dp, top = 5.dp, end = 10.dp).constrainAs(message) {
                     start.linkTo(avatar.end)
                     top.linkTo(username.bottom)
                     end.linkTo(parent.end)
@@ -134,32 +126,31 @@ fun NotificationCard(
 
         Text(
             text = DateUtils.fromToday(data.dateline ?: 0),
-            modifier = Modifier
-                .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
-                .constrainAs(dateLine) {
+            modifier =
+                Modifier.padding(start = 10.dp, top = 10.dp, bottom = 10.dp).constrainAs(dateLine) {
                     start.linkTo(avatar.end)
                     top.linkTo(message.bottom)
                 },
-            style = MaterialTheme.typography.bodySmall.copy(fontSize = 14.sp),
-            color = MaterialTheme.colorScheme.outline
+            style = MiuixTheme.textStyles.body2.copy(fontSize = 14.sp),
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         )
 
         Box(
-            modifier = Modifier
-                .constrainAs(expand) {
+            modifier =
+                Modifier.constrainAs(expand) {
                     top.linkTo(parent.top)
                     end.linkTo(parent.end)
-                }) {
-
+                },
+        ) {
             IconButton(
                 onClick = {
                     dropdownMenuExpanded = true
-                }
+                },
             ) {
                 Icon(
-                    imageVector = Icons.Default.ExpandMore,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.outline
+                    imageVector = MiuixIcons.More,
+                    contentDescription = "更多操作",
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
             }
 
@@ -169,7 +160,8 @@ fun NotificationCard(
                     dropdownMenuExpanded = false
                 },
             ) {
-                listOf("拉黑", stringResource(id = R.string.menu_report)).forEachIndexed { index, menu ->
+                listOf("拉黑", stringResource(id = R.string.menu_report)).forEachIndexed { index, menu
+                    ->
                     DropdownMenuItem(
                         text = { Text(menu) },
                         onClick = {
@@ -177,12 +169,10 @@ fun NotificationCard(
                             when (index) {
                                 1 -> onReport?.let { it(data.fromuid.orEmpty(), ReportType.USER) }
                             }
-                        }
+                        },
                     )
                 }
             }
-
         }
-
     }
 }

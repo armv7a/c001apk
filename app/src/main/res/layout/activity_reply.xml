@@ -46,19 +46,17 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <com.google.android.material.textfield.TextInputLayout
+        <com.example.c001apk.compose.view.MiuixInputLayout
             android:id="@+id/textInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            app:counterEnabled="true"
-            app:counterMaxLength="500"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/title">
 
-            <com.google.android.material.textfield.TextInputEditText
+            <androidx.appcompat.widget.AppCompatEditText
                 android:id="@+id/editText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -70,9 +68,9 @@
                 android:minLines="4"
                 android:textSize="14sp" />
 
-        </com.google.android.material.textfield.TextInputLayout>
+        </com.example.c001apk.compose.view.MiuixInputLayout>
 
-        <com.google.android.material.checkbox.MaterialCheckBox
+        <com.example.c001apk.compose.view.MiuixCheckboxView
             android:id="@+id/checkBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -108,7 +106,7 @@
             android:id="@+id/line"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="?attr/colorSurfaceVariant"
+            android:background="@color/color_container"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/imageScrollLayout" />
@@ -195,7 +193,7 @@
             android:id="@+id/line2"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="?attr/colorSurfaceVariant"
+            android:background="@color/color_container"
             app:layout_constraintBottom_toTopOf="@id/indicator"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />

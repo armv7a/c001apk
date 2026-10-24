@@ -1,9 +1,5 @@
 package com.example.c001apk.compose.ui.component
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -12,6 +8,10 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import com.example.c001apk.compose.logic.model.HapticStrength
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.util.performConfiguredHapticFeedback
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.More
 
 @Composable
 fun rememberHapticClick(
@@ -52,8 +52,36 @@ fun rememberHapticClick(
 fun MoreMenuButton(onClick: () -> Unit) {
     IconButton(onClick = rememberHapticClick(onClick = onClick)) {
         Icon(
-            imageVector = Icons.Default.MoreVert,
-            contentDescription = Icons.Default.MoreVert.name
+            imageVector = MiuixIcons.More,
+            contentDescription = MiuixIcons.More.name,
         )
+    }
+}
+
+/** Routes feedback from miuix controls through the application's existing preference. */
+@Composable
+fun rememberConfiguredHapticFeedback(): androidx.compose.ui.hapticfeedback.HapticFeedback {
+    val prefs = LocalUserPreferences.current
+    val context = LocalContext.current
+    val system = LocalHapticFeedback.current
+    return remember(
+        context,
+        system,
+        prefs.hapticFeedback,
+        prefs.customHaptics,
+        prefs.hapticStrength,
+        prefs.reverseHapticEffects,
+    ) {
+        object : androidx.compose.ui.hapticfeedback.HapticFeedback {
+            override fun performHapticFeedback(hapticFeedbackType: HapticFeedbackType) {
+                context.performConfiguredHapticFeedback(
+                    fallback = { system.performHapticFeedback(hapticFeedbackType) },
+                    enabled = prefs.hapticFeedback,
+                    strength = prefs.hapticStrength,
+                    customHaptics = prefs.customHaptics,
+                    reverseEffects = prefs.reverseHapticEffects,
+                )
+            }
+        }
     }
 }

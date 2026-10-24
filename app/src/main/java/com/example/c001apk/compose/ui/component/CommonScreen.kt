@@ -6,28 +6,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.isVisible
-import com.example.c001apk.compose.ui.base.BaseViewModel
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
+import com.example.c001apk.compose.ui.base.BaseViewModel
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.isScrollingUp
+import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/10
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Created by bggRGjQaUbCoE on 2024/6/10 */
 @Composable
 fun CommonScreen(
     viewModel: BaseViewModel,
@@ -58,7 +51,6 @@ fun CommonScreen(
 
     val view = LocalView.current
     val layoutDirection = LocalLayoutDirection.current
-    val state = rememberPullToRefreshState()
     val lazyListState = rememberLazyListState()
 
     LaunchedEffect(refreshState) {
@@ -75,35 +67,30 @@ fun CommonScreen(
         it(lazyListState.isScrollingUp())
     }
 
-    PullToRefreshBox(
-        modifier = Modifier.padding(
-            start = paddingValues.calculateLeftPadding(layoutDirection),
-            end = paddingValues.calculateRightPadding(layoutDirection),
-            top = if (needTopPadding) paddingValues.calculateTopPadding() else 0.dp
-        ),
-        state = state,
+    PullToRefresh(
+        modifier =
+            Modifier.padding(
+                start = paddingValues.calculateLeftPadding(layoutDirection),
+                end = paddingValues.calculateRightPadding(layoutDirection),
+            ),
         isRefreshing = viewModel.isRefreshing,
         onRefresh = viewModel::refresh,
-        indicator = {
-            PullToRefreshDefaults.Indicator(
-                modifier = Modifier.align(Alignment.TopCenter),
-                isRefreshing = viewModel.isRefreshing,
-                state = state,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
+        refreshTexts = listOf("下拉刷新", "释放刷新", "正在刷新", "刷新完成"),
+        contentPadding =
+            PaddingValues(
+                top = 12.dp + if (needTopPadding) paddingValues.calculateTopPadding() else 0.dp,
+            ),
     ) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentPadding = PaddingValues(
-                top = 10.dp,
-                bottom = 10.dp + paddingValues.calculateBottomPadding()
-            ),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            state = lazyListState
+            modifier = Modifier.fillMaxSize().scrollEndHaptic(),
+            contentPadding =
+                PaddingValues(
+                    top = 12.dp + if (needTopPadding) paddingValues.calculateTopPadding() else 0.dp,
+                    bottom = 24.dp + paddingValues.calculateBottomPadding(),
+                ),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            state = lazyListState,
         ) {
-
             ItemCard(
                 loadingState = viewModel.loadingState,
                 loadMore = viewModel::loadMore,
@@ -137,13 +124,11 @@ fun CommonScreen(
             )
 
             FooterCard(
-                modifier = Modifier.padding(horizontal = 10.dp),
+                modifier = Modifier.padding(horizontal = 12.dp),
                 footerState = viewModel.footerState,
                 loadMore = viewModel::loadMore,
-                isFeed = false
+                isFeed = false,
             )
-
         }
     }
-
 }

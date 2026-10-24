@@ -6,12 +6,11 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
-import android.os.Bundle
 import android.os.Build.VERSION.SDK_INT
+import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
@@ -29,20 +28,20 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.ComponentDialog
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.content.ContextCompat
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsAnimationCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
@@ -53,15 +52,11 @@ import androidx.viewpager2.widget.ViewPager2
 import coil.load
 import com.example.c001apk.compose.BuildConfig
 import com.example.c001apk.compose.R
-import com.example.c001apk.compose.ThemeType
 import com.example.c001apk.compose.databinding.ActivityReplyBinding
 import com.example.c001apk.compose.databinding.ItemCaptchaBinding
-import com.example.c001apk.compose.constant.Constants.seedColors
 import com.example.c001apk.compose.logic.model.OSSUploadPrepareModel
+import com.example.c001apk.compose.ui.component.MiuixViewDialogBuilder
 import com.example.c001apk.compose.ui.feed.reply.emoji.EmojiPagerAdapter
-import com.example.c001apk.compose.util.CookieUtil.materialYou
-import com.example.c001apk.compose.util.CookieUtil.seedColor
-import com.example.c001apk.compose.util.CookieUtil.themeType
 import com.example.c001apk.compose.util.EmojiTextWatcher
 import com.example.c001apk.compose.util.EmojiUtils
 import com.example.c001apk.compose.util.EmojiUtils.coolBList
@@ -69,46 +64,41 @@ import com.example.c001apk.compose.util.EmojiUtils.emojiList
 import com.example.c001apk.compose.util.FastDeleteAtUserKeyListener
 import com.example.c001apk.compose.util.OSSUtil.getImageDimensionsAndMD5
 import com.example.c001apk.compose.util.OSSUtil.toHex
-import com.example.c001apk.compose.util.OnTextInputListener
 import com.example.c001apk.compose.util.OssUploadUtil.ossUpload
 import com.example.c001apk.compose.util.dp
 import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.performConfiguredHapticFeedback
 import com.example.c001apk.compose.view.SmoothInputLayout
-import com.google.android.material.color.DynamicColors
-import com.google.android.material.color.MaterialColors
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.elevation.SurfaceColors
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.math.max
 import kotlin.math.roundToInt
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /*
-* Copyright (C) 2018 AlexMofer
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/ /**
- * 输入面板
+ * Copyright (C) 2018 AlexMofer
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
+/** 输入面板 */
 @AndroidEntryPoint
-class ReplyActivity : AppCompatActivity(),
-    View.OnClickListener, OnTouchListener, SmoothInputLayout.OnVisibilityChangeListener {
+class ReplyActivity :
+    AppCompatActivity(),
+    View.OnClickListener,
+    OnTouchListener,
+    SmoothInputLayout.OnVisibilityChangeListener {
 
     private lateinit var binding: ActivityReplyBinding
     private val viewModel by viewModels<ReplyViewModel>()
@@ -133,7 +123,7 @@ class ReplyActivity : AppCompatActivity(),
     private var imageList = ArrayList<OSSUploadPrepareModel>()
     private var typeList = ArrayList<String>()
     private var md5List = ArrayList<ByteArray?>()
-    private var dialog: AlertDialog? = null
+    private var dialog: ComponentDialog? = null
     private lateinit var atTopicResultLauncher: ActivityResultLauncher<Intent>
     private var isFromAt = false
     private var pendingShowKeyboard = true
@@ -149,8 +139,10 @@ class ReplyActivity : AppCompatActivity(),
     private var baseRootPaddingBottom = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        if (materialYou)
-            DynamicColors.applyToActivityIfAvailable(this)
+        delegate.localNightMode =
+            if (com.example.c001apk.compose.util.CookieUtil.isDarkMode)
+                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+            else androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         binding = ActivityReplyBinding.inflate(layoutInflater)
@@ -158,74 +150,92 @@ class ReplyActivity : AppCompatActivity(),
         window.clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
         window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
         window.setSoftInputMode(
-            WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
+            WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING,
         )
         binding.main.isFocusable = false
         binding.main.isFocusableInTouchMode = false
         baseRootPaddingBottom = binding.main.paddingBottom
-        
+
         var imeAnimating = false
-        ViewCompat.setWindowInsetsAnimationCallback(binding.main, object : WindowInsetsAnimationCompat.Callback(DISPATCH_MODE_STOP) {
-            override fun onPrepare(animation: WindowInsetsAnimationCompat) {
-                if ((animation.typeMask and WindowInsetsCompat.Type.ime()) != 0) {
-                    imeAnimating = true
-                }
-                if ((animation.typeMask and WindowInsetsCompat.Type.ime()) != 0 &&
-                    isEmojiPanelRequested && isEmojiPanelVisible
-                ) {
-                    animateEmojiInputDescent = true
-                    emojiInputDescentStart = binding.inputLayout.translationY
-                }
-                super.onPrepare(animation)
-            }
-            override fun onProgress(insets: WindowInsetsCompat, runningAnimations: MutableList<WindowInsetsAnimationCompat>): WindowInsetsCompat {
-                val imeInset = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
-                val navInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
-                val useImeInset = insets.isVisible(WindowInsetsCompat.Type.ime()) || imeInset > 0
-                val imeAnimation = runningAnimations.lastOrNull {
-                    (it.typeMask and WindowInsetsCompat.Type.ime()) != 0
-                }
-                val translation = if (animateEmojiInputDescent && imeAnimation != null) {
-                    val fraction = imeAnimation.fraction.coerceIn(0f, 1f)
-                    emojiInputDescentStart * (1f - smoothStep(fraction))
-                } else {
-                    calculateInputTranslation(
-                        imeInset = if (useImeInset) imeInset else 0,
-                        navInset = navInset
-                    )
-                }
-                updateReplyPanelTranslation(translation)
-                if (useImeInset && imeInset > 0 && binding.bottomLayout == null && !isEmojiPanelVisible) {
-                    imeScrimDrawable.setBounds(
-                        0,
-                        binding.main.height - (imeInset - navInset),
-                        binding.main.width,
-                        binding.main.height
-                    )
-                    binding.main.overlay.remove(imeScrimDrawable)
-                    binding.main.overlay.add(imeScrimDrawable)
-                } else {
-                    binding.main.overlay.remove(imeScrimDrawable)
-                }
-                return insets
-            }
-            override fun onEnd(animation: WindowInsetsAnimationCompat) {
-                if ((animation.typeMask and WindowInsetsCompat.Type.ime()) != 0) {
-                    imeAnimating = false
-                    if (animateEmojiInputDescent && isEmojiPanelRequested) {
-                        updateReplyPanelTranslation(0f)
+        ViewCompat.setWindowInsetsAnimationCallback(
+            binding.main,
+            object : WindowInsetsAnimationCompat.Callback(DISPATCH_MODE_STOP) {
+                override fun onPrepare(animation: WindowInsetsAnimationCompat) {
+                    if ((animation.typeMask and WindowInsetsCompat.Type.ime()) != 0) {
+                        imeAnimating = true
                     }
-                    animateEmojiInputDescent = false
+                    if (
+                        (animation.typeMask and WindowInsetsCompat.Type.ime()) != 0 &&
+                            isEmojiPanelRequested &&
+                            isEmojiPanelVisible
+                    ) {
+                        animateEmojiInputDescent = true
+                        emojiInputDescentStart = binding.inputLayout.translationY
+                    }
+                    super.onPrepare(animation)
                 }
-                val isImeVisible = ViewCompat.getRootWindowInsets(binding.editText)
-                    ?.isVisible(WindowInsetsCompat.Type.ime()) == true
-                if (isImeVisible && isEmojiPanelVisible && !isEmojiPanelRequested) {
-                    closeEmojiPanelForIme()
+
+                override fun onProgress(
+                    insets: WindowInsetsCompat,
+                    runningAnimations: MutableList<WindowInsetsAnimationCompat>,
+                ): WindowInsetsCompat {
+                    val imeInset = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+                    val navInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+                    val useImeInset =
+                        insets.isVisible(WindowInsetsCompat.Type.ime()) || imeInset > 0
+                    val imeAnimation = runningAnimations.lastOrNull {
+                        (it.typeMask and WindowInsetsCompat.Type.ime()) != 0
+                    }
+                    val translation =
+                        if (animateEmojiInputDescent && imeAnimation != null) {
+                            val fraction = imeAnimation.fraction.coerceIn(0f, 1f)
+                            emojiInputDescentStart * (1f - smoothStep(fraction))
+                        } else {
+                            calculateInputTranslation(
+                                imeInset = if (useImeInset) imeInset else 0,
+                                navInset = navInset,
+                            )
+                        }
+                    updateReplyPanelTranslation(translation)
+                    if (
+                        useImeInset &&
+                            imeInset > 0 &&
+                            binding.bottomLayout == null &&
+                            !isEmojiPanelVisible
+                    ) {
+                        imeScrimDrawable.setBounds(
+                            0,
+                            binding.main.height - (imeInset - navInset),
+                            binding.main.width,
+                            binding.main.height,
+                        )
+                        binding.main.overlay.remove(imeScrimDrawable)
+                        binding.main.overlay.add(imeScrimDrawable)
+                    } else {
+                        binding.main.overlay.remove(imeScrimDrawable)
+                    }
+                    return insets
                 }
-                ViewCompat.requestApplyInsets(binding.main)
-                super.onEnd(animation)
-            }
-        })
+
+                override fun onEnd(animation: WindowInsetsAnimationCompat) {
+                    if ((animation.typeMask and WindowInsetsCompat.Type.ime()) != 0) {
+                        imeAnimating = false
+                        if (animateEmojiInputDescent && isEmojiPanelRequested) {
+                            updateReplyPanelTranslation(0f)
+                        }
+                        animateEmojiInputDescent = false
+                    }
+                    val isImeVisible =
+                        ViewCompat.getRootWindowInsets(binding.editText)
+                            ?.isVisible(WindowInsetsCompat.Type.ime()) == true
+                    if (isImeVisible && isEmojiPanelVisible && !isEmojiPanelRequested) {
+                        closeEmojiPanelForIme()
+                    }
+                    ViewCompat.requestApplyInsets(binding.main)
+                    super.onEnd(animation)
+                }
+            },
+        )
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { _, insets ->
             val imeInset = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
@@ -239,17 +249,23 @@ class ReplyActivity : AppCompatActivity(),
                 }
             }
             if (!imeAnimating) {
-                val translation = calculateInputTranslation(
-                    imeInset = if (useImeInset) imeInset else 0,
-                    navInset = navInset
-                )
+                val translation =
+                    calculateInputTranslation(
+                        imeInset = if (useImeInset) imeInset else 0,
+                        navInset = navInset,
+                    )
                 updateReplyPanelTranslation(translation)
-                if (useImeInset && imeInset > 0 && binding.bottomLayout == null && !isEmojiPanelVisible) {
+                if (
+                    useImeInset &&
+                        imeInset > 0 &&
+                        binding.bottomLayout == null &&
+                        !isEmojiPanelVisible
+                ) {
                     imeScrimDrawable.setBounds(
                         0,
                         binding.main.height - (imeInset - navInset),
                         binding.main.width,
-                        binding.main.height
+                        binding.main.height,
                     )
                     binding.main.overlay.remove(imeScrimDrawable)
                     binding.main.overlay.add(imeScrimDrawable)
@@ -259,7 +275,7 @@ class ReplyActivity : AppCompatActivity(),
             }
             binding.main.updatePadding(
                 bottom = baseRootPaddingBottom + navInset,
-                top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+                top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top,
             )
             insets
         }
@@ -275,60 +291,24 @@ class ReplyActivity : AppCompatActivity(),
         initObserve()
         initPhotoPick()
         initAtUser()
-
     }
 
-    private fun resolvePrimaryColor(): Int {
-        if (materialYou) {
-            return MaterialColors.getColor(
-                this,
-                com.google.android.material.R.attr.colorPrimary,
-                0
-            )
-        }
-        val seed = seedColors.getOrNull(ThemeType.entries.indexOf(themeType))
-            ?: "FF$seedColor".toLongOrNull(16)
-            ?: seedColors[0]
-        return seed.toInt()
-    }
+    private fun resolvePrimaryColor(): Int =
+        com.example.c001apk.compose.ui.theme.miuixViewColors(this).primary.toArgb()
 
-    private fun resolveSurfaceContainerColor(): Int {
-        if (materialYou) {
-            return SurfaceColors.SURFACE_1.getColor(this)
-        }
-        val base = ContextCompat.getColor(this, R.color.color_surface)
-        val primary = resolvePrimaryColor()
-        return ColorUtils.blendARGB(base, primary, 0.08f)
-    }
+    private fun resolveSurfaceContainerColor(): Int =
+        com.example.c001apk.compose.ui.theme.miuixViewColors(this).surfaceContainer.toArgb()
 
-    private fun resolveSurfaceColor(): Int {
-        return if (materialYou) {
-            MaterialColors.getColor(
-                this,
-                com.google.android.material.R.attr.colorSurface,
-                0
-            )
-        } else {
-            ContextCompat.getColor(this, R.color.color_surface)
-        }
-    }
+    private fun resolveSurfaceColor(): Int =
+        com.example.c001apk.compose.ui.theme.miuixViewColors(this).surface.toArgb()
 
-    private fun resolvePrimaryDarkColor(primary: Int): Int {
-        return if (materialYou) {
-            MaterialColors.getColor(
-                this,
-                com.google.android.material.R.attr.colorPrimaryDark,
-                primary
-            )
-        } else {
-            ColorUtils.blendARGB(primary, Color.BLACK, 0.2f)
-        }
-    }
+    private fun resolvePrimaryDarkColor(primary: Int): Int =
+        ColorUtils.blendARGB(primary, Color.BLACK, 0.2f)
 
     private fun initAtUser() {
         atTopicResultLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult())
-            { result: ActivityResult ->
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                result: ActivityResult ->
                 if (result.resultCode == RESULT_OK) {
                     val list = result.data?.getStringExtra("data")
                     if (isFromAt) {
@@ -371,7 +351,6 @@ class ReplyActivity : AppCompatActivity(),
         }
     }
 
-
     private fun initPhotoPick() {
         fun handlePickedUris(uris: List<Uri>) {
             if (uris.isNotEmpty()) {
@@ -393,52 +372,58 @@ class ReplyActivity : AppCompatActivity(),
                         md5List.add(md5Byte)
                         imageList.add(
                             OSSUploadPrepareModel(
-                                name = "${
+                                name =
+                                    "${
                                     UUID.randomUUID().toString().replace("-", "")
                                 }.${if (type.startsWith("image/")) type.substring(6) else type}",
                                 resolution = "${width}x${height}",
                                 md5 = md5,
-                            )
+                            ),
                         )
                         uriList.add(uri)
 
-                        val imageView = ImageView(this).apply {
-                            layoutParams = LinearLayout.LayoutParams(
-                                (65.dp * width.toFloat() / height.toFloat()).toInt(), 65.dp
-                            ).apply {
-                                setMargins(5.dp, 0, 0, 0)
-                            }
-                            setOnClickListener {
-                                with(binding.imageLayout.indexOfChild(this)) {
-                                    binding.imageLayout.removeViewAt(this)
-                                    uriList.removeAt(this)
-                                    typeList.removeAt(this)
-                                    md5List.removeAt(this)
-                                    imageList.removeAt(this)
-                                    binding.imageLayout.isVisible = uriList.isNotEmpty()
+                        val imageView =
+                            ImageView(this).apply {
+                                layoutParams =
+                                    LinearLayout.LayoutParams(
+                                            (65.dp * width.toFloat() / height.toFloat()).toInt(),
+                                            65.dp,
+                                        )
+                                        .apply {
+                                            setMargins(5.dp, 0, 0, 0)
+                                        }
+                                setOnClickListener {
+                                    with(binding.imageLayout.indexOfChild(this)) {
+                                        binding.imageLayout.removeViewAt(this)
+                                        uriList.removeAt(this)
+                                        typeList.removeAt(this)
+                                        md5List.removeAt(this)
+                                        imageList.removeAt(this)
+                                        binding.imageLayout.isVisible = uriList.isNotEmpty()
+                                    }
                                 }
                             }
-                        }
-                        //Glide.with(this).load(uri).into(imageView)
+                        // Glide.with(this).load(uri).into(imageView)
                         imageView.load(uri) {
                             crossfade(true)
                         }
                         binding.imageLayout.addView(imageView)
                     }
-                }.onFailure {
-                    MaterialAlertDialogBuilder(this)
-                        .setTitle("获取图片信息失败")
-                        .setMessage(it.message)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .setNegativeButton("Log") { _, _ ->
-                            MaterialAlertDialogBuilder(this)
-                                .setTitle("Log")
-                                .setMessage(it.stackTraceToString())
-                                .setPositiveButton(android.R.string.ok, null)
-                                .show()
-                        }
-                        .show()
                 }
+                    .onFailure {
+                        MiuixViewDialogBuilder(this)
+                            .setTitle("获取图片信息失败")
+                            .setMessage(it.message)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .setNegativeButton("Log") { _, _ ->
+                                MiuixViewDialogBuilder(this)
+                                    .setTitle("Log")
+                                    .setMessage(it.stackTraceToString())
+                                    .setPositiveButton(android.R.string.ok, null)
+                                    .show()
+                            }
+                            .show()
+                    }
             }
             binding.imageLayout.isVisible = uriList.isNotEmpty()
         }
@@ -470,21 +455,26 @@ class ReplyActivity : AppCompatActivity(),
         (binding.main as? SmoothInputLayout)?.setOnVisibilityChangeListener(this)
         (binding.main as? SmoothInputLayout)?.setOnKeyboardChangeListener(null)
         val radius = listOf(16.dp.toFloat(), 16.dp.toFloat(), 0f, 0f)
-        val radiusBg = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            setColor(this@ReplyActivity.color)
-            cornerRadii = floatArrayOf(
-                radius[0], radius[0],
-                radius[1], radius[1],
-                radius[2], radius[2],
-                radius[3], radius[3]
-            )
-        }
+        val radiusBg =
+            GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                setColor(this@ReplyActivity.color)
+                cornerRadii =
+                    floatArrayOf(
+                        radius[0],
+                        radius[0],
+                        radius[1],
+                        radius[1],
+                        radius[2],
+                        radius[2],
+                        radius[3],
+                        radius[3],
+                    )
+            }
         if (binding.main is SmoothInputLayout) {
             binding.inputLayout.background = radiusBg
             binding.emojiLayout.setBackgroundColor(color)
-        } else
-            binding.bottomLayout?.background = radiusBg
+        } else binding.bottomLayout?.background = radiusBg
     }
 
     private fun initObserve() {
@@ -494,19 +484,23 @@ class ReplyActivity : AppCompatActivity(),
                     responseData?.let {
                         viewModel.replyAndFeedData["pic"] =
                             responseData.fileInfo.joinToString(separator = ",") {
-                                responseData.uploadPrepareInfo.uploadImagePrefix + "/" + it.uploadFileName
+                                responseData.uploadPrepareInfo.uploadImagePrefix +
+                                    "/" +
+                                    it.uploadFileName
                             }
                         ossUpload(
-                            this@ReplyActivity, responseData, uriList, typeList, md5List,
+                            this@ReplyActivity,
+                            responseData,
+                            uriList,
+                            typeList,
+                            md5List,
                             iOnSuccess = { index ->
                                 if (BuildConfig.DEBUG) {
                                     Log.i("OSSUpload", "uploadSuccess")
                                 }
                                 if (index == uriList.lastIndex) {
-                                    if (type == "createFeed")
-                                        viewModel.onPostCreateFeed()
-                                    else
-                                        viewModel.onPostReply()
+                                    if (type == "createFeed") viewModel.onPostCreateFeed()
+                                    else viewModel.onPostReply()
                                 }
                             },
                             iOnFailure = {
@@ -516,16 +510,16 @@ class ReplyActivity : AppCompatActivity(),
                                 runOnUiThread {
                                     closeDialog()
                                     Toast.makeText(
-                                        this@ReplyActivity,
-                                        "图片上传失败",
-                                        Toast.LENGTH_SHORT
-                                    )
+                                            this@ReplyActivity,
+                                            "图片上传失败",
+                                            Toast.LENGTH_SHORT,
+                                        )
                                         .show()
                                 }
                             },
                             closeDialog = {
                                 closeDialog()
-                            }
+                            },
                         )
                         viewModel.resetUpload()
                     }
@@ -548,9 +542,15 @@ class ReplyActivity : AppCompatActivity(),
                         }
                         recentList.add(0, emptyList())
                     } else {
-                        recentList.add(0, it.map { item ->
-                            Pair(item.data, EmojiUtils.emojiMap[item.data] ?: R.mipmap.ic_launcher)
-                        })
+                        recentList.add(
+                            0,
+                            it.map { item ->
+                                Pair(
+                                    item.data,
+                                    EmojiUtils.emojiMap[item.data] ?: R.mipmap.ic_launcher,
+                                )
+                            },
+                        )
                     }
                     binding.emojiPanel.adapter?.notifyItemChanged(0)
                 }
@@ -580,32 +580,42 @@ class ReplyActivity : AppCompatActivity(),
                 viewModel.captchaImg.collect { img ->
                     img?.let {
                         closeDialog()
-                        val binding = ItemCaptchaBinding.inflate(
-                            LayoutInflater.from(this@ReplyActivity), null, false
-                        )
+                        val binding =
+                            ItemCaptchaBinding.inflate(
+                                LayoutInflater.from(this@ReplyActivity),
+                                null,
+                                false,
+                            )
                         binding.captchaImg.setImageBitmap(img)
-                        binding.captchaText.highlightColor = ColorUtils.setAlphaComponent(
-                            resolvePrimaryDarkColor(resolvePrimaryColor()),
-                            128
-                        )
-                        MaterialAlertDialogBuilder(this@ReplyActivity).apply {
-                            setView(binding.root)
-                            setTitle("captcha")
-                            setNegativeButton(android.R.string.cancel, null)
-                            setPositiveButton("验证并继续") { _, _ ->
-                                viewModel.requestValidateData = HashMap()
-                                viewModel.requestValidateData["type"] = "err_request_captcha"
-                                viewModel.requestValidateData["code"] =
-                                    binding.captchaText.text.toString()
-                                viewModel.requestValidateData["mobile"] = ""
-                                viewModel.requestValidateData["idcard"] = ""
-                                viewModel.requestValidateData["name"] = ""
-                                viewModel.onPostRequestValidate()
+                        binding.captchaText.highlightColor =
+                            ColorUtils.setAlphaComponent(
+                                resolvePrimaryDarkColor(resolvePrimaryColor()),
+                                128,
+                            )
+                        MiuixViewDialogBuilder(this@ReplyActivity)
+                            .apply {
+                                setView(binding.root)
+                                setTitle("captcha")
+                                setNegativeButton(android.R.string.cancel, null)
+                                setPositiveButton("验证并继续") { _, _ ->
+                                    viewModel.requestValidateData = HashMap()
+                                    viewModel.requestValidateData["type"] = "err_request_captcha"
+                                    viewModel.requestValidateData["code"] =
+                                        binding.captchaText.text.toString()
+                                    viewModel.requestValidateData["mobile"] = ""
+                                    viewModel.requestValidateData["idcard"] = ""
+                                    viewModel.requestValidateData["name"] = ""
+                                    viewModel.onPostRequestValidate()
+                                }
                             }
-                        }.create().apply {
-                            window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
-                            binding.captchaText.requestFocus()
-                        }.show()
+                            .create()
+                            .apply {
+                                window?.setSoftInputMode(
+                                    WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE,
+                                )
+                                binding.captchaText.requestFocus()
+                            }
+                            .show()
                         viewModel.resetCaptcha()
                     }
                 }
@@ -623,7 +633,6 @@ class ReplyActivity : AppCompatActivity(),
                 }
             }
         }
-
     }
 
     private fun closeDialog() {
@@ -632,10 +641,8 @@ class ReplyActivity : AppCompatActivity(),
     }
 
     private fun initPage() {
-        binding.checkBox.text = if (type == "createFeed") "仅自己可见"
-        else "回复并转发"
-        binding.title.text = if (type == "createFeed") "发布动态"
-        else "回复"
+        binding.checkBox.text = if (type == "createFeed") "仅自己可见" else "回复并转发"
+        binding.title.text = if (type == "createFeed") "发布动态" else "回复"
         if (type != "createFeed" && !username.isNullOrEmpty())
             binding.editText.hint = "回复: " + username
         binding.publish.isClickable = false
@@ -648,18 +655,21 @@ class ReplyActivity : AppCompatActivity(),
         for (i in 0..2) {
             binding.indicator.addView(
                 TextView(this).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        0,
-                        LinearLayout.LayoutParams.MATCH_PARENT
-                    ).apply {
-                        weight = 1f
-                    }
+                    layoutParams =
+                        LinearLayout.LayoutParams(
+                                0,
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                            )
+                            .apply {
+                                weight = 1f
+                            }
                     gravity = Gravity.CENTER
                     text = listOf("最近", "默认", "酷币")[i]
-                    background = AppCompatResources.getDrawable(
-                        this@ReplyActivity,
-                        R.drawable.selector_bg_trans
-                    )
+                    background =
+                        AppCompatResources.getDrawable(
+                            this@ReplyActivity,
+                            R.drawable.selector_bg_trans,
+                        )
                     setOnClickListener {
                         binding.emojiPanel.setCurrentItem(i, false)
                     }
@@ -669,82 +679,86 @@ class ReplyActivity : AppCompatActivity(),
                             true
                         }
                     }
-                }
+                },
             )
             if (i != 2) {
                 binding.indicator.addView(
                     View(this).apply {
-                        layoutParams = LinearLayout.LayoutParams(
-                            1.dp,
-                            LinearLayout.LayoutParams.MATCH_PARENT
-                        )
-                        setBackgroundColor(
-                            MaterialColors.getColor(
-                                this@ReplyActivity,
-                                com.google.android.material.R.attr.colorSurfaceVariant, 0
+                        layoutParams =
+                            LinearLayout.LayoutParams(
+                                1.dp,
+                                LinearLayout.LayoutParams.MATCH_PARENT,
                             )
+                        setBackgroundColor(
+                            resolveSurfaceContainerColor(),
                         )
-                    }
+                    },
                 )
             }
         }
-        binding.emojiPanel.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                for (i in 0 until binding.indicator.childCount) {
-                    with(binding.indicator.getChildAt(i)) {
-                        if (this is TextView) {
-                            background = AppCompatResources.getDrawable(
-                                this@ReplyActivity,
-                                if (i / 2 == position) R.drawable.selector_emoji_indicator_selected
-                                else R.drawable.selector_emoji_indicator
-                            )
-                            setTextColor(
-                                if (i / 2 == position)
-                                    MaterialColors.getColor(
+        binding.emojiPanel.registerOnPageChangeCallback(
+            object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    super.onPageSelected(position)
+                    for (i in 0 until binding.indicator.childCount) {
+                        with(binding.indicator.getChildAt(i)) {
+                            if (this is TextView) {
+                                background =
+                                    AppCompatResources.getDrawable(
                                         this@ReplyActivity,
-                                        com.google.android.material.R.attr.colorOnPrimary, 0
+                                        if (i / 2 == position)
+                                            R.drawable.selector_emoji_indicator_selected
+                                        else R.drawable.selector_emoji_indicator,
                                     )
-                                else
-                                    MaterialColors.getColor(
-                                        this@ReplyActivity,
-                                        com.google.android.material.R.attr.colorControlNormal, 0
-                                    )
-                            )
+                                setTextColor(
+                                    if (i / 2 == position)
+                                        com.example.c001apk.compose.ui.theme
+                                            .miuixViewColors(this@ReplyActivity)
+                                            .onPrimary
+                                            .toArgb()
+                                    else
+                                        com.example.c001apk.compose.ui.theme
+                                            .miuixViewColors(this@ReplyActivity)
+                                            .onSurface
+                                            .toArgb(),
+                                )
+                            }
                         }
                     }
                 }
-            }
-        })
-
-        binding.emojiPanel.adapter = EmojiPagerAdapter(
-            list,
-            onClickEmoji = {
-                with(binding.editText) {
-                    if (it == "[c001apk]") {
-                        onBackSpace()
-                    } else {
-                        editableText.replace(selectionStart, selectionEnd, it)
-                        viewModel.updateRecentEmoji(it)
-                    }
-                }
             },
-            onCountStart = {
-                countDownTimer.start()
-            },
-            onCountStop = {
-                countDownTimer.cancel()
-            }
         )
+
+        binding.emojiPanel.adapter =
+            EmojiPagerAdapter(
+                list,
+                onClickEmoji = {
+                    with(binding.editText) {
+                        if (it == "[c001apk]") {
+                            onBackSpace()
+                        } else {
+                            editableText.replace(selectionStart, selectionEnd, it)
+                            viewModel.updateRecentEmoji(it)
+                        }
+                    }
+                },
+                onCountStart = {
+                    countDownTimer.start()
+                },
+                onCountStop = {
+                    countDownTimer.cancel()
+                },
+            )
     }
 
-    private val countDownTimer: CountDownTimer = object : CountDownTimer(100000, 50) {
-        override fun onTick(millisUntilFinished: Long) {
-            onBackSpace()
+    private val countDownTimer: CountDownTimer =
+        object : CountDownTimer(100000, 50) {
+            override fun onTick(millisUntilFinished: Long) {
+                onBackSpace()
+            }
+
+            override fun onFinish() {}
         }
-
-        override fun onFinish() {}
-    }
 
     private fun onBackSpace() {
         dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL))
@@ -758,48 +772,53 @@ class ReplyActivity : AppCompatActivity(),
         binding.editText.apply {
             isFocusable = true
             isFocusableInTouchMode = true
-            highlightColor = ColorUtils.setAlphaComponent(
-                primaryDarkColor,
-                128
-            )
+            highlightColor =
+                ColorUtils.setAlphaComponent(
+                    primaryDarkColor,
+                    128,
+                )
             post { setCursorColor(this, primaryColor) }
             setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
                     setCursorColor(this, primaryColor)
                 }
             }
-            addTextChangedListener(EmojiTextWatcher(
-                this@ReplyActivity, binding.editText.textSize,
-                primaryColor
-            ) {
-                if (binding.editText.text.toString().trim().isBlank()) {
-                    binding.publish.isClickable = false
-                    binding.publish.setTextColor(getColor(android.R.color.darker_gray))
-                } else {
-                    binding.publish.isClickable = true
-                    binding.publish.setTextColor(
-                        primaryColor
-                    )
-                }
-            })
+            addTextChangedListener(
+                EmojiTextWatcher(
+                    this@ReplyActivity,
+                    binding.editText.textSize,
+                    primaryColor,
+                ) {
+                    if (binding.editText.text.toString().trim().isBlank()) {
+                        binding.publish.isClickable = false
+                        binding.publish.setTextColor(getColor(android.R.color.darker_gray))
+                    } else {
+                        binding.publish.isClickable = true
+                        binding.publish.setTextColor(
+                            primaryColor,
+                        )
+                    }
+                },
+            )
             setOnKeyListener(FastDeleteAtUserKeyListener)
         }
-        binding.textInputLayout.defaultHintTextColor = ColorStateList.valueOf(primaryColor)
-        binding.textInputLayout.setBoxStrokeColor(primaryColor)
-        binding.textInputLayout.setCounterTextColor(ColorStateList.valueOf(primaryColor))
-        binding.textInputLayout.boxBackgroundColor = boxColor
-        binding.textInputLayout.setCursorColor(ColorStateList.valueOf(primaryColor))
+        binding.textInputLayout.setFieldColors(primaryColor, boxColor)
+        binding.editText.setHintTextColor(ColorUtils.setAlphaComponent(primaryColor, 170))
+        binding.editText.setTextColor(
+            com.example.c001apk.compose.ui.theme.miuixViewColors(this).onSurface.toArgb(),
+        )
     }
 
     private fun setCursorColor(editText: TextView, color: Int) {
         if (SDK_INT >= 29) {
             val width = max(2.dp, 2)
             val height = max(editText.textSize.toInt(), 1)
-            val cursorDrawable = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                setColor(color)
-                setSize(width, height)
-            }
+            val cursorDrawable =
+                GradientDrawable().apply {
+                    shape = GradientDrawable.RECTANGLE
+                    setColor(color)
+                    setSize(width, height)
+                }
             editText.textCursorDrawable = cursorDrawable
         }
     }
@@ -816,21 +835,19 @@ class ReplyActivity : AppCompatActivity(),
         @Suppress("DEPRECATION")
         window.statusBarColor = Color.TRANSPARENT
         @Suppress("DEPRECATION")
-        window.navigationBarColor = SurfaceColors.SURFACE_1.getColor(this)
+        window.navigationBarColor = resolveSurfaceContainerColor()
     }
 
     private fun showInput() {
         isEmojiPanelRequested = false
         animateEmojiInputDescent = false
-        if (binding.main is SmoothInputLayout)
-            (binding.main as? SmoothInputLayout)?.showKeyboard()
+        if (binding.main is SmoothInputLayout) (binding.main as? SmoothInputLayout)?.showKeyboard()
         else
             binding.editText.let {
                 it.requestFocus()
                 it.requestFocusFromTouch()
                 imm.showSoftInput(it, InputMethodManager.SHOW_IMPLICIT)
-                WindowCompat.getInsetsController(window, it)
-                    .show(WindowInsetsCompat.Type.ime())
+                WindowCompat.getInsetsController(window, it).show(WindowInsetsCompat.Type.ime())
             }
         ViewCompat.requestApplyInsets(binding.main)
     }
@@ -842,8 +859,9 @@ class ReplyActivity : AppCompatActivity(),
     }
 
     private fun retryShowIme() {
-        val isImeVisible = ViewCompat.getRootWindowInsets(binding.editText)
-            ?.isVisible(WindowInsetsCompat.Type.ime()) == true
+        val isImeVisible =
+            ViewCompat.getRootWindowInsets(binding.editText)
+                ?.isVisible(WindowInsetsCompat.Type.ime()) == true
         if (isImeVisible) {
             imeRetryHandler.removeCallbacks(imeRetryRunnable)
             return
@@ -867,8 +885,9 @@ class ReplyActivity : AppCompatActivity(),
                     updateReplyPanelTranslation(
                         calculateInputTranslation(
                             imeInset = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom,
-                            navInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
-                        )
+                            navInset =
+                                insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom,
+                        ),
                     )
                 }
                 hideImeForEmoji()
@@ -884,10 +903,14 @@ class ReplyActivity : AppCompatActivity(),
     }
 
     private fun closeEmojiPanelForIme(
-        imeInset: Int = ViewCompat.getRootWindowInsets(binding.editText)
-            ?.getInsets(WindowInsetsCompat.Type.ime())?.bottom ?: 0,
-        navInset: Int = ViewCompat.getRootWindowInsets(binding.editText)
-            ?.getInsets(WindowInsetsCompat.Type.navigationBars())?.bottom ?: 0
+        imeInset: Int =
+            ViewCompat.getRootWindowInsets(binding.editText)
+                ?.getInsets(WindowInsetsCompat.Type.ime())
+                ?.bottom ?: 0,
+        navInset: Int =
+            ViewCompat.getRootWindowInsets(binding.editText)
+                ?.getInsets(WindowInsetsCompat.Type.navigationBars())
+                ?.bottom ?: 0,
     ) {
         (binding.main as? SmoothInputLayout)?.closeEmojiPanel()
         updateReplyPanelTranslation(-max(0, imeInset - navInset).toFloat())
@@ -896,11 +919,12 @@ class ReplyActivity : AppCompatActivity(),
     private fun calculateInputTranslation(imeInset: Int, navInset: Int): Float {
         if (binding.bottomLayout != null) return 0f
         val imeHeight = max(0, imeInset - navInset)
-        val emojiHeight = if (isEmojiPanelVisible) {
-            max(binding.emojiLayout.measuredHeight, binding.emojiLayout.layoutParams.height)
-        } else {
-            0
-        }
+        val emojiHeight =
+            if (isEmojiPanelVisible) {
+                max(binding.emojiLayout.measuredHeight, binding.emojiLayout.layoutParams.height)
+            } else {
+                0
+            }
         return -max(0, imeHeight - emojiHeight).toFloat()
     }
 
@@ -942,8 +966,11 @@ class ReplyActivity : AppCompatActivity(),
             R.id.publish -> {
                 performConfiguredHapticFeedback(
                     fallback = {
-                        ViewCompat.performHapticFeedback(view, HapticFeedbackConstantsCompat.CONFIRM)
-                    }
+                        ViewCompat.performHapticFeedback(
+                            view,
+                            HapticFeedbackConstantsCompat.CONFIRM,
+                        )
+                    },
                 )
                 if (type == "createFeed") {
                     viewModel.replyAndFeedData["id"] = ""
@@ -953,8 +980,7 @@ class ReplyActivity : AppCompatActivity(),
                         if (binding.checkBox.isChecked) "-1" else "1"
 
                     targetType?.let {
-                        if (it == "apk")
-                            viewModel.replyAndFeedData["type"] = "comment"
+                        if (it == "apk") viewModel.replyAndFeedData["type"] = "comment"
                         viewModel.replyAndFeedData["targetType"] = it
                     }
                     targetId?.let {
@@ -978,30 +1004,29 @@ class ReplyActivity : AppCompatActivity(),
                 }
                 showDialog()
             }
-
         }
     }
 
     @SuppressLint("InflateParams")
     private fun showDialog() {
-        dialog = MaterialAlertDialogBuilder(
-            this,
-            R.style.ThemeOverlay_MaterialAlertDialog_Rounded
-        ).apply {
-            setView(
-                LayoutInflater.from(this@ReplyActivity)
-                    .inflate(R.layout.dialog_refresh, null, false)
-            )
-            setCancelable(false)
-        }.create()
+        dialog =
+            MiuixViewDialogBuilder(this)
+                .apply {
+                    setView(
+                        LayoutInflater.from(this@ReplyActivity)
+                            .inflate(R.layout.dialog_refresh, null, false),
+                    )
+                    setCancelable(false)
+                }
+                .create()
         dialog?.show()
         val decorView: View? = dialog?.window?.decorView
         val paddingTop: Int = decorView?.paddingTop ?: 0
         val paddingBottom: Int = decorView?.paddingBottom ?: 0
         val paddingLeft: Int = decorView?.paddingLeft ?: 0
         val paddingRight: Int = decorView?.paddingRight ?: 0
-        val width = 80.dp + paddingLeft + paddingRight
-        val height = 80.dp + paddingTop + paddingBottom
+        val width = 128.dp + paddingLeft + paddingRight
+        val height = 128.dp + paddingTop + paddingBottom
         dialog?.window?.setLayout(width, height)
     }
 
@@ -1054,11 +1079,12 @@ class ReplyActivity : AppCompatActivity(),
             val alignedTranslation = translation.roundToInt().toFloat()
             val seamOverlap = if (isEmojiPanelVisible && alignedTranslation != 0f) 1f else 0f
             binding.inputLayout.translationY = alignedTranslation
-            binding.emojiLayout.translationY = if (isEmojiPanelVisible) {
-                alignedTranslation - seamOverlap
-            } else {
-                0f
-            }
+            binding.emojiLayout.translationY =
+                if (isEmojiPanelVisible) {
+                    alignedTranslation - seamOverlap
+                } else {
+                    0f
+                }
         }
     }
 
@@ -1067,22 +1093,20 @@ class ReplyActivity : AppCompatActivity(),
         ViewCompat.requestApplyInsets(binding.main)
     }
 
-
     override fun finish() {
         super.finish()
         if (SDK_INT >= 34) {
             overrideActivityTransition(
                 Activity.OVERRIDE_TRANSITION_CLOSE,
                 R.anim.anim_bottom_sheet_slide_up,
-                R.anim.anim_bottom_sheet_slide_down
+                R.anim.anim_bottom_sheet_slide_down,
             )
         } else {
             @Suppress("DEPRECATION")
             overridePendingTransition(
                 R.anim.anim_bottom_sheet_slide_up,
-                R.anim.anim_bottom_sheet_slide_down
+                R.anim.anim_bottom_sheet_slide_down,
             )
         }
     }
-
 }

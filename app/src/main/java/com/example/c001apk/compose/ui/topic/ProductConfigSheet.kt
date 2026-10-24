@@ -19,23 +19,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,11 +35,25 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.example.c001apk.compose.logic.model.ProductSpecSection
 import com.example.c001apk.compose.logic.model.ProductSpecItem
+import com.example.c001apk.compose.logic.model.ProductSpecSection
 import com.example.c001apk.compose.ui.component.CoilLoader
+import com.example.c001apk.compose.ui.component.MiuixActionButton as TextButton
+import com.example.c001apk.compose.ui.component.MiuixBottomSheet as ModalBottomSheet
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Switch
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.VerticalDivider
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
+import top.yukonga.miuix.kmp.icon.extended.Close
+import top.yukonga.miuix.kmp.icon.extended.Share
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductConfigSheet(
     state: ProductConfigSheetState,
@@ -68,14 +65,15 @@ fun ProductConfigSheet(
     if (state is ProductConfigSheetState.Comparison) {
         Dialog(
             onDismissRequest = onDismiss,
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                decorFitsSystemWindows = false,
-            ),
+            properties =
+                DialogProperties(
+                    usePlatformDefaultWidth = false,
+                    decorFitsSystemWindows = false,
+                ),
         ) {
             Surface(
                 modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background,
+                color = MiuixTheme.colorScheme.background,
             ) {
                 ComparisonContent(
                     state = state,
@@ -89,7 +87,6 @@ fun ProductConfigSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         modifier = Modifier.padding(top = topPadding),
     ) {
         when (state) {
@@ -107,7 +104,7 @@ private fun SheetTitle(title: String) {
     Text(
         text = title,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-        style = MaterialTheme.typography.titleLarge,
+        style = MiuixTheme.textStyles.title3,
         fontWeight = FontWeight.SemiBold,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
@@ -133,12 +130,12 @@ private fun ErrorContent(message: String, onDismiss: () -> Unit) {
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("加载失败", style = MaterialTheme.typography.titleLarge)
+        Text("加载失败", style = MiuixTheme.textStyles.title3)
         Spacer(Modifier.height(12.dp))
         Text(
             text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.body1,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         )
         Spacer(Modifier.height(12.dp))
         TextButton(onClick = onDismiss) { Text("关闭") }
@@ -151,8 +148,11 @@ private fun DetailsContent(title: String, sections: List<ProductSpecSection>) {
         SheetTitle(title.ifBlank { "产品参数" })
         HorizontalDivider()
         if (sections.isEmpty()) {
-            Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                Text("暂无参数", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Box(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("暂无参数", color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             }
         } else {
             LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
@@ -187,35 +187,35 @@ private fun ComparisonContent(
     val context = LocalContext.current
     val horizontalState = rememberScrollState()
     var hideSame by rememberSaveable(state.mode) { mutableStateOf(false) }
-    val sections = (if (state.columns.isEmpty()) {
-        EMPTY_COMPARISON_SECTIONS
-    } else {
-        mergeSections(state.columns)
-    })
-        .map { section ->
-            if (!hideSame) section else section.copy(
-                items = section.items.filterNot { it.values.hasSameValues() }
-            )
-        }
-        .filter { it.items.isNotEmpty() }
+    val sections =
+        (if (state.columns.isEmpty()) {
+                EMPTY_COMPARISON_SECTIONS
+            } else {
+                mergeSections(state.columns)
+            })
+            .map { section ->
+                if (!hideSame) section
+                else
+                    section.copy(
+                        items = section.items.filterNot { it.values.hasSameValues() },
+                    )
+            }
+            .filter { it.items.isNotEmpty() }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding(),
+        modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().height(56.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onDismiss) {
-                Icon(Icons.Default.Close, contentDescription = "关闭")
+                Icon(MiuixIcons.Close, contentDescription = "关闭")
             }
             Text(
                 text = state.title,
                 modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleLarge,
+                style = MiuixTheme.textStyles.title3,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -228,15 +228,17 @@ private fun ComparisonContent(
                         state.columns.forEach { column ->
                             appendLine(column.selection.displayTitle(state.mode))
                         }
-                    }.trim()
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, text)
                     }
+                        .trim()
+                    val intent =
+                        Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, text)
+                        }
                     context.startActivity(Intent.createChooser(intent, state.title))
                 },
             ) {
-                Icon(Icons.Default.Share, contentDescription = "分享")
+                Icon(MiuixIcons.Share, contentDescription = "分享")
             }
         }
         HorizontalDivider()
@@ -258,23 +260,33 @@ private fun ComparisonContent(
                 }
                 var previousGroup: String? = null
                 section.items.forEachIndexed { index, comparisonItem ->
-                    if (!comparisonItem.group.isNullOrBlank() && comparisonItem.group != previousGroup) {
-                        item(key = "compare_${section.title}_group_${comparisonItem.group}_$index") {
+                    if (
+                        !comparisonItem.group.isNullOrBlank() &&
+                            comparisonItem.group != previousGroup
+                    ) {
+                        item(
+                            key = "compare_${section.title}_group_${comparisonItem.group}_$index",
+                        ) {
                             ComparisonGroupHeader(
                                 title = comparisonItem.group.orEmpty(),
                                 columnCount = state.columns.size,
                                 horizontalState = horizontalState,
-                                includeAddColumn = state.mode == ProductComparisonMode.CROSS_PRODUCT &&
-                                    state.columns.size < MAX_GLOBAL_COMPARISON_COUNT,
+                                includeAddColumn =
+                                    state.mode == ProductComparisonMode.CROSS_PRODUCT &&
+                                        state.columns.size < MAX_GLOBAL_COMPARISON_COUNT,
                             )
                         }
                     }
-                    item(key = "compare_${section.title}_${comparisonItem.group}_${comparisonItem.name}_$index") {
+                    item(
+                        key =
+                            "compare_${section.title}_${comparisonItem.group}_${comparisonItem.name}_$index",
+                    ) {
                         ComparisonSpecRow(
                             item = comparisonItem,
                             horizontalState = horizontalState,
-                            includeAddColumn = state.mode == ProductComparisonMode.CROSS_PRODUCT &&
-                                state.columns.size < MAX_GLOBAL_COMPARISON_COUNT,
+                            includeAddColumn =
+                                state.mode == ProductComparisonMode.CROSS_PRODUCT &&
+                                    state.columns.size < MAX_GLOBAL_COMPARISON_COUNT,
                         )
                     }
                     previousGroup = comparisonItem.group
@@ -307,32 +319,34 @@ private fun ComparisonHeader(
             Spacer(Modifier.height(6.dp))
             Text(
                 text = "隐藏相同配置",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MiuixTheme.textStyles.body1,
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(8.dp))
             Text(
                 text = "${state.columns.size}款配置对比",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             )
         }
         VerticalDivider(
             modifier = Modifier.fillMaxHeight().width(1.dp),
-            color = MaterialTheme.colorScheme.outlineVariant,
+            color = MiuixTheme.colorScheme.dividerLine,
         )
         Row(modifier = Modifier.horizontalScroll(horizontalState)) {
             state.columns.forEach { column ->
                 ProductComparisonHeaderColumn(
                     column = column,
                     mode = state.mode,
-                    onRemove = if (state.mode == ProductComparisonMode.CROSS_PRODUCT) {
-                        { column.selection.config.id?.let(onRemoveComparison) }
-                    } else null,
+                    onRemove =
+                        if (state.mode == ProductComparisonMode.CROSS_PRODUCT) {
+                            { column.selection.config.id?.let(onRemoveComparison) }
+                        } else null,
                 )
             }
-            if (state.mode == ProductComparisonMode.CROSS_PRODUCT &&
-                state.columns.size < MAX_GLOBAL_COMPARISON_COUNT
+            if (
+                state.mode == ProductComparisonMode.CROSS_PRODUCT &&
+                    state.columns.size < MAX_GLOBAL_COMPARISON_COUNT
             ) {
                 Column(
                     modifier = Modifier.width(VALUE_COLUMN_WIDTH).fillMaxHeight(),
@@ -341,7 +355,11 @@ private fun ComparisonHeader(
                 ) {
                     TextButton(onClick = onAddComparison) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(36.dp))
+                            Icon(
+                                MiuixIcons.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(36.dp),
+                            )
                             Text("添加对比")
                         }
                     }
@@ -360,7 +378,10 @@ private fun ProductComparisonHeaderColumn(
 ) {
     val config = column.selection.config
     Column(
-        modifier = Modifier.width(VALUE_COLUMN_WIDTH).fillMaxHeight().padding(horizontal = 10.dp, vertical = 8.dp),
+        modifier =
+            Modifier.width(VALUE_COLUMN_WIDTH)
+                .fillMaxHeight()
+                .padding(horizontal = 10.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(modifier = Modifier.fillMaxWidth().height(72.dp)) {
@@ -374,13 +395,17 @@ private fun ProductComparisonHeaderColumn(
                     onClick = it,
                     modifier = Modifier.size(28.dp).align(Alignment.TopEnd),
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = "移除", modifier = Modifier.size(18.dp))
+                    Icon(
+                        MiuixIcons.Close,
+                        contentDescription = "移除",
+                        modifier = Modifier.size(18.dp),
+                    )
                 }
             }
         }
         Text(
             text = column.selection.displayTitle(mode),
-            style = MaterialTheme.typography.titleSmall,
+            style = MiuixTheme.textStyles.headline2,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
             maxLines = 2,
@@ -389,17 +414,18 @@ private fun ProductComparisonHeaderColumn(
         if (mode == ProductComparisonMode.CROSS_PRODUCT) {
             Text(
                 text = config.title.orEmpty(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
         Text(
             text = config.price.asComparisonPrice(),
-            style = MaterialTheme.typography.titleSmall,
-            color = if (config.price.isPositivePrice()) MaterialTheme.colorScheme.error
-            else MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.headline2,
+            color =
+                if (config.price.isPositivePrice()) MiuixTheme.colorScheme.error
+                else MiuixTheme.colorScheme.onSurfaceVariantSummary,
         )
     }
 }
@@ -412,28 +438,28 @@ private fun ComparisonSpecRow(
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Box(
-            modifier = Modifier
-                .width(PARAMETER_COLUMN_WIDTH)
-                .heightIn(min = 64.dp)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier =
+                Modifier.width(PARAMETER_COLUMN_WIDTH)
+                    .heightIn(min = 64.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
             contentAlignment = Alignment.CenterStart,
         ) {
             Text(
                 text = item.name,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.body1,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             )
         }
         Row(modifier = Modifier.horizontalScroll(horizontalState)) {
             item.values.forEach { value ->
                 Box(
-                    modifier = Modifier
-                        .width(VALUE_COLUMN_WIDTH)
-                        .heightIn(min = 64.dp)
-                        .padding(horizontal = 12.dp, vertical = 12.dp),
+                    modifier =
+                        Modifier.width(VALUE_COLUMN_WIDTH)
+                            .heightIn(min = 64.dp)
+                            .padding(horizontal = 12.dp, vertical = 12.dp),
                     contentAlignment = Alignment.CenterStart,
                 ) {
-                    Text(text = value, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = value, style = MiuixTheme.textStyles.body1)
                 }
             }
             if (includeAddColumn) {
@@ -453,22 +479,23 @@ private fun ComparisonGroupHeader(
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Box(
-            modifier = Modifier
-                .width(PARAMETER_COLUMN_WIDTH)
-                .padding(horizontal = 16.dp, vertical = 9.dp),
+            modifier =
+                Modifier.width(PARAMETER_COLUMN_WIDTH).padding(horizontal = 16.dp, vertical = 9.dp),
             contentAlignment = Alignment.CenterStart,
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.labelLarge,
+                style = MiuixTheme.textStyles.button,
                 fontWeight = FontWeight.SemiBold,
             )
         }
         Row(modifier = Modifier.horizontalScroll(horizontalState)) {
             Spacer(
-                modifier = Modifier.width(
-                    VALUE_COLUMN_WIDTH * (columnCount + if (includeAddColumn) 1 else 0).toFloat()
-                )
+                modifier =
+                    Modifier.width(
+                        VALUE_COLUMN_WIDTH *
+                            (columnCount + if (includeAddColumn) 1 else 0).toFloat(),
+                    ),
             )
         }
     }
@@ -480,9 +507,9 @@ private fun SectionHeader(title: String) {
     Text(
         text = title,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-        style = MaterialTheme.typography.titleMedium,
+        style = MiuixTheme.textStyles.subtitle,
         fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.primary,
+        color = MiuixTheme.colorScheme.primary,
     )
 }
 
@@ -491,9 +518,9 @@ private fun SpecGroupHeader(title: String) {
     Text(
         text = title,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
-        style = MaterialTheme.typography.labelLarge,
+        style = MiuixTheme.textStyles.button,
         fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
     )
 }
 
@@ -506,10 +533,10 @@ private fun SpecRow(name: String, value: String) {
         Text(
             text = name,
             modifier = Modifier.weight(0.38f),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.body1,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         )
-        Text(text = value, modifier = Modifier.weight(0.62f), style = MaterialTheme.typography.bodyMedium)
+        Text(text = value, modifier = Modifier.weight(0.62f), style = MiuixTheme.textStyles.body1)
     }
     HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp))
 }
@@ -525,34 +552,38 @@ private data class ComparisonItem(
     val group: String? = null,
 )
 
-private val EMPTY_COMPARISON_SECTIONS = listOf(
-    ComparisonSection(
-        title = "重要参数",
-        items = listOf("性能", "芯片", "RAM & ROM").map { ComparisonItem(it, emptyList()) },
-    ),
-    ComparisonSection(
-        title = "屏幕",
-        items = listOf("屏幕").map { ComparisonItem(it, emptyList()) },
-    ),
-    ComparisonSection(
-        title = "影像",
-        items = listOf(
-            "影像联名",
-            "后置主摄",
-            "后置长焦①",
-            "后置长焦②",
-            "后置超广角",
-            "前置主摄",
-            "前置副摄",
-        ).map { ComparisonItem(it, emptyList()) },
-    ),
-    ComparisonSection(
-        title = "充电与电池",
-        items = listOf("电池容量", "有线充电", "无线充电").map {
-            ComparisonItem(it, emptyList())
-        },
-    ),
-)
+private val EMPTY_COMPARISON_SECTIONS =
+    listOf(
+        ComparisonSection(
+            title = "重要参数",
+            items = listOf("性能", "芯片", "RAM & ROM").map { ComparisonItem(it, emptyList()) },
+        ),
+        ComparisonSection(
+            title = "屏幕",
+            items = listOf("屏幕").map { ComparisonItem(it, emptyList()) },
+        ),
+        ComparisonSection(
+            title = "影像",
+            items =
+                listOf(
+                        "影像联名",
+                        "后置主摄",
+                        "后置长焦①",
+                        "后置长焦②",
+                        "后置超广角",
+                        "前置主摄",
+                        "前置副摄",
+                    )
+                    .map { ComparisonItem(it, emptyList()) },
+        ),
+        ComparisonSection(
+            title = "充电与电池",
+            items =
+                listOf("电池容量", "有线充电", "无线充电").map {
+                    ComparisonItem(it, emptyList())
+                },
+        ),
+    )
 
 private fun mergeSections(
     columns: List<ProductComparisonColumn>,
@@ -578,18 +609,21 @@ private fun mergeSections(
             val source = itemMaps.firstNotNullOfOrNull { it[itemKey] }
             ComparisonItem(
                 name = source?.name.orEmpty(),
-                values = itemMaps.map { itemsByName ->
-                    itemsByName[itemKey]?.value ?: "-"
-                },
+                values =
+                    itemMaps.map { itemsByName ->
+                        itemsByName[itemKey]?.value ?: "-"
+                    },
                 group = source?.group,
             )
         }
-        items.takeIf { it.isNotEmpty() }?.let {
-            ComparisonSection(
-                title = sections.firstNotNullOfOrNull { it?.title }.orEmpty(),
-                items = it,
-            )
-        }
+        items
+            .takeIf { it.isNotEmpty() }
+            ?.let {
+                ComparisonSection(
+                    title = sections.firstNotNullOfOrNull { it?.title }.orEmpty(),
+                    items = it,
+                )
+            }
     }
 }
 
@@ -601,14 +635,14 @@ private fun List<String>.hasSameValues(): Boolean =
 
 private fun com.example.c001apk.compose.logic.model.ProductComparisonSelection.displayTitle(
     mode: ProductComparisonMode,
-): String = if (mode == ProductComparisonMode.CURRENT_PRODUCT) {
-    config.title.orEmpty()
-} else {
-    productTitle
-}
+): String =
+    if (mode == ProductComparisonMode.CURRENT_PRODUCT) {
+        config.title.orEmpty()
+    } else {
+        productTitle
+    }
 
-private fun String.normalizedSpecKey(): String =
-    trim().replace(Regex("\\s+"), "").lowercase()
+private fun String.normalizedSpecKey(): String = trim().replace(Regex("\\s+"), "").lowercase()
 
 private fun String?.asComparisonPrice(): String =
     takeIf { it.isPositivePrice() }?.let { "¥$it" } ?: "暂无价格"

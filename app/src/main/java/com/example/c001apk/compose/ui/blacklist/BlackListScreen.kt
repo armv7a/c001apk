@@ -18,24 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.ClearAll
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Upload
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,14 +28,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.isDigitsOnly
@@ -63,6 +43,10 @@ import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.logic.model.StringEntity
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.component.BackButton
+import com.example.c001apk.compose.ui.component.MiuixActionButton as TextButton
+import com.example.c001apk.compose.ui.component.MiuixAlertDialog as AlertDialog
+import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
 import com.example.c001apk.compose.ui.component.cards.SearchHistoryCard
 import com.example.c001apk.compose.util.makeToast
@@ -71,16 +55,25 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Clear
+import top.yukonga.miuix.kmp.icon.extended.Delete
+import top.yukonga.miuix.kmp.icon.extended.Download
+import top.yukonga.miuix.kmp.icon.extended.UploadCloud
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/16
- */
-
+/** Created by bggRGjQaUbCoE on 2024/6/16 */
 enum class BlackListType {
-    USER, TOPIC
+    USER,
+    TOPIC,
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BlackListScreen(
     onBackClick: () -> Unit,
@@ -90,7 +83,8 @@ fun BlackListScreen(
 ) {
 
     val viewModel =
-        hiltViewModel<BlackListViewModel, BlackListViewModel.ViewModelFactory>(key = type) { factory ->
+        hiltViewModel<BlackListViewModel, BlackListViewModel.ViewModelFactory>(key = type) { factory
+            ->
             factory.create(BlackListType.valueOf(type))
         }
     val blackList by viewModel.blackList.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -106,18 +100,18 @@ fun BlackListScreen(
     }
 
     var textInput by remember { mutableStateOf(TextFieldValue(text = EMPTY_STRING)) }
-    val textStyle = LocalTextStyle.current
+    val textStyle = MiuixTheme.textStyles.main
     var showClearDialog by remember { mutableStateOf(false) }
     val rememberScrollState = rememberScrollState()
 
     val backupSAFLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) backup@{ uri ->
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.CreateDocument("application/json"),
+        ) backup@{ uri ->
             if (uri == null) return@backup
             context.contentResolver.openOutputStream(uri).use { output ->
-                if (output == null)
-                    context.makeToast("导出失败")
-                else
-                    output.write(Gson().toJson(blackList.map { it.data }).toByteArray())
+                if (output == null) context.makeToast("导出失败")
+                else output.write(Gson().toJson(blackList.map { it.data }).toByteArray())
             }
             context.makeToast("导出成功")
         }
@@ -129,8 +123,10 @@ fun BlackListScreen(
             try {
                 val date =
                     SimpleDateFormat(
-                        "yyyy-MM-dd_HH.mm.ss", Locale.getDefault()
-                    ).format(Date())
+                            "yyyy-MM-dd_HH.mm.ss",
+                            Locale.getDefault(),
+                        )
+                        .format(Date())
                 backupSAFLauncher.launch("${type.lowercase()}_blacklist_$date.json")
             } catch (e: Exception) {
                 context.makeToast("导出失败")
@@ -143,19 +139,15 @@ fun BlackListScreen(
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) restore@{ uri ->
             if (uri == null) return@restore
             try {
-                val string = context.contentResolver
-                    .openInputStream(uri)?.reader().use { it?.readText() }
-                    ?: throw IOException("Backup file was damaged")
+                val string =
+                    context.contentResolver.openInputStream(uri)?.reader().use { it?.readText() }
+                        ?: throw IOException("Backup file was damaged")
                 val dataList: List<String> =
                     Gson().fromJson(string, Array<String>::class.java).toList()
                 val currentList: List<String> = blackList.map { it.data }
                 val newList: List<String> =
-                    if (currentList.isEmpty())
-                        dataList
-                    else
-                        dataList.filter { it !in currentList }
-                if (newList.isNotEmpty())
-                    viewModel.insertList(newList.map { StringEntity(it) })
+                    if (currentList.isEmpty()) dataList else dataList.filter { it !in currentList }
+                if (newList.isNotEmpty()) viewModel.insertList(newList.map { StringEntity(it) })
                 context.makeToast("导入成功")
             } catch (e: Exception) {
                 context.makeToast(e.message ?: "导入失败")
@@ -181,16 +173,13 @@ fun BlackListScreen(
                 },
                 title = {
                     TextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequest),
+                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequest),
                         singleLine = true,
                         value = textInput,
                         onValueChange = {
                             when (type) {
                                 BlackListType.USER.name -> {
-                                    if (it.text.isDigitsOnly())
-                                        textInput = it
+                                    if (it.text.isDigitsOnly()) textInput = it
                                 }
 
                                 else -> {
@@ -199,112 +188,108 @@ fun BlackListScreen(
                             }
                         },
                         textStyle = textStyle.copy(fontSize = 18.sp),
-                        placeholder = {
-                            Text(
-                                text = when (type) {
-                                    BlackListType.USER.name -> "UID"
-                                    BlackListType.TOPIC.name -> "话题"
-                                    else -> EMPTY_STRING
-                                },
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
+                        label =
+                            when (type) {
+                                BlackListType.USER.name -> "UID"
+                                BlackListType.TOPIC.name -> "话题"
+                                else -> EMPTY_STRING
+                            },
+                        useLabelAsPlaceholder = true,
                         trailingIcon = {
                             AnimatedVisibility(
                                 visible = textInput.text.isNotEmpty(),
                                 enter = fadeIn(),
-                                exit = fadeOut()
+                                exit = fadeOut(),
                             ) {
-                                IconButton(onClick = {
-                                    textInput = TextFieldValue(EMPTY_STRING)
-                                }) {
+                                IconButton(
+                                    onClick = {
+                                        textInput = TextFieldValue(EMPTY_STRING)
+                                    },
+                                ) {
                                     Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = null
+                                        imageVector = MiuixIcons.Clear,
+                                        contentDescription = null,
                                     )
                                 }
                             }
                         },
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = when (type) {
-                                BlackListType.USER.name -> KeyboardType.Number
-                                BlackListType.TOPIC.name -> KeyboardType.Text
-                                else -> KeyboardType.Text
-                            },
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                if (textInput.text.trim().isNotEmpty()) {
-                                    viewModel.save(textInput.text)
-                                    textInput = TextFieldValue(EMPTY_STRING)
-                                }
-                            }
-                        )
+                        keyboardOptions =
+                            KeyboardOptions(
+                                keyboardType =
+                                    when (type) {
+                                        BlackListType.USER.name -> KeyboardType.Number
+                                        BlackListType.TOPIC.name -> KeyboardType.Text
+                                        else -> KeyboardType.Text
+                                    },
+                                imeAction = ImeAction.Done,
+                            ),
+                        keyboardActions =
+                            KeyboardActions(
+                                onDone = {
+                                    if (textInput.text.trim().isNotEmpty()) {
+                                        viewModel.save(textInput.text)
+                                        textInput = TextFieldValue(EMPTY_STRING)
+                                    }
+                                },
+                            ),
                     )
                 },
                 actions = {
                     Row {
-                        IconButton(onClick = {
-                            onBackup()
-                        }) {
-                            Icon(imageVector = Icons.Default.Upload, contentDescription = null)
+                        IconButton(
+                            onClick = {
+                                onBackup()
+                            },
+                        ) {
+                            Icon(imageVector = MiuixIcons.UploadCloud, contentDescription = null)
                         }
-                        IconButton(onClick = {
-                            onRestore()
-                        }) {
-                            Icon(imageVector = Icons.Default.Download, contentDescription = null)
+                        IconButton(
+                            onClick = {
+                                onRestore()
+                            },
+                        ) {
+                            Icon(imageVector = MiuixIcons.Download, contentDescription = null)
                         }
                     }
-                }
+                },
             )
-        }
+        },
     ) { paddingValues ->
-
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState)
+            modifier =
+                Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState),
         ) {
             HorizontalDivider()
 
             androidx.compose.animation.AnimatedVisibility(
                 visible = blackList.isNotEmpty(),
                 enter = fadeIn(),
-                exit = fadeOut()
+                exit = fadeOut(),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = when (type) {
-                            BlackListType.USER.name -> "用户"
-                            BlackListType.TOPIC.name -> "话题"
-                            else -> type
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 10.dp),
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                        )
+                        text =
+                            when (type) {
+                                BlackListType.USER.name -> "用户"
+                                BlackListType.TOPIC.name -> "话题"
+                                else -> type
+                            },
+                        modifier = Modifier.weight(1f).padding(start = 10.dp),
+                        style =
+                            MiuixTheme.textStyles.headline2.copy(
+                                fontWeight = FontWeight.Bold,
+                            ),
                     )
 
                     IconButton(
                         onClick = {
                             showClearDialog = true
-                        }
+                        },
                     ) {
-                        Icon(imageVector = Icons.Default.ClearAll, contentDescription = null)
+                        Icon(imageVector = MiuixIcons.Delete, contentDescription = null)
                     }
                 }
             }
@@ -312,7 +297,7 @@ fun BlackListScreen(
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.padding(horizontal = 10.dp)
+                modifier = Modifier.padding(horizontal = 10.dp),
             ) {
                 blackList.forEach {
                     SearchHistoryCard(
@@ -326,7 +311,7 @@ fun BlackListScreen(
                         },
                         onDelete = {
                             viewModel.delete(it.data)
-                        }
+                        },
                     )
                 }
             }
@@ -335,12 +320,11 @@ fun BlackListScreen(
         if (blackList.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 LoadingCard(state = LoadingState.Empty)
             }
         }
-
     }
 
     when {
@@ -352,7 +336,8 @@ fun BlackListScreen(
                         onClick = {
                             showClearDialog = false
                             viewModel.clearAll()
-                        }) {
+                        },
+                    ) {
                         Text(text = stringResource(id = android.R.string.ok))
                     }
                 },
@@ -360,13 +345,13 @@ fun BlackListScreen(
                     TextButton(
                         onClick = {
                             showClearDialog = false
-                        }) {
+                        },
+                    ) {
                         Text(text = stringResource(id = android.R.string.cancel))
                     }
                 },
-                title = {
-                    Text(text = "确定清除全部黑名单？", modifier = Modifier.fillMaxWidth())
-                }
+                title = { Text("确定清除全部黑名单？") },
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
@@ -375,5 +360,4 @@ fun BlackListScreen(
         viewModel.reset()
         context.makeToast(it)
     }
-
 }

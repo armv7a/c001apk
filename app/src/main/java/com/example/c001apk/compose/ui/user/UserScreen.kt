@@ -14,23 +14,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -53,6 +36,13 @@ import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.FooterCard
 import com.example.c001apk.compose.ui.component.ItemCard
+import com.example.c001apk.compose.ui.component.MiuixActionButton as TextButton
+import com.example.c001apk.compose.ui.component.MiuixAlertDialog as AlertDialog
+import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
+import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
+import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
 import com.example.c001apk.compose.ui.component.cards.UserInfoCard
 import com.example.c001apk.compose.util.CookieUtil.isLogin
@@ -63,12 +53,13 @@ import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.getShareText
 import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.shareText
-import com.example.c001apk.compose.ui.component.MoreMenuButton
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Search
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/4
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Created by bggRGjQaUbCoE on 2024/6/4 */
 @Composable
 fun UserScreen(
     uid: String,
@@ -86,8 +77,7 @@ fun UserScreen(
     val layoutDirection = LocalLayoutDirection.current
 
     val context = LocalContext.current
-    val state = rememberPullToRefreshState()
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val scrollBehavior = top.yukonga.miuix.kmp.basic.MiuixScrollBehavior(canScroll = { false })
     val viewModel =
         hiltViewModel<UserViewModel, UserViewModel.ViewModelFactory>(key = uid) { factory ->
             factory.create(uid)
@@ -101,19 +91,20 @@ fun UserScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                windowInsets = WindowInsets.systemBars
-                    .only(WindowInsetsSides.Start + WindowInsetsSides.Top),
+                windowInsets =
+                    WindowInsets.systemBars.only(WindowInsetsSides.Start + WindowInsetsSides.Top),
                 navigationIcon = {
                     BackButton { onBackClick() }
                 },
                 title = {
                     Text(
-                        text = if (firstVisibleItemIndex > 0)
-                            (viewModel.userState as? LoadingState.Success)?.response?.username
-                                ?: uid
-                        else EMPTY_STRING,
+                        text =
+                            if (firstVisibleItemIndex > 0)
+                                (viewModel.userState as? LoadingState.Success)?.response?.username
+                                    ?: uid
+                            else EMPTY_STRING,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                 },
                 actions = {
@@ -122,36 +113,37 @@ fun UserScreen(
                             IconButton(
                                 onClick = {
                                     onSearch(viewModel.username, "user", viewModel.uid)
-                                }
+                                },
                             ) {
-                                Icon(Icons.Default.Search, contentDescription = null)
+                                Icon(MiuixIcons.Search, contentDescription = null)
                             }
                             Box {
                                 MoreMenuButton { dropdownMenuExpanded = true }
                                 DropdownMenu(
                                     expanded = dropdownMenuExpanded,
-                                    onDismissRequest = { dropdownMenuExpanded = false }
+                                    onDismissRequest = { dropdownMenuExpanded = false },
                                 ) {
-                                    listOf("复制", "分享", "用户信息")
-                                        .forEachIndexed { index, menu ->
-                                            DropdownMenuItem(
-                                                text = { Text(menu) },
-                                                onClick = {
-                                                    dropdownMenuExpanded = false
-                                                    when (index) {
-                                                        0 -> context.copyText(
-                                                            getShareText(ShareType.USER, uid)
+                                    listOf("复制", "分享", "用户信息").forEachIndexed { index, menu ->
+                                        DropdownMenuItem(
+                                            text = { Text(menu) },
+                                            onClick = {
+                                                dropdownMenuExpanded = false
+                                                when (index) {
+                                                    0 ->
+                                                        context.copyText(
+                                                            getShareText(ShareType.USER, uid),
                                                         )
 
-                                                        1 -> context.shareText(
-                                                            getShareText(ShareType.USER, uid)
+                                                    1 ->
+                                                        context.shareText(
+                                                            getShareText(ShareType.USER, uid),
                                                         )
 
-                                                        2 -> showUserInfoDialog = true
-                                                    }
+                                                    2 -> showUserInfoDialog = true
                                                 }
-                                            )
-                                        }
+                                            },
+                                        )
+                                    }
                                     DropdownMenuItem(
                                         text = {
                                             Text(
@@ -159,74 +151,68 @@ fun UserScreen(
                                                     stringResource(id = R.string.menu_unblock)
                                                 } else {
                                                     "拉黑"
-                                                }
+                                                },
                                             )
                                         },
                                         onClick = {
                                             dropdownMenuExpanded = false
                                             viewModel.onBlockUser(viewModel.uid)
-                                        }
+                                        },
                                     )
                                     if (isLogin) {
                                         DropdownMenuItem(
-                                            text = { Text(stringResource(id = R.string.menu_report)) },
+                                            text = {
+                                                Text(stringResource(id = R.string.menu_report))
+                                            },
                                             onClick = {
                                                 dropdownMenuExpanded = false
                                                 onReport(uid, ReportType.USER)
-                                            }
+                                            },
                                         )
                                     }
                                 }
                             }
-
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                scrollBehavior = scrollBehavior
+                color = Color.Transparent,
             )
-        }
+        },
     ) { paddingValues ->
-
-        PullToRefreshBox(
-            modifier = Modifier.padding(
-                start = paddingValues.calculateLeftPadding(layoutDirection),
-            ),
-            state = state,
+        top.yukonga.miuix.kmp.basic.PullToRefresh(
+            refreshTexts = listOf("下拉刷新", "释放刷新", "正在刷新", "刷新完成"),
+            modifier =
+                Modifier.padding(
+                    start = paddingValues.calculateLeftPadding(layoutDirection),
+                ),
             isRefreshing = viewModel.isRefreshing,
             onRefresh = {
                 viewModel.isPull = true
                 viewModel.refresh()
             },
-            indicator = {
-                PullToRefreshDefaults.Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = viewModel.isRefreshing,
-                    state = state,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
         ) {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
-                contentPadding = PaddingValues(bottom = 10.dp + paddingValues.calculateBottomPadding()),
+                modifier =
+                    Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+                contentPadding =
+                    PaddingValues(bottom = 10.dp + paddingValues.calculateBottomPadding()),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                state = lazyListState
+                state = lazyListState,
             ) {
-
                 when (viewModel.userState) {
-                    LoadingState.Loading, LoadingState.Empty, is LoadingState.Error -> {
+                    LoadingState.Loading,
+                    LoadingState.Empty,
+                    is LoadingState.Error -> {
                         item(key = "userState") {
                             Box(modifier = Modifier.fillParentMaxSize()) {
                                 LoadingCard(
-                                    modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .padding(horizontal = 10.dp),
+                                    modifier =
+                                        Modifier.align(Alignment.Center)
+                                            .padding(horizontal = 10.dp),
                                     state = viewModel.userState,
-                                    onClick = if (viewModel.userState is LoadingState.Loading) null
-                                    else viewModel::refresh
+                                    onClick =
+                                        if (viewModel.userState is LoadingState.Loading) null
+                                        else viewModel::refresh,
                                 )
                             }
                         }
@@ -274,11 +260,8 @@ fun UserScreen(
                         loadMore = viewModel::loadMore,
                     )
                 }
-
             }
         }
-
-
     }
 
     when {
@@ -288,7 +271,8 @@ fun UserScreen(
                 onDismissRequest = { showUserInfoDialog = false },
                 confirmButton = {
                     TextButton(
-                        onClick = { showUserInfoDialog = false }) {
+                        onClick = { showUserInfoDialog = false },
+                    ) {
                         Text(text = stringResource(id = android.R.string.ok))
                     }
                 },
@@ -300,7 +284,8 @@ fun UserScreen(
                 },
                 text = {
                     Text(
-                        text = """
+                        text =
+                            """
                                 UID: ${data.uid}
                                 
                                 等级: Lv.${data.level}
@@ -310,7 +295,8 @@ fun UserScreen(
                                 注册时长: ${((System.currentTimeMillis() / 1000 - (data.regdate ?: 0)) / 24 / 3600)} 天
                                 
                                 注册时间: ${timeStamp2Date(data.regdate ?: 0)}
-                            """.trimIndent()
+                            """
+                                .trimIndent(),
                     )
                 },
             )
@@ -321,5 +307,4 @@ fun UserScreen(
         viewModel.resetToastText()
         context.makeToast(it)
     }
-
 }

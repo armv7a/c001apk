@@ -18,19 +18,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Message
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.Smartphone
-import androidx.compose.material.icons.filled.ThumbUpAlt
-import androidx.compose.material.icons.filled.ThumbUpOffAlt
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,7 +41,12 @@ import com.example.c001apk.compose.ui.base.LikeType
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.component.IconText
 import com.example.c001apk.compose.ui.component.LinkText
+import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
+import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
 import com.example.c001apk.compose.ui.component.NineImageView
+import com.example.c001apk.compose.ui.component.icons.Smartphone
+import com.example.c001apk.compose.ui.component.icons.ThumbUpAlt
+import com.example.c001apk.compose.ui.component.icons.ThumbUpOffAlt
 import com.example.c001apk.compose.ui.theme.cardBg
 import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.CookieUtil.isLogin
@@ -65,7 +56,16 @@ import com.example.c001apk.compose.util.ShareType
 import com.example.c001apk.compose.util.Utils.richToString
 import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.getShareText
-import com.example.c001apk.compose.util.longClick
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Link
+import top.yukonga.miuix.kmp.icon.extended.Messages
+import top.yukonga.miuix.kmp.icon.extended.More
+import top.yukonga.miuix.kmp.squircle.squircleClip
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -83,35 +83,13 @@ fun FeedCard(
     onDelete: ((String, LikeType, String?) -> Unit)? = null,
     onBlockUser: (String) -> Unit,
 ) {
-    val horizontal = if (isFeedContent) 16.dp else 10.dp
-    // val vertical = if (isFeedContent) 12.dp else 10.dp
-    Column(
-        modifier = run {
-            val tmp = modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .clip(
-                    if (isFeedContent) RectangleShape
-                    else RoundedCornerShape(12.0.dp)
-                )
-                .background(
-                    if (isFeedContent) MaterialTheme.colorScheme.surface
-                    else cardBg()
-                )
-            if (isFeedContent)
-                tmp.longClick {
-                    onCopyText(data.message)
-                }
-            else
-                tmp.combinedClickable(
-                    onClick = {
-                        onViewFeed(data.id.orEmpty(), false)
-                    },
-                    onLongClick = {
-                        onCopyText(data.message)
-                    }
-                )
-        }
+    val horizontal = 16.dp
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        cornerRadius = if (isFeedContent) 0.dp else 16.dp,
+        onClick = if (isFeedContent) null else ({ onViewFeed(data.id.orEmpty(), false) }),
+        onLongPress = { onCopyText(data.message) },
+        showIndication = !isFeedContent,
     ) {
         if (!isFeedContent) {
             FeedHeader(
@@ -126,9 +104,7 @@ fun FeedCard(
             )
         }
         FeedMessage(
-            modifier = Modifier
-                .padding(horizontal = horizontal)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(horizontal = horizontal).fillMaxWidth(),
             data = data,
             onOpenLink = onOpenLink,
             isFeedContent = isFeedContent,
@@ -136,9 +112,13 @@ fun FeedCard(
             onCopyText = onCopyText,
         )
         FeedBottomInfo(
-            modifier = Modifier
-                .padding(horizontal = horizontal)
-                .padding(bottom = if (data.targetRow == null && data.relationRows.isNullOrEmpty()) 12.dp else 0.dp),
+            modifier =
+                Modifier.padding(horizontal = horizontal)
+                    .padding(
+                        bottom =
+                            if (data.targetRow == null && data.relationRows.isNullOrEmpty()) 12.dp
+                            else 0.dp,
+                    ),
             isFeedContent = isFeedContent,
             ip = data.ipLocation.orEmpty(),
             dateline = data.dateline ?: 0,
@@ -154,14 +134,14 @@ fun FeedCard(
                     }
                 }
             },
-            like = data.userAction?.like
+            like = data.userAction?.like,
         )
         FeedRows(
             modifier = Modifier.padding(bottom = 10.dp),
             isFeedContent = isFeedContent,
             relationRows = data.relationRows,
             targetRow = data.targetRow,
-            onOpenLink = onOpenLink
+            onOpenLink = onOpenLink,
         )
     }
 }
@@ -172,7 +152,7 @@ fun FeedRows(
     isFeedContent: Boolean,
     relationRows: List<HomeFeedResponse.RelationRows>?,
     targetRow: HomeFeedResponse.TargetRow?,
-    onOpenLink: (String, String?) -> Unit
+    onOpenLink: (String, String?) -> Unit,
 ) {
     val dataList = relationRows?.toMutableList() ?: ArrayList()
     targetRow?.let {
@@ -183,18 +163,16 @@ fun FeedRows(
                 it.logo,
                 it.title,
                 it.url,
-                it.targetType.toString()
-            )
+                it.targetType.toString(),
+            ),
         )
     }
 
     if (dataList.isNotEmpty()) {
         LazyRow(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp),
+            modifier = modifier.fillMaxWidth().padding(top = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(horizontal = if (isFeedContent) 16.dp else 10.dp)
+            contentPadding = PaddingValues(horizontal = if (isFeedContent) 16.dp else 10.dp),
         ) {
             dataList.forEach {
                 item(key = it.url) {
@@ -203,13 +181,12 @@ fun FeedRows(
                         logoUrl = it.logo.orEmpty(),
                         linkUrl = it.url.orEmpty(),
                         titleText = it.title.orEmpty(),
-                        onOpenLink = onOpenLink
+                        onOpenLink = onOpenLink,
                     )
                 }
             }
         }
     }
-
 }
 
 @Composable
@@ -226,36 +203,32 @@ fun FeedBottomInfo(
 ) {
 
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 10.dp)
+        modifier = modifier.fillMaxWidth().padding(top = 10.dp),
     ) {
         Text(
             modifier = Modifier.weight(1f),
-            text = if (isFeedContent) {
-                if (ip.isNotEmpty()) "发布于 " + ip
-                else EMPTY_STRING
-            } else fromToday(dateline),
-            style = MaterialTheme.typography.bodySmall.copy(fontSize = 14.sp),
-            color = MaterialTheme.colorScheme.outline
+            text =
+                if (isFeedContent) {
+                    if (ip.isNotEmpty()) "发布于 " + ip else EMPTY_STRING
+                } else fromToday(dateline),
+            style = MiuixTheme.textStyles.body2.copy(fontSize = 14.sp),
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         )
 
         IconText(
-            imageVector = Icons.AutoMirrored.Outlined.Message,
+            imageVector = MiuixIcons.Messages,
             title = replyNum,
             onClick = onViewFeed,
         )
 
         IconText(
             modifier = Modifier.padding(start = 10.dp),
-            imageVector = if (like == 1) Icons.Filled.ThumbUpAlt
-            else Icons.Default.ThumbUpOffAlt,
+            imageVector = if (like == 1) MiuixIcons.ThumbUpAlt else MiuixIcons.ThumbUpOffAlt,
             title = likeNum,
             onClick = onLike,
             isLike = like == 1,
         )
     }
-
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -276,7 +249,7 @@ fun FeedMessage(
             isBold = true,
             lineSpacingMultiplier = 1.3f,
             modifier = modifier.padding(top = 10.dp),
-            onOpenLink = onOpenLink
+            onOpenLink = onOpenLink,
         )
     }
     if (!data.message.isNullOrEmpty()) {
@@ -285,7 +258,7 @@ fun FeedMessage(
             textSize = 16f,
             lineSpacingMultiplier = 1.3f,
             modifier = modifier.padding(top = 10.dp),
-            onOpenLink = onOpenLink
+            onOpenLink = onOpenLink,
         )
     }
 
@@ -294,7 +267,7 @@ fun FeedMessage(
             modifier = modifier.padding(top = 10.dp),
             pic = data.pic,
             picArr = data.picArr,
-            feedType = data.feedType
+            feedType = data.feedType,
         )
     }
 
@@ -302,43 +275,40 @@ fun FeedMessage(
         if (data.forwardSourceFeed == null) {
             Text(
                 text = "动态已被删除",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.outline,
-                modifier = modifier
-                    .padding(top = 10.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(
-                        if (isFeedContent)
-                            cardBg()
-                        else
-                            MaterialTheme.colorScheme.surface
-                    )
-                    .padding(10.dp)
+                style = MiuixTheme.textStyles.headline2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                modifier =
+                    modifier
+                        .padding(top = 10.dp)
+                        .squircleClip(16.dp)
+                        .background(
+                            if (isFeedContent) cardBg() else MiuixTheme.colorScheme.surface,
+                        )
+                        .padding(10.dp),
             )
         } else {
             Column(
-                modifier = modifier
-                    .padding(top = 10.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(
-                        if (isFeedContent)
-                            cardBg()
-                        else
-                            MaterialTheme.colorScheme.surface
-                    )
-                    .combinedClickable(
-                        onClick = {
-                            onOpenLink(data.forwardSourceFeed.url.orEmpty(), null)
-                        },
-                        onLongClick = {
-                            onCopyText(data.forwardSourceFeed.message)
-                        }
-                    )
-                    .padding(10.dp)
+                modifier =
+                    modifier
+                        .padding(top = 10.dp)
+                        .squircleClip(16.dp)
+                        .background(
+                            if (isFeedContent) cardBg() else MiuixTheme.colorScheme.surface,
+                        )
+                        .combinedClickable(
+                            onClick = {
+                                onOpenLink(data.forwardSourceFeed.url.orEmpty(), null)
+                            },
+                            onLongClick = {
+                                onCopyText(data.forwardSourceFeed.message)
+                            },
+                        )
+                        .padding(10.dp),
             ) {
                 if (!data.forwardSourceFeed.messageTitle.isNullOrEmpty()) {
                     LinkText(
-                        text = """<a class="feed-link-uname" href="/u/${data.forwardSourceFeed.uid}">@${data.forwardSourceFeed.username}</a>: ${data.forwardSourceFeed.messageTitle}""",
+                        text =
+                            """<a class="feed-link-uname" href="/u/${data.forwardSourceFeed.uid}">@${data.forwardSourceFeed.username}</a>: ${data.forwardSourceFeed.messageTitle}""",
                         onOpenLink = onOpenLink,
                         lineSpacingMultiplier = 1.2f,
                     )
@@ -350,19 +320,18 @@ fun FeedMessage(
                         )
                 } else {
                     LinkText(
-                        text = """<a class="feed-link-uname" href="/u/${data.forwardSourceFeed.uid}">@${data.forwardSourceFeed.username}</a>: ${data.forwardSourceFeed.message}""",
+                        text =
+                            """<a class="feed-link-uname" href="/u/${data.forwardSourceFeed.uid}">@${data.forwardSourceFeed.username}</a>: ${data.forwardSourceFeed.message}""",
                         onOpenLink = onOpenLink,
                         lineSpacingMultiplier = 1.2f,
                     )
                 }
                 if (!data.forwardSourceFeed.picArr.isNullOrEmpty()) {
                     NineImageView(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 10.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                         pic = data.forwardSourceFeed.pic,
                         picArr = data.forwardSourceFeed.picArr,
-                        feedType = data.forwardSourceFeed.feedType
+                        feedType = data.forwardSourceFeed.feedType,
                     )
                 }
             }
@@ -371,86 +340,87 @@ fun FeedMessage(
 
     if (!data.replyRows.isNullOrEmpty()) {
         val reply = data.replyRows?.getOrNull(0)
-        val replyPic = when (reply?.pic) {
-            EMPTY_STRING -> EMPTY_STRING
-            else -> " <a class=\"feed-forward-pic\" href=" +
-                    reply?.pic +
-                    ">查看图片(" +
-                    reply?.picArr?.size +
-                    ")</a>"
-        }
+        val replyPic =
+            when (reply?.pic) {
+                EMPTY_STRING -> EMPTY_STRING
+                else ->
+                    " <a class=\"feed-forward-pic\" href=" +
+                        reply?.pic +
+                        ">查看图片(" +
+                        reply?.picArr?.size +
+                        ")</a>"
+            }
         LinkText(
-            text = """<a class="feed-link-uname" href="/u/${reply?.uid}">${reply?.username}</a>: ${reply?.message}$replyPic""",
+            text =
+                """<a class="feed-link-uname" href="/u/${reply?.uid}">${reply?.username}</a>: ${reply?.message}$replyPic""",
             onOpenLink = onOpenLink,
             lineSpacingMultiplier = 1.2f,
             imgList = reply?.picArr,
             textSize = 14f,
-            modifier = modifier
-                .padding(top = 10.dp)
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colorScheme.surface)
-                .combinedClickable(
-                    onClick = {
-                        onViewFeed(data.id.orEmpty(), true)
-                    },
-                    onLongClick = {
-                        onCopyText(reply?.message)
-                    }
-                )
-                .padding(10.dp)
+            modifier =
+                modifier
+                    .padding(top = 10.dp)
+                    .fillMaxWidth()
+                    .squircleClip(16.dp)
+                    .background(MiuixTheme.colorScheme.surface)
+                    .combinedClickable(
+                        onClick = {
+                            onViewFeed(data.id.orEmpty(), true)
+                        },
+                        onLongClick = {
+                            onCopyText(reply?.message)
+                        },
+                    )
+                    .padding(10.dp),
         )
     }
 
     if (!data.extraUrl.isNullOrEmpty()) {
         ConstraintLayout(
-            modifier = modifier
-                .padding(top = 10.dp)
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.medium)
-                .background(
-                    if (isFeedContent)
-                        cardBg()
-                    else
-                        MaterialTheme.colorScheme.surface
-                )
-                .clickable {
-                    onOpenLink(data.extraUrl, data.extraTitle)
-                }
-                .padding(10.dp)
+            modifier =
+                modifier
+                    .padding(top = 10.dp)
+                    .fillMaxWidth()
+                    .squircleClip(16.dp)
+                    .background(
+                        if (isFeedContent) cardBg() else MiuixTheme.colorScheme.surface,
+                    )
+                    .clickable {
+                        onOpenLink(data.extraUrl, data.extraTitle)
+                    }
+                    .padding(10.dp),
         ) {
             val (pic, title, url) = createRefs()
 
             if (!data.extraPic.isNullOrEmpty()) {
                 CoilLoader(
                     url = data.extraPic,
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .constrainAs(pic) {
+                    modifier =
+                        Modifier.aspectRatio(1f).clip(RoundedCornerShape(8.dp)).constrainAs(pic) {
                             top.linkTo(parent.top)
                             bottom.linkTo(parent.bottom)
                             start.linkTo(parent.start)
                             height = Dimension.fillToConstraints
-                        })
+                        },
+                )
             } else {
                 Box(
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .constrainAs(pic) {
-                            top.linkTo(parent.top)
-                            bottom.linkTo(parent.bottom)
-                            start.linkTo(parent.start)
-                            height = Dimension.fillToConstraints
-                        }
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier.aspectRatio(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .constrainAs(pic) {
+                                top.linkTo(parent.top)
+                                bottom.linkTo(parent.bottom)
+                                start.linkTo(parent.start)
+                                height = Dimension.fillToConstraints
+                            }
+                            .background(MiuixTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Image(
-                        imageVector = Icons.Default.Link,
+                        imageVector = MiuixIcons.Link,
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
+                        colorFilter = ColorFilter.tint(MiuixTheme.colorScheme.onPrimary),
                     )
                 }
             }
@@ -460,15 +430,14 @@ fun FeedMessage(
                     text = data.extraTitle,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleSmall.copy(fontSize = 13.sp),
-                    modifier = Modifier
-                        .padding(start = 10.dp)
-                        .constrainAs(title) {
+                    style = MiuixTheme.textStyles.headline2.copy(fontSize = 13.sp),
+                    modifier =
+                        Modifier.padding(start = 10.dp).constrainAs(title) {
                             start.linkTo(pic.end)
                             top.linkTo(parent.top)
                             end.linkTo(parent.end)
                             width = Dimension.fillToConstraints
-                        }
+                        },
                 )
             }
 
@@ -476,15 +445,16 @@ fun FeedMessage(
                 text = data.extraUrl,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleSmall.copy(fontSize = 13.sp),
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .constrainAs(url) {
+                style = MiuixTheme.textStyles.headline2.copy(fontSize = 13.sp),
+                modifier =
+                    Modifier.padding(start = 10.dp).constrainAs(url) {
                         start.linkTo(pic.end)
-                        top.linkTo(if (!data.extraTitle.isNullOrEmpty()) title.bottom else parent.top)
+                        top.linkTo(
+                            if (!data.extraTitle.isNullOrEmpty()) title.bottom else parent.top,
+                        )
                         end.linkTo(parent.end)
                         width = Dimension.fillToConstraints
-                    }
+                    },
             )
         }
     }
@@ -521,7 +491,7 @@ fun FeedMessage(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .padding(start = startPadding, top = topPadding)
-                        .clip(MaterialTheme.shapes.medium)
+                        .squircleClip(16.dp)
                         .size(imageWidth.dp)
                 )
             }
@@ -546,130 +516,129 @@ fun FeedHeader(
     val context = LocalContext.current
 
     ConstraintLayout(
-        modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
+        modifier = modifier.fillMaxWidth().wrapContentHeight(),
     ) {
         val (avatar, username, from, device, expand, stickTop) = createRefs()
 
         CoilLoader(
             url = data.userAvatar,
-            modifier = Modifier
-                .padding(top = vertical)
-                .clip(CircleShape)
-                .aspectRatio(1f, false)
-                .constrainAs(avatar) {
-                    top.linkTo(username.top)
-                    bottom.linkTo(device.bottom)
-                    start.linkTo(parent.start)
-                    height = Dimension.fillToConstraints
-                }
-                .clickable {
-                    onViewUser(data.uid.orEmpty())
-                },
+            modifier =
+                Modifier.padding(top = vertical)
+                    .clip(CircleShape)
+                    .aspectRatio(1f, false)
+                    .constrainAs(avatar) {
+                        top.linkTo(username.top)
+                        bottom.linkTo(device.bottom)
+                        start.linkTo(parent.start)
+                        height = Dimension.fillToConstraints
+                    }
+                    .clickable {
+                        onViewUser(data.uid.orEmpty())
+                    },
         )
 
         Text(
-            modifier = Modifier
-                .padding(
-                    start = 10.dp,
-                    top = vertical,
-                    end = if (isFeedTop) 0.dp else if (!isFeedContent) 10.dp else 16.dp
-                )
-                .constrainAs(username) {
-                    start.linkTo(avatar.end)
-                    top.linkTo(parent.top)
-                    end.linkTo(
-                        if (isFeedContent) parent.end
-                        else if (data.isStickTop == 1) stickTop.start
-                        else expand.start
+            modifier =
+                Modifier.padding(
+                        start = 10.dp,
+                        top = vertical,
+                        end = if (isFeedTop) 0.dp else if (!isFeedContent) 10.dp else 16.dp,
                     )
-                    width = Dimension.fillToConstraints
-                },
+                    .constrainAs(username) {
+                        start.linkTo(avatar.end)
+                        top.linkTo(parent.top)
+                        end.linkTo(
+                            if (isFeedContent) parent.end
+                            else if (data.isStickTop == 1) stickTop.start else expand.start,
+                        )
+                        width = Dimension.fillToConstraints
+                    },
             text = data.username.orEmpty(),
-            style = MaterialTheme.typography.titleSmall,
+            style = MiuixTheme.textStyles.headline2,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
 
         if (!isFeedContent && data.isStickTop == 1) {
             Text(
                 text = "置顶",
-                modifier = Modifier
-                    .padding(top = 10.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp))
-                    .constrainAs(stickTop) {
-                        top.linkTo(username.top)
-                        bottom.linkTo(username.bottom)
-                        end.linkTo(expand.start)
-                    }
-                    .padding(horizontal = 6.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.titleSmall.copy(fontSize = 10.sp)
+                modifier =
+                    Modifier.padding(top = 10.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(MiuixTheme.colorScheme.surface)
+                        .border(1.dp, MiuixTheme.colorScheme.primary, RoundedCornerShape(4.dp))
+                        .constrainAs(stickTop) {
+                            top.linkTo(username.top)
+                            bottom.linkTo(username.bottom)
+                            end.linkTo(expand.start)
+                        }
+                        .padding(horizontal = 6.dp),
+                color = MiuixTheme.colorScheme.primary,
+                style = MiuixTheme.textStyles.headline2.copy(fontSize = 10.sp),
             )
         }
 
         if (isFeedContent || !data.infoHtml.isNullOrEmpty()) {
             Text(
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .constrainAs(from) {
+                modifier =
+                    Modifier.padding(start = 10.dp).constrainAs(from) {
                         start.linkTo(avatar.end)
                         top.linkTo(username.bottom)
                     },
-                text = if (isFeedContent) fromToday(
-                    data.dateline ?: 0
-                ) else data.infoHtml.orEmpty().richToString(),
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-                color = MaterialTheme.colorScheme.outline,
+                text =
+                    if (isFeedContent)
+                        fromToday(
+                            data.dateline ?: 0,
+                        )
+                    else data.infoHtml.orEmpty().richToString(),
+                style = MiuixTheme.textStyles.body2.copy(fontSize = 13.sp),
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         }
 
-
         IconText(
-            modifier = Modifier
-                .padding(
-                    start = 10.dp,
-                    end = if (isFeedTop) 0.dp else if (!isFeedContent) 10.dp else 16.dp
-                )
-                .constrainAs(device) {
-                    start.linkTo(if (isFeedContent || !data.infoHtml.isNullOrEmpty()) from.end else avatar.end)
-                    if (isFeedContent || !data.infoHtml.isNullOrEmpty())
-                        bottom.linkTo(from.bottom)
-                    else
-                        top.linkTo(username.bottom)
-                    end.linkTo(parent.end)
-                    width = Dimension.fillToConstraints
-                },
-            imageVector = Icons.Default.Smartphone,
+            modifier =
+                Modifier.padding(
+                        start = 10.dp,
+                        end = if (isFeedTop) 0.dp else if (!isFeedContent) 10.dp else 16.dp,
+                    )
+                    .constrainAs(device) {
+                        start.linkTo(
+                            if (isFeedContent || !data.infoHtml.isNullOrEmpty()) from.end
+                            else avatar.end,
+                        )
+                        if (isFeedContent || !data.infoHtml.isNullOrEmpty())
+                            bottom.linkTo(from.bottom)
+                        else top.linkTo(username.bottom)
+                        end.linkTo(parent.end)
+                        width = Dimension.fillToConstraints
+                    },
+            imageVector = MiuixIcons.Smartphone,
             title = data.deviceTitle?.richToString().orEmpty(),
             textSize = 13f,
         )
 
         if (!isFeedContent) {
             Box(
-                modifier = Modifier
-                    .aspectRatio(1f, false)
-                    .constrainAs(expand) {
+                modifier =
+                    Modifier.aspectRatio(1f, false).constrainAs(expand) {
                         top.linkTo(parent.top)
                         end.linkTo(parent.end)
                         bottom.linkTo(device.bottom)
                         height = Dimension.fillToConstraints
-                    }) {
-
+                    },
+            ) {
                 IconButton(
                     onClick = {
                         dropdownMenuExpanded = true
-                    }
+                    },
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ExpandMore,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.outline
+                        imageVector = MiuixIcons.More,
+                        contentDescription = "更多操作",
+                        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     )
                 }
 
@@ -685,13 +654,14 @@ fun FeedHeader(
                             onClick = {
                                 dropdownMenuExpanded = false
                                 when (index) {
-                                    0 -> context.copyText(
-                                        getShareText(ShareType.FEED, data.id.orEmpty())
-                                    )
+                                    0 ->
+                                        context.copyText(
+                                            getShareText(ShareType.FEED, data.id.orEmpty()),
+                                        )
 
                                     1 -> onBlockUser?.let { it(data.uid.orEmpty()) }
                                 }
-                            }
+                            },
                         )
                     }
                     if (isLogin) {
@@ -700,23 +670,20 @@ fun FeedHeader(
                             onClick = {
                                 dropdownMenuExpanded = false
                                 onReport?.let { it(data.id.orEmpty(), ReportType.FEED) }
-                            }
+                            },
                         )
                     }
-                        if (data.uid == CookieUtil.uid) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(id = R.string.menu_delete)) },
-                                onClick = {
-                                    dropdownMenuExpanded = false
-                                    onDelete?.let { it(data.id.orEmpty(), LikeType.FEED, null) }
-                            }
+                    if (data.uid == CookieUtil.uid) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(id = R.string.menu_delete)) },
+                            onClick = {
+                                dropdownMenuExpanded = false
+                                onDelete?.let { it(data.id.orEmpty(), LikeType.FEED, null) }
+                            },
                         )
                     }
                 }
-
             }
         }
-
     }
-
 }

@@ -184,3 +184,6 @@
 -keep class com.alibaba.sdk.android.oss.** { *; }
 -dontwarn okio.**
 -dontwarn org.apache.commons.codec.binary.**
+
+# libdu.so registers JNI methods and reads DUHelper fields by their original names.
+-keep class cn.shuzilm.core.** { *; }

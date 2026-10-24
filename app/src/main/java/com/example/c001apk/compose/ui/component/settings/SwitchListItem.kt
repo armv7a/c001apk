@@ -1,9 +1,10 @@
 package com.example.c001apk.compose.ui.component.settings
 
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.example.c001apk.compose.ui.component.rememberHapticClick
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.preference.SwitchPreference
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun SwitchListItem(
@@ -11,26 +12,21 @@ fun SwitchListItem(
     leadingImageVector: ImageVector,
     headlineText: String,
     supportingText: String? = null,
-    onValueChanged: (value: Boolean) -> Unit
+    onValueChanged: (value: Boolean) -> Unit,
 ) {
-    val performHaptic = rememberHapticClick {}
-    val toggle = rememberHapticClick {
-        onValueChanged(!value)
-    }
-    BasicListItem(
-        leadingImageVector = leadingImageVector,
-        headlineText = headlineText,
-        supportingText = supportingText,
-        trailingContent = {
-            Switch(
-                checked = value,
-                onCheckedChange = {
-                    performHaptic()
-                    onValueChanged(it)
-                },
-            )
-        }
-    ) {
-        toggle()
+    PreferenceCard {
+        SwitchPreference(
+            checked = value,
+            onCheckedChange = onValueChanged,
+            title = headlineText,
+            summary = supportingText,
+            startAction = {
+                Icon(
+                    leadingImageVector,
+                    null,
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            },
+        )
     }
 }

@@ -8,14 +8,12 @@ import com.example.c001apk.compose.constant.Constants.MODE
 import com.example.c001apk.compose.constant.Constants.REQUEST_WITH
 import com.example.c001apk.compose.util.CookieUtil.SESSID
 import com.example.c001apk.compose.util.TokenDeviceUtils.getTokenV2
+import java.io.IOException
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
-import java.io.IOException
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/3
- */
+/** Created by bggRGjQaUbCoE on 2024/6/3 */
 object AddCookiesInterceptor : Interceptor {
 
     @Throws(IOException::class)
@@ -42,10 +40,20 @@ object AddCookiesInterceptor : Interceptor {
             if (CookieUtil.isLogin)
                 addHeader(
                     "Cookie",
-                    "uid=${CookieUtil.uid}; username=${CookieUtil.username}; token=${CookieUtil.token}"
+                    "uid=${CookieUtil.uid}; username=${CookieUtil.username}; token=${CookieUtil.token}",
                 )
             else addHeader("Cookie", SESSID)
         }
-        return chain.proceed(builder.build())
+        return chain.proceed(builder.build()).also { response ->
+            if (
+                com.example.c001apk.compose.BuildConfig.DEBUG &&
+                    response.request.url.encodedPath.startsWith("/v6/")
+            ) {
+                android.util.Log.d(
+                    "CoolApkApi",
+                    "${response.request.url.encodedPath}: ${response.code}",
+                )
+            }
+        }
     }
 }

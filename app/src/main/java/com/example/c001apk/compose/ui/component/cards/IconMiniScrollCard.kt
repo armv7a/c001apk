@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,29 +22,28 @@ import androidx.constraintlayout.compose.Dimension
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.theme.cardBg
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/6
- */
+/** Created by bggRGjQaUbCoE on 2024/6/6 */
 @Composable
 fun IconMiniScrollCard(
     modifier: Modifier = Modifier,
     data: HomeFeedResponse.Data,
-    onOpenLink: (String, String?) -> Unit
+    onOpenLink: (String, String?) -> Unit,
 ) {
 
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-
         if (!data.title.isNullOrEmpty()) {
             item(key = "title") {
                 Text(
                     text = data.title,
-                    fontSize = 15.sp
+                    fontSize = 15.sp,
                 )
             }
         }
@@ -58,13 +55,11 @@ fun IconMiniScrollCard(
                     logoUrl = it.logo.orEmpty(),
                     linkUrl = it.url.orEmpty(),
                     titleText = it.title.orEmpty(),
-                    onOpenLink = onOpenLink
+                    onOpenLink = onOpenLink,
                 )
             }
         }
-
     }
-
 }
 
 @Composable
@@ -79,40 +74,36 @@ fun IconMiniScrollCardItem(
 ) {
 
     ConstraintLayout(
-        modifier = modifier
-            .clip(if (isGridCard) RectangleShape else RoundedCornerShape(8.dp))
-            .background(
-                if (isFeedContent) cardBg()
-                else MaterialTheme.colorScheme.surface
-            )
-            .clickable {
-                onOpenLink(linkUrl, titleText)
-            }
-            .padding(start = if (isGridCard) 10.dp else 5.dp, end = 5.dp)
-            .padding(vertical = 5.dp)
+        modifier =
+            modifier
+                .clip(if (isGridCard) RectangleShape else RoundedCornerShape(8.dp))
+                .background(
+                    if (isFeedContent) cardBg() else MiuixTheme.colorScheme.surface,
+                )
+                .clickable {
+                    onOpenLink(linkUrl, titleText)
+                }
+                .padding(start = if (isGridCard) 10.dp else 5.dp, end = 5.dp)
+                .padding(vertical = 5.dp),
     ) {
         val (logo, title) = createRefs()
 
         CoilLoader(
             url = logoUrl,
-            modifier = Modifier
-                .clip(RoundedCornerShape(4.dp))
-                .aspectRatio(1f)
-                .constrainAs(logo) {
+            modifier =
+                Modifier.clip(RoundedCornerShape(4.dp)).aspectRatio(1f).constrainAs(logo) {
                     start.linkTo(parent.start)
                     top.linkTo(title.top)
                     bottom.linkTo(title.bottom)
                     height = Dimension.fillToConstraints
-                }
+                },
         )
 
         Text(
             text = titleText,
-            style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 5.dp)
-                .constrainAs(title) {
+            style = MiuixTheme.textStyles.body2.copy(fontSize = 13.sp),
+            modifier =
+                Modifier.fillMaxWidth().padding(start = 5.dp).constrainAs(title) {
                     start.linkTo(logo.end)
                     top.linkTo(parent.top)
                     bottom.linkTo(parent.bottom)
@@ -125,5 +116,4 @@ fun IconMiniScrollCardItem(
             overflow = TextOverflow.Ellipsis,
         )
     }
-
 }

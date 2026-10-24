@@ -2,9 +2,6 @@ package com.example.c001apk.compose.ui.component
 
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -14,10 +11,11 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.example.c001apk.compose.util.noRippleClickable
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/9
- */
+/** Created by bggRGjQaUbCoE on 2024/6/9 */
 @Composable
 fun IconText(
     modifier: Modifier = Modifier,
@@ -31,8 +29,9 @@ fun IconText(
     val hapticClick = rememberHapticClick {
         onClick?.invoke()
     }
-    val color = if (isLike) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.outline
+    val color =
+        if (isLike) MiuixTheme.colorScheme.primary
+        else MiuixTheme.colorScheme.onSurfaceVariantSummary
 
     val id = "0"
     val text1 = buildAnnotatedString {
@@ -40,20 +39,23 @@ fun IconText(
         append(title)
     }
 
-    val inlineContent = if (title.isNotEmpty()) mapOf(
-        Pair(
-            id,
-            InlineTextContent(
-                Placeholder(
-                    width = textSize.sp,
-                    height = textSize.sp,
-                    placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
-                )
-            ) {
-                Icon(imageVector, null, tint = color)
-            }
-        )
-    ) else mapOf()
+    val inlineContent =
+        if (title.isNotEmpty())
+            mapOf(
+                Pair(
+                    id,
+                    InlineTextContent(
+                        Placeholder(
+                            width = textSize.sp,
+                            height = textSize.sp,
+                            placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter,
+                        ),
+                    ) {
+                        Icon(imageVector, null, tint = color)
+                    },
+                ),
+            )
+        else mapOf()
 
     Text(
         inlineContent = inlineContent,
@@ -63,14 +65,15 @@ fun IconText(
         color = color,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        modifier = run {
-            val tmp = if (onClick == null) modifier
-            else modifier
-                .noRippleClickable {
-                    hapticClick()
-                }
-            tmp
-        }
+        modifier =
+            run {
+                val tmp =
+                    if (onClick == null) modifier
+                    else
+                        modifier.noRippleClickable {
+                            hapticClick()
+                        }
+                tmp
+            },
     )
-
 }

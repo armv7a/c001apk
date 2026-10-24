@@ -11,11 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -23,10 +20,11 @@ import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.theme.cardBg
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.squircle.squircleClip
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/6
- */
+/** Created by bggRGjQaUbCoE on 2024/6/6 */
 @Composable
 fun ImageTextScrollCard(
     modifier: Modifier = Modifier,
@@ -35,11 +33,10 @@ fun ImageTextScrollCard(
 ) {
 
     BoxWithConstraints {
-
         val itemWidth = (maxWidth - 20.dp) / 3f * 2
 
         Column(
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier.fillMaxWidth(),
         ) {
             if (!data.title.isNullOrEmpty()) {
                 TitleCard(
@@ -54,7 +51,7 @@ fun ImageTextScrollCard(
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp)
+                    contentPadding = PaddingValues(horizontal = 10.dp),
                 ) {
                     it.forEach { item ->
                         item(key = item.id) {
@@ -67,13 +64,10 @@ fun ImageTextScrollCard(
                             )
                         }
                     }
-
                 }
             }
-
         }
     }
-
 }
 
 @Composable
@@ -87,18 +81,14 @@ fun ImageTextScrollCardItem(
 ) {
 
     Column(
-        modifier = modifier
-            .width(itemWidth)
-            .clip(MaterialTheme.shapes.medium)
-            .clickable {
+        modifier =
+            modifier.width(itemWidth).squircleClip(16.dp).clickable {
                 onOpenLink(url, title)
-            }
+            },
     ) {
         CoilLoader(
             url = pic,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(2.22f)
+            modifier = Modifier.fillMaxWidth().aspectRatio(2.22f),
         )
 
         Text(
@@ -106,12 +96,11 @@ fun ImageTextScrollCardItem(
             maxLines = 2,
             minLines = 2,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(cardBg())
-                .padding(horizontal = 10.dp, vertical = 5.dp)
+            style = MiuixTheme.textStyles.body1.copy(fontWeight = FontWeight.Bold),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .background(cardBg())
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
         )
     }
-
 }

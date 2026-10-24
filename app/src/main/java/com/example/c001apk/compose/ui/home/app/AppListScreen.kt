@@ -3,7 +3,6 @@ package com.example.c001apk.compose.ui.home.app
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -11,23 +10,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Update
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
@@ -39,24 +25,27 @@ import com.example.c001apk.compose.logic.model.UpdateCheckItem
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.util.isScrollingUp
 import com.example.c001apk.compose.util.longVersionCodeCompat
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.FloatingActionButton
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Update
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/9
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Created by bggRGjQaUbCoE on 2024/6/9 */
 @Composable
 fun AppListScreen(
+    paddingValues: androidx.compose.foundation.layout.PaddingValues =
+        androidx.compose.foundation.layout.PaddingValues(),
     refreshState: Boolean,
     resetRefreshState: () -> Unit,
     onViewApp: (String) -> Unit,
-    onCheckUpdate: (List<UpdateCheckItem>) -> Unit
+    onCheckUpdate: (List<UpdateCheckItem>) -> Unit,
 ) {
 
     val viewModel = hiltViewModel<AppListViewModel>()
     val prefs = LocalUserPreferences.current
     val context = LocalContext.current
     val view = LocalView.current
-    val state = rememberPullToRefreshState()
     val lazyListState = rememberLazyListState()
 
     LaunchedEffect(refreshState) {
@@ -69,63 +58,53 @@ fun AppListScreen(
         }
     }
 
-    PullToRefreshBox(
-        state = state,
-        isRefreshing = viewModel.isRefreshing,
-        onRefresh = viewModel::refresh,
-        indicator = {
-            PullToRefreshDefaults.Indicator(
-                modifier = Modifier.align(Alignment.TopCenter),
-                isRefreshing = viewModel.isRefreshing,
-                state = state,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
-    ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = lazyListState,
+    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
+        top.yukonga.miuix.kmp.basic.PullToRefresh(
+            isRefreshing = viewModel.isRefreshing,
+            onRefresh = viewModel::refresh,
+            contentPadding = paddingValues,
+            refreshTexts = listOf("下拉刷新", "释放刷新", "正在刷新", "刷新完成"),
         ) {
-
-            items(
-                items = viewModel.appList,
-                key = { it.packageInfo.packageName }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = lazyListState,
+                contentPadding =
+                    androidx.compose.foundation.layout.PaddingValues(
+                        top = paddingValues.calculateTopPadding() + 12.dp,
+                        bottom = paddingValues.calculateBottomPadding() + 24.dp,
+                    ),
             ) {
-                ListItem(
-                    modifier = Modifier.clickable {
-                        onViewApp(it.packageInfo.packageName)
-                    },
-                    leadingContent = {
-                        AsyncImage(
-                            model = ImageRequest.Builder(context)
-                                .data(it.packageInfo)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = it.label,
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .width(48.dp)
-                                .height(48.dp)
-                        )
-                    },
-                    headlineContent = {
-                        Text(text = it.label)
-                    },
-                    supportingContent = {
-                        Text(
-                            text =
-                            "${it.packageInfo.packageName}\n${it.packageInfo.versionName}(${it.packageInfo.longVersionCodeCompat})"
+                items(
+                    items = viewModel.appList,
+                    key = { it.packageInfo.packageName },
+                ) {
+                    top.yukonga.miuix.kmp.basic.Card(
+                        Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    ) {
+                        top.yukonga.miuix.kmp.basic.BasicComponent(
+                            title = it.label,
+                            summary =
+                                "${it.packageInfo.packageName}\n${it.packageInfo.versionName}(${it.packageInfo.longVersionCodeCompat})",
+                            onClick = { onViewApp(it.packageInfo.packageName) },
+                            startAction = {
+                                AsyncImage(
+                                    model =
+                                        ImageRequest.Builder(context)
+                                            .data(it.packageInfo)
+                                            .crossfade(true)
+                                            .build(),
+                                    contentDescription = null,
+                                    modifier = Modifier.width(44.dp).height(44.dp),
+                                )
+                            },
                         )
                     }
-                )
+                }
             }
-
         }
-
         if (viewModel.isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
-                strokeCap = StrokeCap.Round
             )
         }
 
@@ -134,18 +113,17 @@ fun AppListScreen(
                 visible = lazyListState.isScrollingUp(),
                 enter = slideInVertically { it * 2 },
                 exit = slideOutVertically { it * 2 },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(20.dp)
+                modifier =
+                    Modifier.align(Alignment.BottomEnd)
+                        .padding(20.dp)
+                        .padding(bottom = paddingValues.calculateBottomPadding()),
             ) {
                 FloatingActionButton(
                     onClick = { onCheckUpdate(viewModel.dataList) },
                 ) {
-                    Icon(imageVector = Icons.Default.Update, contentDescription = null)
+                    Icon(imageVector = MiuixIcons.Update, contentDescription = null)
                 }
             }
         }
-
     }
-
 }

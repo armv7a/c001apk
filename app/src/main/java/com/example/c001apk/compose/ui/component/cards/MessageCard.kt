@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Badge
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,10 +21,12 @@ import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.component.LinkText
 import com.example.c001apk.compose.ui.theme.cardBg
 import com.example.c001apk.compose.util.DateUtils.fromToday
+import top.yukonga.miuix.kmp.basic.Badge
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.squircle.squircleClip
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/13
- */
+/** Created by bggRGjQaUbCoE on 2024/6/13 */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MessageCard(
@@ -40,53 +39,51 @@ fun MessageCard(
 ) {
 
     ConstraintLayout(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .background(
-                if (data.isTop == 1) MaterialTheme.colorScheme.primaryContainer
-                else cardBg()
-            )
-            .combinedClickable(
-                onClick = {
-                    onViewChat?.let {
-                        it(
-                            data.ukey.orEmpty(),
-                            data.messageUid.orEmpty(),
-                            data.messageUsername.orEmpty()
-                        )
-                    }
-                },
-                onLongClick = {
-                    onHandleMessage?.let { it(data.ukey.orEmpty(), data.isTop ?: 0) }
-                }
-            )
-            .padding(10.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .squircleClip(16.dp)
+                .background(
+                    if (data.isTop == 1) MiuixTheme.colorScheme.primaryContainer else cardBg(),
+                )
+                .combinedClickable(
+                    onClick = {
+                        onViewChat?.let {
+                            it(
+                                data.ukey.orEmpty(),
+                                data.messageUid.orEmpty(),
+                                data.messageUsername.orEmpty(),
+                            )
+                        }
+                    },
+                    onLongClick = {
+                        onHandleMessage?.let { it(data.ukey.orEmpty(), data.isTop ?: 0) }
+                    },
+                )
+                .padding(10.dp),
     ) {
-
         val (avatar, name, message, time, badge) = createRefs()
 
         CoilLoader(
             url = data.messageUserAvatar,
-            modifier = Modifier
-                .aspectRatio(1f)
-                .clip(CircleShape)
-                .constrainAs(avatar) {
-                    start.linkTo(parent.start)
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                    height = Dimension.fillToConstraints
-                }
-                .clickable {
-                    onViewUser(data.messageUid.orEmpty())
-                }
+            modifier =
+                Modifier.aspectRatio(1f)
+                    .clip(CircleShape)
+                    .constrainAs(avatar) {
+                        start.linkTo(parent.start)
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                        height = Dimension.fillToConstraints
+                    }
+                    .clickable {
+                        onViewUser(data.messageUid.orEmpty())
+                    },
         )
 
         Text(
             text = data.messageUsername.orEmpty(),
-            modifier = Modifier
-                .padding(horizontal = 10.dp)
-                .constrainAs(name) {
+            modifier =
+                Modifier.padding(horizontal = 10.dp).constrainAs(name) {
                     start.linkTo(avatar.end)
                     top.linkTo(parent.top)
                     end.linkTo(time.start)
@@ -94,46 +91,44 @@ fun MessageCard(
                 },
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.titleMedium.copy(fontSize = 14.sp)
+            style = MiuixTheme.textStyles.subtitle.copy(fontSize = 14.sp),
         )
 
         Text(
             text = fromToday(data.dateline ?: 0),
-            modifier = Modifier
-                .constrainAs(time) {
+            modifier =
+                Modifier.constrainAs(time) {
                     top.linkTo(parent.top)
                     end.linkTo(parent.end)
                 },
-            color = MaterialTheme.colorScheme.outline,
-            style = MaterialTheme.typography.titleSmall.copy(fontSize = 13.sp)
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            style = MiuixTheme.textStyles.headline2.copy(fontSize = 13.sp),
         )
 
         LinkText(
             text = data.message.orEmpty(),
             onOpenLink = onOpenLink,
             maxLines = 1,
-            modifier = Modifier
-                .padding(start = 10.dp, end = if (data.unreadNum != 0) 10.dp else 0.dp)
-                .constrainAs(message) {
-                    start.linkTo(avatar.end)
-                    top.linkTo(name.bottom)
-                    end.linkTo(if (data.unreadNum != 0) badge.start else parent.end)
-                    width = Dimension.fillToConstraints
-                }
+            modifier =
+                Modifier.padding(start = 10.dp, end = if (data.unreadNum != 0) 10.dp else 0.dp)
+                    .constrainAs(message) {
+                        start.linkTo(avatar.end)
+                        top.linkTo(name.bottom)
+                        end.linkTo(if (data.unreadNum != 0) badge.start else parent.end)
+                        width = Dimension.fillToConstraints
+                    },
         )
 
         if (data.unreadNum != 0) {
             Badge(
-                modifier = Modifier
-                    .constrainAs(badge) {
+                modifier =
+                    Modifier.constrainAs(badge) {
                         top.linkTo(name.bottom)
                         end.linkTo(parent.end)
-                    }
+                    },
             ) {
                 Text(text = data.unreadNum.toString())
             }
         }
-
     }
-
 }

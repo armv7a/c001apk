@@ -9,31 +9,13 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.ClearAll
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,39 +27,48 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.c001apk.compose.R
 import com.example.c001apk.compose.ui.component.BackButton
+import com.example.c001apk.compose.ui.component.MiuixActionButton as TextButton
+import com.example.c001apk.compose.ui.component.MiuixAlertDialog as AlertDialog
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.cards.SearchHistoryCard
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.InputField
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Delete
+import top.yukonga.miuix.kmp.icon.extended.Search
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/6
- */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+/** Created by bggRGjQaUbCoE on 2024/6/6 */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchScreen(
     onBackClick: () -> Unit,
     title: String?,
-    onSearch: (String) -> Unit
+    onSearch: (String) -> Unit,
 ) {
 
     val viewModel = hiltViewModel<SearchViewModel>(key = title)
-    val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle(initialValue = emptyList())
+    val searchHistory by
+        viewModel.searchHistory.collectAsStateWithLifecycle(initialValue = emptyList())
 
-    var textInput by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue())
-    }
+    var textInput by
+        rememberSaveable(stateSaver = TextFieldValue.Saver) {
+            mutableStateOf(TextFieldValue())
+        }
 
     val focusRequest = remember { FocusRequester() }
     LaunchedEffect(Unit) {
@@ -87,7 +78,7 @@ fun SearchScreen(
             e.printStackTrace()
         }
     }
-    val textStyle = LocalTextStyle.current
+    val textStyle = MiuixTheme.textStyles.main
     var showClearDialog by remember { mutableStateOf(false) }
     val layoutDirection = LocalLayoutDirection.current
 
@@ -103,114 +94,75 @@ fun SearchScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                windowInsets = WindowInsets.systemBars
-                    .only(WindowInsetsSides.Start + WindowInsetsSides.Top),
-                navigationIcon = {
-                    BackButton { onBackClick() }
-                },
-                title = {
-                    TextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequest),
-                        singleLine = true,
-                        value = textInput,
-                        onValueChange = { textInput = it },
-                        textStyle = textStyle.copy(fontSize = 18.sp),
-                        placeholder = {
-                            val hint = if (!title.isNullOrEmpty()) {
-                                stringResource(id = R.string.search_hint_in, title)
-                            } else {
-                                stringResource(id = R.string.search_hint)
-                            }
-                            Text(
-                                text = hint,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
-                        trailingIcon = {
-                            AnimatedVisibility(
-                                visible = textInput.text.isNotEmpty(),
-                                enter = fadeIn(),
-                                exit = fadeOut()
-                            ) {
-                                IconButton(onClick = {
-                                    textInput = TextFieldValue()
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = null
-                                    )
-                                }
-                            }
-                        },
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Search
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onSearch = {
-                                onCheckSearch()
-                            }
+            Row(
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .windowInsetsPadding(
+                            WindowInsets.statusBars.union(WindowInsets.displayCutout),
                         )
-                    )
-                },
-                actions = {
-                    IconButton(onClick = {
-                        onCheckSearch()
-                    }) {
-                        Icon(imageVector = Icons.Default.Search, contentDescription = null)
-                    }
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BackButton(onBackClick)
+                InputField(
+                    modifier = Modifier.weight(1f).focusRequester(focusRequest),
+                    query = textInput.text,
+                    onQueryChange = {
+                        textInput = TextFieldValue(it, selection = TextRange(it.length))
+                    },
+                    onSearch = { onCheckSearch() },
+                    expanded = true,
+                    onExpandedChange = {},
+                    label =
+                        if (!title.isNullOrEmpty()) stringResource(R.string.search_hint_in, title)
+                        else stringResource(R.string.search_hint),
+                )
+                IconButton(onClick = { onCheckSearch() }) {
+                    Icon(MiuixIcons.Search, contentDescription = "搜索")
                 }
-            )
-        }
+            }
+        },
     ) { paddingValues ->
-
         Column(
-            modifier = Modifier.padding(
-                top = paddingValues.calculateTopPadding()
-            )
+            modifier =
+                Modifier.padding(
+                    top = paddingValues.calculateTopPadding(),
+                ),
         ) {
             HorizontalDivider()
 
             androidx.compose.animation.AnimatedVisibility(
-                modifier = Modifier.padding(
-                    start = paddingValues.calculateLeftPadding(
-                        layoutDirection
-                    )
-                ),
+                modifier =
+                    Modifier.padding(
+                        start =
+                            paddingValues.calculateLeftPadding(
+                                layoutDirection,
+                            ),
+                    ),
                 visible = searchHistory.isNotEmpty(),
                 enter = fadeIn(),
-                exit = fadeOut()
+                exit = fadeOut(),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "搜索历史", modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 10.dp),
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
+                        text = "搜索历史",
+                        modifier = Modifier.weight(1f).padding(start = 10.dp),
+                        style =
+                            MiuixTheme.textStyles.headline2.copy(
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                            ),
                     )
 
                     IconButton(
                         onClick = {
                             showClearDialog = true
-                        }
+                        },
                     ) {
-                        Icon(imageVector = Icons.Default.ClearAll, contentDescription = null)
+                        Icon(imageVector = MiuixIcons.Delete, contentDescription = null)
                     }
                 }
             }
@@ -218,9 +170,9 @@ fun SearchScreen(
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier
-                    .padding(start = paddingValues.calculateLeftPadding(layoutDirection))
-                    .padding(horizontal = 10.dp),
+                modifier =
+                    Modifier.padding(start = paddingValues.calculateLeftPadding(layoutDirection))
+                        .padding(horizontal = 10.dp),
             ) {
                 searchHistory.forEach {
                     SearchHistoryCard(
@@ -230,12 +182,11 @@ fun SearchScreen(
                         },
                         onDelete = {
                             viewModel.delete(it.data)
-                        }
+                        },
                     )
                 }
             }
         }
-
     }
 
     when {
@@ -247,7 +198,8 @@ fun SearchScreen(
                         onClick = {
                             showClearDialog = false
                             viewModel.clearAll()
-                        }) {
+                        },
+                    ) {
                         Text(text = stringResource(id = android.R.string.ok))
                     }
                 },
@@ -255,18 +207,18 @@ fun SearchScreen(
                     TextButton(
                         onClick = {
                             showClearDialog = false
-                        }) {
+                        },
+                    ) {
                         Text(text = stringResource(id = android.R.string.cancel))
                     }
                 },
                 title = {
                     Text(
                         text = stringResource(id = R.string.search_clear_history_confirm),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
-                }
+                },
             )
         }
     }
-
 }

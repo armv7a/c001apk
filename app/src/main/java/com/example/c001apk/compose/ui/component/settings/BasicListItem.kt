@@ -1,18 +1,19 @@
 package com.example.c001apk.compose.ui.component.settings
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.ChevronForward
+import top.yukonga.miuix.kmp.squircle.squircleClip
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun BasicListItem(
@@ -22,42 +23,49 @@ fun BasicListItem(
     leadingImageVector: ImageVector? = null,
     leadingPainter: Painter? = null,
     leadingText: String? = null,
-    trailingContent: @Composable () -> Unit = {},
+    trailingContent: (@Composable () -> Unit)? = null,
+    enabled: Boolean = true,
+    holdDownState: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
-    ListItem(
-        modifier = onClick?.let {
-            modifier.clickable(
-                onClick = onClick
-            )
-        } ?: modifier,
-        headlineContent = {
-            if (headlineText != null) {
-                Text(headlineText)
-            }
-        },
-        supportingContent = {
-            if (supportingText != null) {
-                Text(supportingText)
-            }
-        },
-        leadingContent = {
-            if (leadingText != null) {
-                Text(
-                    text = leadingText,
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleSmall
-                )
-            } else if (leadingImageVector != null) {
-                Icon(imageVector = leadingImageVector, contentDescription = null)
-            } else if (leadingPainter != null) {
-                Image(
-                    painter = leadingPainter, contentDescription = null, modifier = Modifier
-                        .clip(MaterialTheme.shapes.medium)
-                        .size(24.dp)
-                )
-            }
-        },
-        trailingContent = trailingContent
-    )
+    if (leadingText != null && headlineText == null) {
+        SmallTitle(text = leadingText, modifier = modifier)
+        return
+    }
+    PreferenceCard(modifier) {
+        BasicComponent(
+            title = headlineText,
+            summary = supportingText,
+            enabled = enabled,
+            holdDownState = holdDownState,
+            onClick = onClick,
+            startAction =
+                if (leadingImageVector != null || leadingPainter != null) {
+                    {
+                        if (leadingImageVector != null)
+                            Icon(
+                                leadingImageVector,
+                                null,
+                                tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        else if (leadingPainter != null)
+                            Image(
+                                leadingPainter,
+                                null,
+                                modifier = Modifier.size(24.dp).squircleClip(6.dp),
+                            )
+                    }
+                } else null,
+            endActions = {
+                if (trailingContent != null) trailingContent()
+                else if (onClick != null)
+                    Icon(
+                        MiuixIcons.ChevronForward,
+                        null,
+                        tint = MiuixTheme.colorScheme.onSurfaceVariantActions,
+                    )
+            },
+        )
+    }
 }

@@ -15,16 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ClearAll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,19 +29,25 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.component.BackButton
+import com.example.c001apk.compose.ui.component.MiuixActionButton as TextButton
+import com.example.c001apk.compose.ui.component.MiuixAlertDialog as AlertDialog
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.ui.component.cards.HistoryCard
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
 import com.example.c001apk.compose.util.ReportType
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Delete
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/17
- */
-
+/** Created by bggRGjQaUbCoE on 2024/6/17 */
 enum class HistoryType {
-    FAV, HISTORY
+    FAV,
+    HISTORY,
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
     onBackClick: () -> Unit,
@@ -76,53 +72,51 @@ fun HistoryScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                windowInsets = WindowInsets.systemBars
-                    .only(WindowInsetsSides.Start + WindowInsetsSides.Top),
+                windowInsets =
+                    WindowInsets.systemBars.only(WindowInsetsSides.Start + WindowInsetsSides.Top),
                 navigationIcon = {
                     BackButton { onBackClick() }
                 },
-                title = {
-                    val title = when (type) {
+                title =
+                    when (type) {
                         HistoryType.FAV.name -> "本地收藏"
                         HistoryType.HISTORY.name -> "浏览历史"
                         else -> type
-                    }
-                    Text(text = title)
-                },
+                    },
                 actions = {
                     AnimatedVisibility(
                         visible = dataList.isNotEmpty(),
                         enter = fadeIn(),
-                        exit = fadeOut()
+                        exit = fadeOut(),
                     ) {
-                        IconButton(onClick = {
-                            showClearDialog = true
-                        }) {
-                            Icon(imageVector = Icons.Default.ClearAll, contentDescription = null)
+                        IconButton(
+                            onClick = {
+                                showClearDialog = true
+                            },
+                        ) {
+                            Icon(imageVector = MiuixIcons.Delete, contentDescription = null)
                         }
                     }
-
-                }
+                },
             )
         },
     ) { paddingValues ->
-
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    top = paddingValues.calculateTopPadding(),
-                    start = paddingValues.calculateLeftPadding(layoutDirection),
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(
+                        top = paddingValues.calculateTopPadding(),
+                        start = paddingValues.calculateLeftPadding(layoutDirection),
+                    ),
+            contentPadding =
+                PaddingValues(
+                    start = 10.dp,
+                    top = 10.dp,
+                    end = 10.dp,
+                    bottom = 10.dp + paddingValues.calculateBottomPadding(),
                 ),
-            contentPadding = PaddingValues(
-                start = 10.dp,
-                top = 10.dp,
-                end = 10.dp,
-                bottom = 10.dp + paddingValues.calculateBottomPadding()
-            ),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-
             items(dataList, key = { it.id }) {
                 HistoryCard(
                     data = it,
@@ -139,18 +133,16 @@ fun HistoryScreen(
                     onCopyText = onCopyText,
                 )
             }
-
         }
 
         if (dataList.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 LoadingCard(state = LoadingState.Empty)
             }
         }
-
     }
 
     when {
@@ -162,7 +154,8 @@ fun HistoryScreen(
                         onClick = {
                             showClearDialog = false
                             viewModel.clearAll()
-                        }) {
+                        },
+                    ) {
                         Text(text = stringResource(id = android.R.string.ok))
                     }
                 },
@@ -170,15 +163,14 @@ fun HistoryScreen(
                     TextButton(
                         onClick = {
                             showClearDialog = false
-                        }) {
+                        },
+                    ) {
                         Text(text = stringResource(id = android.R.string.cancel))
                     }
                 },
-                title = {
-                    Text(text = "确定清除全部？", modifier = Modifier.fillMaxWidth())
-                }
+                title = { Text("确定清除全部？") },
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
-
 }

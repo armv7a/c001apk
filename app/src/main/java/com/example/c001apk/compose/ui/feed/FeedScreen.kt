@@ -2,16 +2,12 @@ package com.example.c001apk.compose.ui.feed
 
 import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.os.Parcelable
 import android.os.Build.VERSION.SDK_INT
+import android.os.Parcelable
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring.StiffnessLow
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
@@ -26,23 +22,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Reply
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -71,6 +50,12 @@ import com.example.c001apk.compose.ui.component.ArticleItem
 import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.FooterCard
 import com.example.c001apk.compose.ui.component.ItemCard
+import com.example.c001apk.compose.ui.component.MiuixBottomSheet as ModalBottomSheet
+import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
+import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
+import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.ui.component.cards.FeedCard
 import com.example.c001apk.compose.ui.component.cards.FeedHeader
 import com.example.c001apk.compose.ui.component.cards.FeedReplyCard
@@ -90,12 +75,14 @@ import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.noRippleClickable
 import com.example.c001apk.compose.util.shareText
 import kotlinx.coroutines.launch
-import com.example.c001apk.compose.ui.component.MoreMenuButton
+import top.yukonga.miuix.kmp.basic.FloatingActionButton
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Reply
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/4
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Created by bggRGjQaUbCoE on 2024/6/4 */
 @Composable
 fun FeedScreen(
     modifier: Modifier = Modifier,
@@ -111,19 +98,18 @@ fun FeedScreen(
 ) {
 
     val viewModel =
-        hiltViewModel<FeedViewModel, FeedViewModel.ViewModelFactory>(key = if (isCompat) id else "KEY") { factory ->
+        hiltViewModel<FeedViewModel, FeedViewModel.ViewModelFactory>(
+            key = if (isCompat) id else "KEY",
+        ) { factory ->
             factory.create(id, isViewReply)
         }
 
-
     val context = LocalContext.current
     val layoutDirection = LocalLayoutDirection.current
-    val state = rememberPullToRefreshState()
     val lazyListState = rememberLazyListState()
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
-    val bottomSheetState = rememberModalBottomSheetState(true)
     var openBottomSheet by remember { mutableStateOf(false) }
     var viewReply by remember { mutableStateOf(false) }
     var selected by rememberSaveable { mutableIntStateOf(0) }
@@ -145,12 +131,13 @@ fun FeedScreen(
 
     fun setReplyType(index: Int) {
         selected = index
-        viewModel.listType = when (index) {
-            0 -> "lastupdate_desc"
-            1 -> "dateline_desc"
-            2 -> "popular"
-            else -> EMPTY_STRING
-        }
+        viewModel.listType =
+            when (index) {
+                0 -> "lastupdate_desc"
+                1 -> "dateline_desc"
+                2 -> "popular"
+                else -> EMPTY_STRING
+            }
         viewModel.fromFeedAuthor = if (index == 3) 1 else 0
     }
 
@@ -165,9 +152,11 @@ fun FeedScreen(
     val articleList = remember(key1 = viewModel.feedState) { viewModel.articleList }
 
     val replyLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            result: ActivityResult ->
             if (result.resultCode == RESULT_OK) {
-                val data = result.data?.getParcelableExtraCompat<HomeFeedResponse.Data>("response_data")
+                val data =
+                    result.data?.getParcelableExtraCompat<HomeFeedResponse.Data>("response_data")
                 data?.let {
                     viewModel.updateReply(it)
                     context.makeToast("回复成功")
@@ -185,9 +174,12 @@ fun FeedScreen(
         intent.putExtra("type", viewModel.replyType)
         intent.putExtra("rid", viewModel.replyId)
         intent.putExtra("username", viewModel.replyName)
-        val options = ActivityOptionsCompat.makeCustomAnimation(
-            context, R.anim.anim_bottom_sheet_slide_up, R.anim.anim_bottom_sheet_slide_down
-        )
+        val options =
+            ActivityOptionsCompat.makeCustomAnimation(
+                context,
+                R.anim.anim_bottom_sheet_slide_up,
+                R.anim.anim_bottom_sheet_slide_down,
+            )
         replyLauncher.launch(intent, options)
     }
 
@@ -195,10 +187,10 @@ fun FeedScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                windowInsets = WindowInsets.systemBars
-                    .only(
-                        WindowInsetsSides.Top
-                                + if (isCompat) WindowInsetsSides.Start else WindowInsetsSides.End
+                windowInsets =
+                    WindowInsets.systemBars.only(
+                        WindowInsetsSides.Top +
+                            if (isCompat) WindowInsetsSides.Start else WindowInsetsSides.End,
                     ),
                 navigationIcon = {
                     BackButton {
@@ -208,82 +200,54 @@ fun FeedScreen(
                         onBackClick()
                     }
                 },
-                title = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .noRippleClickable {
-                                scope.launch {
-                                    lazyListState.scrollToItem(
-                                        if (shouldShowSortCard || viewReply) {
-                                            viewReply = false
-                                            0
-                                        } else {
-                                            viewReply = true
-                                            viewModel.itemSize
-                                        }
-                                    )
-                                }
-                            },
-                        contentAlignment = Alignment.CenterStart,
-                    ) {
-                        AnimatedVisibility(
-                            visible = !shouldShowTopCard,
-                            enter = fadeIn(animationSpec = spring(stiffness = StiffnessLow)),
-                            exit = fadeOut(animationSpec = spring(stiffness = StiffnessLow))
-                        ) {
-                            Text(text = viewModel.feedTypeName)
-                        }
-                    }
-                    if (viewModel.feedState is LoadingState.Success) {
-                        AnimatedVisibility(
-                            visible = shouldShowTopCard,
-                            enter = fadeIn(animationSpec = spring(stiffness = StiffnessLow)),
-                            exit = fadeOut(animationSpec = spring(stiffness = StiffnessLow))
-                        ) {
-                            FeedHeader(
-                                data = (viewModel.feedState as LoadingState.Success).response,
-                                onViewUser = onViewUser,
-                                isFeedContent = true,
-                                onReport = onReport,
-                                isFeedTop = true,
-                                onBlockUser = {},
+                title = viewModel.feedTypeName,
+                modifier =
+                    Modifier.noRippleClickable {
+                        scope.launch {
+                            lazyListState.scrollToItem(
+                                if (shouldShowSortCard || viewReply) {
+                                    viewReply = false
+                                    0
+                                } else {
+                                    viewReply = true
+                                    viewModel.itemSize
+                                },
                             )
                         }
-                    }
-                },
+                    },
                 actions = {
                     if (viewModel.feedState is LoadingState.Success) {
                         Box(Modifier.wrapContentSize(Alignment.TopEnd)) {
                             MoreMenuButton { dropdownMenuExpanded = true }
                             DropdownMenu(
                                 expanded = dropdownMenuExpanded,
-                                onDismissRequest = { dropdownMenuExpanded = false }
+                                onDismissRequest = { dropdownMenuExpanded = false },
                             ) {
-                                listOf("复制", "分享")
-                                    .forEachIndexed { index, menu ->
-                                        DropdownMenuItem(
-                                            text = { Text(menu) },
-                                            onClick = {
-                                                dropdownMenuExpanded = false
-                                                when (index) {
-                                                    0 -> context.copyText(
-                                                        getShareText(ShareType.FEED, id)
+                                listOf("复制", "分享").forEachIndexed { index, menu ->
+                                    DropdownMenuItem(
+                                        text = { Text(menu) },
+                                        onClick = {
+                                            dropdownMenuExpanded = false
+                                            when (index) {
+                                                0 ->
+                                                    context.copyText(
+                                                        getShareText(ShareType.FEED, id),
                                                     )
 
-                                                    1 -> context.shareText(
-                                                        getShareText(ShareType.FEED, id)
+                                                1 ->
+                                                    context.shareText(
+                                                        getShareText(ShareType.FEED, id),
                                                     )
-                                                }
                                             }
-                                        )
-                                    }
+                                        },
+                                    )
+                                }
                                 DropdownMenuItem(
                                     text = { Text(if (viewModel.isFav) "取消收藏" else "收藏") },
                                     onClick = {
                                         dropdownMenuExpanded = false
                                         viewModel.onFav()
-                                    }
+                                    },
                                 )
                                 DropdownMenuItem(
                                     text = {
@@ -292,13 +256,13 @@ fun FeedScreen(
                                                 stringResource(id = R.string.menu_unblock)
                                             } else {
                                                 "拉黑"
-                                            }
+                                            },
                                         )
                                     },
                                     onClick = {
                                         dropdownMenuExpanded = false
                                         viewModel.blockUser()
-                                    }
+                                    },
                                 )
                                 if (isLogin) {
                                     DropdownMenuItem(
@@ -306,13 +270,13 @@ fun FeedScreen(
                                         onClick = {
                                             dropdownMenuExpanded = false
                                             onReport(id, ReportType.FEED)
-                                        }
+                                        },
                                     )
                                 }
                             }
                         }
                     }
-                }
+                },
             )
         },
         floatingActionButton = {
@@ -321,62 +285,61 @@ fun FeedScreen(
                     modifier = if (!isCompat) Modifier.navigationBarsPadding() else Modifier,
                     visible = lazyListState.isScrollingUp(),
                     enter = slideInVertically { it * 2 },
-                    exit = slideOutVertically { it * 2 }
+                    exit = slideOutVertically { it * 2 },
                 ) {
                     FloatingActionButton(
-                        onClick = rememberHapticClick {
-                            viewModel.replyId = viewModel.id
-                            viewModel.replyUid = viewModel.feedUid
-                            viewModel.replyName = viewModel.feedUsername
-                            viewModel.replyType = "feed"
-                            launchReply()
-                        }
+                        onClick =
+                            rememberHapticClick {
+                                viewModel.replyId = viewModel.id
+                                viewModel.replyUid = viewModel.feedUid
+                                viewModel.replyName = viewModel.feedUsername
+                                viewModel.replyType = "feed"
+                                launchReply()
+                            },
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Reply,
-                            contentDescription = null
+                            imageVector = MiuixIcons.Reply,
+                            contentDescription = null,
                         )
                     }
                 }
             }
         },
     ) { paddingValues ->
-
-        PullToRefreshBox(
-            modifier = Modifier.padding(
-                top = paddingValues.calculateTopPadding(),
-                end = if (isCompat) 0.dp else paddingValues.calculateRightPadding(layoutDirection),
-                start = if (isCompat) paddingValues.calculateLeftPadding(layoutDirection) else 0.dp
-            ),
-            state = state,
+        top.yukonga.miuix.kmp.basic.PullToRefresh(
+            refreshTexts = listOf("下拉刷新", "释放刷新", "正在刷新", "刷新完成"),
+            modifier =
+                Modifier.padding(
+                    top = paddingValues.calculateTopPadding(),
+                    end =
+                        if (isCompat) 0.dp
+                        else paddingValues.calculateRightPadding(layoutDirection),
+                    start =
+                        if (isCompat) paddingValues.calculateLeftPadding(layoutDirection) else 0.dp,
+                ),
             isRefreshing = viewModel.isRefreshing,
             onRefresh = {
                 viewModel.isPull = true
                 viewModel.refresh()
             },
-            indicator = {
-                PullToRefreshDefaults.Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = viewModel.isRefreshing,
-                    state = state,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding()),
-                state = lazyListState
+                state = lazyListState,
             ) {
                 when (viewModel.feedState) {
-                    LoadingState.Loading, LoadingState.Empty, is LoadingState.Error -> {
+                    LoadingState.Loading,
+                    LoadingState.Empty,
+                    is LoadingState.Error -> {
                         item(key = "feedState") {
                             Box(modifier = Modifier.fillParentMaxSize()) {
                                 LoadingCard(
                                     modifier = Modifier.align(Alignment.Center),
                                     state = viewModel.feedState,
-                                    onClick = if (viewModel.feedState is LoadingState.Loading) null
-                                    else viewModel::refresh,
+                                    onClick =
+                                        if (viewModel.feedState is LoadingState.Loading) null
+                                        else viewModel::refresh,
                                     isFeed = true,
                                 )
                             }
@@ -396,7 +359,7 @@ fun FeedScreen(
                                         viewModel.onLike(
                                             response.id.orEmpty(),
                                             response.userAction?.like ?: 0,
-                                            LikeType.FEED
+                                            LikeType.FEED,
                                         )
                                     }
                                 },
@@ -437,10 +400,9 @@ fun FeedScreen(
                                 selected = selected,
                                 updateSortReply = { index ->
                                     setReplyType(index)
-                                    if (shouldShowSortCard)
-                                        viewModel.isViewReply = true
+                                    if (shouldShowSortCard) viewModel.isViewReply = true
                                     viewModel.refresh()
-                                }
+                                },
                             )
                             HorizontalDivider()
                         }
@@ -556,11 +518,9 @@ fun FeedScreen(
                     FooterCard(
                         footerState = viewModel.footerState,
                         loadMore = viewModel::loadMore,
-                        isFeed = true
+                        isFeed = true,
                     )
-
                 }
-
             }
             if (shouldShowSortCard) {
                 FeedReplySortCard(
@@ -570,12 +530,10 @@ fun FeedScreen(
                         setReplyType(index)
                         viewModel.isViewReply = true
                         viewModel.refresh()
-                    }
+                    },
                 )
             }
-
         }
-
     }
 
     fun resetBottomSheet() {
@@ -592,10 +550,9 @@ fun FeedScreen(
                 resetBottomSheet()
             },
             modifier = Modifier.padding(top = topInset),
-            sheetState = bottomSheetState,
         ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
                 ItemCard(
                     loadingState = viewModel.replyLoadingState,
@@ -652,7 +609,7 @@ fun FeedScreen(
                 FooterCard(
                     footerState = viewModel.replyFooterState,
                     loadMore = viewModel::loadMoreReply,
-                    isFeed = true
+                    isFeed = true,
                 )
             }
         }
@@ -662,14 +619,12 @@ fun FeedScreen(
         viewModel.resetToastText()
         context.makeToast(it)
     }
-
 }
 
 private inline fun <reified T : Parcelable> Intent.getParcelableExtraCompat(key: String): T? {
     return if (SDK_INT >= 33) {
         getParcelableExtra(key, T::class.java)
     } else {
-        @Suppress("DEPRECATION")
-        getParcelableExtra(key)
+        @Suppress("DEPRECATION") getParcelableExtra(key)
     }
 }

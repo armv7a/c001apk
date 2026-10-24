@@ -8,22 +8,21 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.util.AttributeSet
-import android.widget.ImageView
 import androidx.annotation.ColorInt
 import androidx.annotation.IntRange
 import androidx.annotation.Px
+import androidx.appcompat.widget.AppCompatImageView
 import kotlin.math.max
 
-/**
- * 圆角view
- */
+/** 圆角view */
 // https://github.com/weimingjue/RoundedImageView
-open class RoundedImageView @JvmOverloads constructor(
+open class RoundedImageView
+@JvmOverloads
+constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) :
-    ImageView(context, attrs, defStyleAttr) {
+    defStyleAttr: Int = 0,
+) : AppCompatImageView(context, attrs, defStyleAttr) {
     private var radii: FloatArray? = null
     private val radiusPath = Path()
     private val radiusPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -33,7 +32,7 @@ open class RoundedImageView @JvmOverloads constructor(
     private var isOval: Boolean = false
 
     init {
-        super.setCropToPadding(true)//false在使用crop属性时padding会无效，难以计算
+        super.setCropToPadding(true) // false在使用crop属性时padding会无效，难以计算
 
         borderPaint.style = Paint.Style.STROKE
 
@@ -43,7 +42,7 @@ open class RoundedImageView @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        if (w != oldw || h != oldh) {//init完第一次layout时也会走一遍
+        if (w != oldw || h != oldh) { // init完第一次layout时也会走一遍
             newRadiusBorderPath()
         }
     }
@@ -53,7 +52,7 @@ open class RoundedImageView @JvmOverloads constructor(
         @Px @IntRange(from = 0) topRight: Int,
         @Px @IntRange(from = 0) bottomLeft: Int,
         @Px @IntRange(from = 0) bottomRight: Int,
-        isInvalidate: Boolean
+        isInvalidate: Boolean,
     ) {
         if ((topLeft <= 0) and (topRight <= 0) and (bottomLeft <= 0) and (bottomRight <= 0)) {
             radii = null
@@ -62,8 +61,11 @@ open class RoundedImageView @JvmOverloads constructor(
                 radii = FloatArray(8)
             }
             radii?.run {
-                if ((this[0] == topLeft.toFloat()) and (this[2] == topRight.toFloat()) and
-                    (this[4] == bottomLeft.toFloat()) and (this[6] == bottomRight.toFloat())
+                if (
+                    (this[0] == topLeft.toFloat()) and
+                        (this[2] == topRight.toFloat()) and
+                        (this[4] == bottomLeft.toFloat()) and
+                        (this[6] == bottomRight.toFloat())
                 ) {
                     return
                 }
@@ -83,9 +85,7 @@ open class RoundedImageView @JvmOverloads constructor(
         }
     }
 
-    /**
-     * 重新计算圆角及path
-     */
+    /** 重新计算圆角及path */
     protected open fun newRadiusBorderPath() {
         if (width == 0 || height == 0) {
             return
@@ -93,7 +93,7 @@ open class RoundedImageView @JvmOverloads constructor(
 
         val stroke2 = (borderPaint.strokeWidth - 2) / 2
 
-        if (isOval) {//椭圆效果
+        if (isOval) { // 椭圆效果
             val rx = (width - paddingStart - paddingEnd) / 2f
             val ry = (height - paddingTop - paddingBottom) / 2f
 
@@ -103,11 +103,11 @@ open class RoundedImageView @JvmOverloads constructor(
                     paddingStart.toFloat(),
                     paddingTop.toFloat(),
                     width - paddingEnd.toFloat(),
-                    height - paddingBottom.toFloat()
+                    height - paddingBottom.toFloat(),
                 ),
                 rx,
                 ry,
-                Path.Direction.CW
+                Path.Direction.CW,
             )
 
             borderPath.reset()
@@ -116,11 +116,11 @@ open class RoundedImageView @JvmOverloads constructor(
                     paddingStart + stroke2,
                     paddingTop + stroke2,
                     width - paddingEnd - stroke2,
-                    height - paddingBottom - stroke2
+                    height - paddingBottom - stroke2,
                 ),
                 if (rx - stroke2 < 0) 0f else (rx - stroke2),
                 if (ry - stroke2 < 0) 0f else (ry - stroke2),
-                Path.Direction.CW
+                Path.Direction.CW,
             )
         } else {
             radii?.run {
@@ -130,10 +130,10 @@ open class RoundedImageView @JvmOverloads constructor(
                         paddingStart.toFloat(),
                         paddingTop.toFloat(),
                         width - paddingEnd.toFloat(),
-                        height - paddingBottom.toFloat()
+                        height - paddingBottom.toFloat(),
                     ),
                     this,
-                    Path.Direction.CW
+                    Path.Direction.CW,
                 )
 
                 borderPath.reset()
@@ -146,7 +146,7 @@ open class RoundedImageView @JvmOverloads constructor(
                         paddingStart + stroke2,
                         paddingTop + stroke2,
                         width - paddingEnd - stroke2,
-                        height - paddingBottom - stroke2
+                        height - paddingBottom - stroke2,
                     ),
                     floatArrayOf(
                         topLeft,
@@ -156,9 +156,9 @@ open class RoundedImageView @JvmOverloads constructor(
                         bottomLeft,
                         bottomLeft,
                         bottomRight,
-                        bottomRight
+                        bottomRight,
                     ),
-                    Path.Direction.CW
+                    Path.Direction.CW,
                 )
             }
         }
@@ -182,16 +182,14 @@ open class RoundedImageView @JvmOverloads constructor(
     }
 
     @Deprecated("设置false的效果也不好，并且会导致padding难以计算，所以暂不支持设置")
-    override fun setCropToPadding(cropToPadding: Boolean) {//空实现
+    override fun setCropToPadding(cropToPadding: Boolean) { // 空实现
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // 公共方法（public method）
     /////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * =0表示无描边
-     */
+    /** =0表示无描边 */
     fun setBorderWidth(@Px @IntRange(from = 0) borderWidth: Int) {
         borderPaint.strokeWidth = max(0f, borderWidth.toFloat())
         invalidate()
@@ -202,9 +200,7 @@ open class RoundedImageView @JvmOverloads constructor(
         invalidate()
     }
 
-    /**
-     * =0表示无圆角
-     */
+    /** =0表示无圆角 */
     fun setCornerRadius(@Px @IntRange(from = 0) radius: Int) {
         setCornerRadius(radius, radius, radius, radius)
     }
@@ -213,14 +209,12 @@ open class RoundedImageView @JvmOverloads constructor(
         @Px @IntRange(from = 0) topLeft: Int,
         @Px @IntRange(from = 0) topRight: Int,
         @Px @IntRange(from = 0) bottomLeft: Int,
-        @Px @IntRange(from = 0) bottomRight: Int
+        @Px @IntRange(from = 0) bottomRight: Int,
     ) {
         setCornerRadiusPrivate(topLeft, topRight, bottomLeft, bottomRight, true)
     }
 
-    /**
-     * 是否以椭圆效果绘制
-     */
+    /** 是否以椭圆效果绘制 */
     fun setIsOval(isOval: Boolean) {
         if (this.isOval == isOval) {
             return

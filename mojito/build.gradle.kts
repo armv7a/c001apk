@@ -1,5 +1,5 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.gradle.api.JavaVersion
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.library")
@@ -8,6 +8,7 @@ plugins {
 }
 
 group = "com.github.mikaelzero"
+
 android {
     namespace = "net.mikaelzero.mojito"
     compileSdk = 34
@@ -38,12 +39,10 @@ kotlin {
     }
 }
 
-
 dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.recyclerview)
-    implementation(libs.google.android.material)
     implementation(libs.kotlin.stdlib)
     implementation(libs.immersionbar)
     implementation(libs.androidx.exifinterface)

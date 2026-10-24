@@ -18,9 +18,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -37,12 +34,13 @@ import com.example.c001apk.compose.ui.component.cards.LoadingCard
 import com.example.c001apk.compose.ui.home.TabType
 import com.example.c001apk.compose.ui.theme.cardBg
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/11
- */
+/** Created by bggRGjQaUbCoE on 2024/6/11 */
 @Composable
 fun HomeTopicScreen(
+    paddingValues: PaddingValues = PaddingValues(),
     type: TabType,
     onViewUser: (String) -> Unit,
     onViewFeed: (String, Boolean) -> Unit,
@@ -51,113 +49,125 @@ fun HomeTopicScreen(
 ) {
 
     val viewModel =
-        hiltViewModel<HomeTopicViewModel, HomeTopicViewModel.ViewModelFactory>(key = type.name) { factory ->
+        hiltViewModel<HomeTopicViewModel, HomeTopicViewModel.ViewModelFactory>(key = type.name) {
+            factory ->
             factory.create(
-                url = when (type) {
-                    TabType.TOPIC -> "/v6/page/dataList?url=V11_VERTICAL_TOPIC&title=话题&page=1"
-                    TabType.PRODUCT -> "/v6/product/categoryList"
-                    else -> throw IllegalArgumentException("invalid type: $type")
-                }
+                url =
+                    when (type) {
+                        TabType.TOPIC -> "/v6/page/dataList?url=V11_VERTICAL_TOPIC&title=话题&page=1"
+                        TabType.PRODUCT -> "/v6/product/categoryList"
+                        else -> throw IllegalArgumentException("invalid type: $type")
+                    },
             )
         }
     val scope = rememberCoroutineScope()
-    val currentIndex = when (type) {
-        TabType.TOPIC -> 1
-        TabType.PRODUCT -> 0
-        else -> throw IllegalArgumentException("invalid type: $type")
-    }
+    val currentIndex =
+        when (type) {
+            TabType.TOPIC -> 1
+            TabType.PRODUCT -> 0
+            else -> throw IllegalArgumentException("invalid type: $type")
+        }
     val listState = rememberLazyListState()
     var pageState: PagerState
     var tabList: List<TopicBean>?
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding())) {
         when (viewModel.loadingState) {
-            LoadingState.Loading, LoadingState.Empty, is LoadingState.Error -> {
+            LoadingState.Loading,
+            LoadingState.Empty,
+            is LoadingState.Error -> {
                 Box(modifier = Modifier.fillMaxSize()) {
                     LoadingCard(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(horizontal = 10.dp),
+                        modifier = Modifier.align(Alignment.Center).padding(horizontal = 10.dp),
                         state = viewModel.loadingState,
-                        onClick = if (viewModel.loadingState is LoadingState.Loading) null
-                        else viewModel::loadMore
+                        onClick =
+                            if (viewModel.loadingState is LoadingState.Loading) null
+                            else viewModel::loadMore,
                     )
                 }
             }
 
             is LoadingState.Success -> {
 
-                tabList = when (type) {
-                    TabType.TOPIC -> (viewModel.loadingState as LoadingState.Success<List<HomeFeedResponse.Data>>)
-                        .response.getOrNull(0)?.entities?.map {
-                            TopicBean(it.url.orEmpty(), it.title.orEmpty())
-                        }
+                tabList =
+                    when (type) {
+                        TabType.TOPIC ->
+                            (viewModel.loadingState
+                                    as LoadingState.Success<List<HomeFeedResponse.Data>>)
+                                .response
+                                .getOrNull(0)
+                                ?.entities
+                                ?.map {
+                                    TopicBean(it.url.orEmpty(), it.title.orEmpty())
+                                }
 
-                    TabType.PRODUCT -> (viewModel.loadingState as LoadingState.Success<List<HomeFeedResponse.Data>>)
-                        .response.map {
-                            TopicBean(it.url.orEmpty(), it.title.orEmpty())
-                        }
+                        TabType.PRODUCT ->
+                            (viewModel.loadingState
+                                    as LoadingState.Success<List<HomeFeedResponse.Data>>)
+                                .response
+                                .map {
+                                    TopicBean(it.url.orEmpty(), it.title.orEmpty())
+                                }
 
-                    else -> throw IllegalArgumentException("invalid type: $type")
-                }
+                        else -> throw IllegalArgumentException("invalid type: $type")
+                    }
 
                 tabList?.let {
-                    pageState = rememberPagerState(
-                        initialPage = currentIndex,
-                        pageCount = {
-                            it.size
-                        }
-                    )
+                    pageState =
+                        rememberPagerState(
+                            initialPage = currentIndex,
+                            pageCount = {
+                                it.size
+                            },
+                        )
 
                     Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(cardBg())
+                        modifier = Modifier.fillMaxSize().background(cardBg()),
                     ) {
-
                         LazyColumn(
                             state = listState,
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .weight(0.22f)
+                            contentPadding =
+                                PaddingValues(bottom = paddingValues.calculateBottomPadding()),
+                            modifier = Modifier.fillMaxHeight().weight(0.22f),
                         ) {
                             itemsIndexed(it, key = { _, item -> item.title }) { index, item ->
                                 Row(
-                                    modifier = Modifier
-                                        .height(IntrinsicSize.Min)
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            scope.launch {
-                                                pageState.scrollToPage(index)
-                                            }
-                                        }
+                                    modifier =
+                                        Modifier.height(IntrinsicSize.Min)
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                scope.launch {
+                                                    pageState.scrollToPage(index)
+                                                }
+                                            },
                                 ) {
                                     Box(
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .width(3.dp)
-                                            .background(
-                                                if (index == pageState.currentPage) MaterialTheme.colorScheme.primary
-                                                else MaterialTheme.colorScheme.surface
-                                            )
+                                        modifier =
+                                            Modifier.fillMaxHeight()
+                                                .width(3.dp)
+                                                .background(
+                                                    if (index == pageState.currentPage)
+                                                        MiuixTheme.colorScheme.primary
+                                                    else MiuixTheme.colorScheme.surface,
+                                                ),
                                     )
                                     Text(
                                         text = item.title,
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .background(
-                                                if (index == pageState.currentPage)
-                                                    MaterialTheme.colorScheme.surfaceColorAtElevation(
-                                                        3.dp
-                                                    )
-                                                else MaterialTheme.colorScheme.surface
-                                            )
-                                            .padding(8.dp)
-                                            .align(Alignment.CenterVertically),
+                                        modifier =
+                                            Modifier.weight(1f)
+                                                .background(
+                                                    if (index == pageState.currentPage)
+                                                        MiuixTheme.colorScheme.surfaceContainer
+                                                    else MiuixTheme.colorScheme.surface,
+                                                )
+                                                .padding(8.dp)
+                                                .align(Alignment.CenterVertically),
                                         textAlign = TextAlign.Center,
                                         fontSize = 14.sp,
-                                        color = if (index == pageState.currentPage) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.onSurface
+                                        color =
+                                            if (index == pageState.currentPage)
+                                                MiuixTheme.colorScheme.primary
+                                            else MiuixTheme.colorScheme.onSurface,
                                     )
                                 }
                             }
@@ -165,15 +175,14 @@ fun HomeTopicScreen(
 
                         VerticalPager(
                             state = pageState,
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .weight(0.78f),
+                            modifier = Modifier.fillMaxHeight().weight(0.78f),
                             userScrollEnabled = false,
                         ) { index ->
                             CarouselContentScreen(
                                 url = it[index].url,
                                 title = it[index].title,
-                                paddingValues = PaddingValues(),
+                                paddingValues =
+                                    PaddingValues(bottom = paddingValues.calculateBottomPadding()),
                                 refreshState = null,
                                 resetRefreshState = {},
                                 onViewUser = onViewUser,
@@ -183,11 +192,9 @@ fun HomeTopicScreen(
                                 isHomeFeed = true,
                             )
                         }
-
                     }
                 }
             }
         }
     }
-
 }

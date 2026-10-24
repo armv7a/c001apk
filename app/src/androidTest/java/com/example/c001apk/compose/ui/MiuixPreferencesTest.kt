@@ -1,0 +1,66 @@
+package com.example.c001apk.compose.ui
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import com.example.c001apk.compose.ui.component.settings.DropdownListItem
+import com.example.c001apk.compose.ui.component.settings.SelectionItem
+import com.example.c001apk.compose.ui.component.settings.SwitchListItem
+import com.example.c001apk.compose.ui.theme.C001apkComposeTheme
+import org.junit.Rule
+import org.junit.Test
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Theme
+
+class MiuixPreferencesTest {
+    @get:Rule val compose = createComposeRule()
+
+    @Test
+    fun clickingSwitchRowSavesExactlyOnce() {
+        compose.setContent {
+            C001apkComposeTheme(materialYou = false) {
+                var enabled by remember { mutableStateOf(false) }
+                var saves by remember { mutableIntStateOf(0) }
+                Column {
+                    SwitchListItem(enabled, MiuixIcons.Theme, "系统主题色") {
+                        enabled = it
+                        saves++
+                    }
+                    Text("$enabled / $saves")
+                }
+            }
+        }
+        compose.onNodeWithText("系统主题色").performClick()
+        compose.onNodeWithText("true / 1").assertIsDisplayed()
+        compose.onNodeWithText("系统主题色").performClick()
+        compose.onNodeWithText("false / 2").assertIsDisplayed()
+    }
+
+    @Test
+    fun selectingThemeAppliesWithoutConfirmButton() {
+        compose.setContent {
+            C001apkComposeTheme(materialYou = false) {
+                var mode by remember { mutableStateOf("跟随系统") }
+                DropdownListItem(
+                    value = mode,
+                    headlineText = "主题模式",
+                    selections = listOf("跟随系统", "浅色", "深色").map { SelectionItem(it, it) },
+                    onValueChanged = { _, value -> mode = value },
+                )
+            }
+        }
+        compose.onNodeWithText("主题模式").performClick()
+        compose.onNodeWithText("深色").performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText("深色").assertIsDisplayed()
+        compose.onNodeWithText("取消").assertDoesNotExist()
+    }
+}

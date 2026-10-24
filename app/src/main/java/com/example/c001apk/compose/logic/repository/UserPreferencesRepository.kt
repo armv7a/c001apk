@@ -5,14 +5,18 @@ import com.example.c001apk.compose.ThemeMode
 import com.example.c001apk.compose.ThemeType
 import com.example.c001apk.compose.logic.datastore.UserPreferencesDataSource
 import com.example.c001apk.compose.logic.model.HapticStrength
+import com.example.c001apk.compose.util.CookieUtil
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class UserPreferencesRepository @Inject constructor(
-    private val userPreferencesDataSource: UserPreferencesDataSource
+class UserPreferencesRepository
+@Inject
+constructor(
+    private val userPreferencesDataSource: UserPreferencesDataSource,
 ) {
-    val data get() = userPreferencesDataSource.data
+    val data
+        get() = userPreferencesDataSource.data
 
     suspend fun setThemeMode(value: ThemeMode) = userPreferencesDataSource.setThemeMode(value)
 
@@ -24,7 +28,16 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setContentScale(value: Float) = userPreferencesDataSource.setContentScale(value)
 
-    suspend fun setSZLMId(value: String) = userPreferencesDataSource.setSZLMId(value)
+    suspend fun setSZLMId(value: String) =
+        userPreferencesDataSource.setSZLMId(value).also {
+            CookieUtil.szlmId = it.szlmId
+            CookieUtil.xAppDevice = it.xAppDevice
+            CookieUtil.userAgent = it.userAgent
+            CookieUtil.versionName = it.versionName
+            CookieUtil.versionCode = it.versionCode
+            CookieUtil.apiVersion = it.apiVersion
+            CookieUtil.sdkInt = it.sdkInt
+        }
 
     suspend fun setImageQuality(value: Int) = userPreferencesDataSource.setImageQuality(value)
 
@@ -105,10 +118,8 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun setHapticStrength(value: HapticStrength) =
         userPreferencesDataSource.setHapticStrength(value)
 
-    suspend fun setCustomHaptics(value: Boolean) =
-        userPreferencesDataSource.setCustomHaptics(value)
+    suspend fun setCustomHaptics(value: Boolean) = userPreferencesDataSource.setCustomHaptics(value)
 
     suspend fun setReverseHapticEffects(value: Boolean) =
         userPreferencesDataSource.setReverseHapticEffects(value)
-
 }

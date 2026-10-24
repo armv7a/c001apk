@@ -31,11 +31,12 @@ class EmojiTextWatcher(
     }
 
     override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+
     override fun onTextChanged(
         charSequence: CharSequence,
         start: Int,
         before: Int,
-        count: Int
+        count: Int,
     ) {
         val spannable = charSequence as Spannable
         val total = start + count
@@ -52,7 +53,7 @@ class EmojiTextWatcher(
                 ForegroundColorSpan(primary),
                 region.start(),
                 region.start() + group.length,
-                33
+                33,
             )
         }
     }
@@ -65,33 +66,33 @@ class EmojiTextWatcher(
                 AppCompatResources.getDrawable(context, it)?.let { emoji ->
                     if (group in listOf("[楼主]", "[层主]", "[置顶]"))
                         emoji.setBounds(0, 0, (size * 2).toInt(), size.toInt())
-                    else
-                        emoji.setBounds(0, 0, (size * 1.4).toInt(), (size * 1.4).toInt())
+                    else emoji.setBounds(0, 0, (size * 1.4).toInt(), (size * 1.4).toInt())
                     val imageSpan = CenteredImageSpan(emoji, (size * 1.4).toInt(), group)
                     spannable.setSpan(
                         imageSpan,
                         matcher.start(),
                         matcher.end(),
-                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
                     )
                 }
-
             }
         }
     }
-
 }
 
 class OnTextInputListener(
     private val text: String,
-    private val onTextChange: () -> Unit
-) :
-    TextWatcher {
+    private val onTextChange: () -> Unit,
+) : TextWatcher {
     override fun afterTextChanged(editable: Editable) {}
+
     override fun beforeTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
+
     override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-        if (before == 0 && count == text.length
-            && s.subSequence(start, start + count).toString() == text
+        if (
+            before == 0 &&
+                count == text.length &&
+                s.subSequence(start, start + count).toString() == text
         ) {
             onTextChange()
         }
@@ -119,7 +120,7 @@ object FastDeleteAtUserKeyListener : View.OnKeyListener {
             val lastIndexOfTopicStart = lastIndexOfTopicStart(text, selectionStart)
             if (lastIndexOfAt >= 0 && lastIndexOfAt > lastIndexOfTopicStart) {
                 val cArr = CharArray(selectionStart - lastIndexOfAt)
-                text.getChars(lastIndexOfAt, selectionStart, cArr, 0)
+                android.text.TextUtils.getChars(text, lastIndexOfAt, selectionStart, cArr, 0)
                 if (!AT_PATTERN.matcher(String(cArr)).matches()) {
                     return false
                 }
@@ -128,7 +129,13 @@ object FastDeleteAtUserKeyListener : View.OnKeyListener {
             }
             if (lastIndexOfTopicStart >= 0 && lastIndexOfTopicStart > lastIndexOfAt) {
                 val cArr2 = CharArray(selectionStart - lastIndexOfTopicStart)
-                text.getChars(lastIndexOfTopicStart, selectionStart, cArr2, 0)
+                android.text.TextUtils.getChars(
+                    text,
+                    lastIndexOfTopicStart,
+                    selectionStart,
+                    cArr2,
+                    0,
+                )
                 if (TAG_PATTERN.matcher(String(cArr2)).matches()) {
                     text.delete(lastIndexOfTopicStart, selectionStart)
                     return true
@@ -169,9 +176,11 @@ object FastDeleteAtUserKeyListener : View.OnKeyListener {
         }
         var z = false
         for (fastDeleteSpan in
-        spannableStringBuilder.getSpans(
-            selectionStart, selectionEnd, FastDeleteSpan::class.java
-        ) as Array<FastDeleteSpan?>) {
+            spannableStringBuilder.getSpans(
+                selectionStart,
+                selectionEnd,
+                FastDeleteSpan::class.java,
+            ) as Array<FastDeleteSpan?>) {
             val spanStart = spannableStringBuilder.getSpanStart(fastDeleteSpan)
             val spanEnd = spannableStringBuilder.getSpanEnd(fastDeleteSpan)
             spannableStringBuilder.delete(spanStart, spanEnd)
@@ -187,5 +196,4 @@ object FastDeleteAtUserKeyListener : View.OnKeyListener {
     val TAG_PATTERN = Pattern.compile("#[^# @]+#\\s")
 
     class FastDeleteSpan
-
 }

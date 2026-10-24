@@ -17,20 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.rounded.Cancel
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,13 +37,23 @@ import coil.request.ImageRequest
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.ui.component.BackButton
+import com.example.c001apk.compose.ui.component.MiuixActionButton as TextButton
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.util.createRandomNumber
 import com.example.c001apk.compose.util.makeToast
+import top.yukonga.miuix.kmp.basic.Button as FilledTonalButton
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Close
+import top.yukonga.miuix.kmp.icon.extended.Hide
+import top.yukonga.miuix.kmp.icon.extended.Show
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/10
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Created by bggRGjQaUbCoE on 2024/6/10 */
 @Composable
 fun LoginScreen(
     onBackClick: () -> Unit,
@@ -94,60 +90,57 @@ fun LoginScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                windowInsets = WindowInsets.systemBars
-                    .only(WindowInsetsSides.Start + WindowInsetsSides.Top),
+                windowInsets =
+                    WindowInsets.systemBars.only(WindowInsetsSides.Start + WindowInsetsSides.Top),
                 navigationIcon = {
                     BackButton { onBackClick() }
                 },
-                title = {
-                    Text(text = "登录")
-                },
+                title = "登录",
                 actions = {
                     TextButton(
                         onClick = onWebLogin,
-                        modifier = Modifier.padding(end = 20.dp)
+                        modifier = Modifier.padding(end = 20.dp),
                     ) {
                         Text(text = "网页登录")
                     }
-                }
+                },
             )
         },
     ) { paddingValues ->
-
         Column(
-            modifier = Modifier.padding(
-                top = paddingValues.calculateTopPadding(),
-                start = paddingValues.calculateLeftPadding(layoutDirection),
-            )
+            modifier =
+                Modifier.padding(
+                    top = paddingValues.calculateTopPadding(),
+                    start = paddingValues.calculateLeftPadding(layoutDirection),
+                ),
         ) {
-
             HorizontalDivider()
 
             TextField(
                 value = account,
                 onValueChange = { account = it },
                 singleLine = true,
-                label = { Text("账号") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp)
-                    .padding(horizontal = 20.dp),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
-                ),
+                label = "账号",
+                modifier = Modifier.fillMaxWidth().padding(top = 20.dp).padding(horizontal = 20.dp),
+                keyboardOptions =
+                    KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next,
+                    ),
                 trailingIcon = {
                     AnimatedVisibility(
                         visible = account.isNotEmpty(),
                         enter = fadeIn(),
-                        exit = fadeOut()
+                        exit = fadeOut(),
                     ) {
-                        IconButton(onClick = {
-                            account = EMPTY_STRING
-                        }) {
+                        IconButton(
+                            onClick = {
+                                account = EMPTY_STRING
+                            },
+                        ) {
                             Icon(
-                                imageVector = Icons.Rounded.Cancel,
-                                contentDescription = null
+                                imageVector = MiuixIcons.Close,
+                                contentDescription = null,
                             )
                         }
                     }
@@ -157,54 +150,54 @@ fun LoginScreen(
                 value = password,
                 onValueChange = { password = it },
                 singleLine = true,
-                label = { Text("密码") },
+                label = "密码",
                 visualTransformation =
-                if (passwordHidden) PasswordVisualTransformation() else VisualTransformation.None,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        onLogin()
-                    }
-                ),
+                    if (passwordHidden) PasswordVisualTransformation()
+                    else VisualTransformation.None,
+                keyboardOptions =
+                    KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done,
+                    ),
+                keyboardActions =
+                    KeyboardActions(
+                        onDone = {
+                            onLogin()
+                        },
+                    ),
                 trailingIcon = {
                     IconButton(onClick = { passwordHidden = !passwordHidden }) {
                         val visibilityIcon =
-                            if (passwordHidden) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                            if (passwordHidden) MiuixIcons.Show else MiuixIcons.Hide
                         Icon(imageVector = visibilityIcon, contentDescription = null)
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .padding(top = 5.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 5.dp),
             )
             AnimatedVisibility(
                 visible = viewModel.captchaImg != null,
                 enter = fadeIn(),
-                exit = fadeOut()
+                exit = fadeOut(),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .height(IntrinsicSize.Min)
-                        .padding(top = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .height(IntrinsicSize.Min)
+                            .padding(top = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(viewModel.captchaImg)
-                            .crossfade(true)
-                            .build(),
+                        model =
+                            ImageRequest.Builder(context)
+                                .data(viewModel.captchaImg)
+                                .crossfade(true)
+                                .build(),
                         contentDescription = null,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
+                        modifier =
+                            Modifier.weight(1f).clickable {
                                 viewModel.onGetCaptcha()
-                            }
+                            },
                     )
                     TextField(
                         value = captcha,
@@ -215,14 +208,16 @@ fun LoginScreen(
                             AnimatedVisibility(
                                 visible = captcha.isNotEmpty(),
                                 enter = fadeIn(),
-                                exit = fadeOut()
+                                exit = fadeOut(),
                             ) {
-                                IconButton(onClick = {
-                                    captcha = EMPTY_STRING
-                                }) {
+                                IconButton(
+                                    onClick = {
+                                        captcha = EMPTY_STRING
+                                    },
+                                ) {
                                     Icon(
-                                        imageVector = Icons.Rounded.Cancel,
-                                        contentDescription = null
+                                        imageVector = MiuixIcons.Close,
+                                        contentDescription = null,
                                     )
                                 }
                             }
@@ -236,13 +231,10 @@ fun LoginScreen(
                 onClick = {
                     onLogin()
                 },
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 5.dp)
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 5.dp),
             ) {
                 Text(text = "登录")
             }
-
         }
     }
 
@@ -254,5 +246,4 @@ fun LoginScreen(
         context.makeToast(it)
         viewModel.reset()
     }
-
 }

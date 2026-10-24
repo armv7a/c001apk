@@ -8,10 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,10 +15,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.c001apk.compose.ui.component.rememberHapticClick
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.VerticalDivider
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/12
- */
+/** Created by bggRGjQaUbCoE on 2024/6/12 */
 @Composable
 fun FeedReplySortCard(
     modifier: Modifier = Modifier,
@@ -32,24 +30,21 @@ fun FeedReplySortCard(
 ) {
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .background(MaterialTheme.colorScheme.surface),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+                .background(MiuixTheme.colorScheme.surface),
     ) {
         HorizontalDivider()
 
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-
             Text(
                 text = "共 $replyCount 回复",
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp)
-                    .padding(vertical = 2.dp),
-                style = MaterialTheme.typography.titleSmall.copy(fontSize = 13.sp),
+                modifier = Modifier.weight(1f).padding(start = 16.dp).padding(vertical = 2.dp),
+                style = MiuixTheme.textStyles.headline2.copy(fontSize = 13.sp),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -61,7 +56,7 @@ fun FeedReplySortCard(
                 isSelected = selected == 0,
                 updateSortReply = {
                     updateSortReply(0)
-                }
+                },
             )
 
             FeedReplySortCardItem(
@@ -69,7 +64,7 @@ fun FeedReplySortCard(
                 isSelected = selected == 1,
                 updateSortReply = {
                     updateSortReply(1)
-                }
+                },
             )
 
             FeedReplySortCardItem(
@@ -77,7 +72,7 @@ fun FeedReplySortCard(
                 isSelected = selected == 2,
                 updateSortReply = {
                     updateSortReply(2)
-                }
+                },
             )
 
             FeedReplySortCardItem(
@@ -86,14 +81,12 @@ fun FeedReplySortCard(
                 isSelected = selected == 3,
                 updateSortReply = {
                     updateSortReply(3)
-                }
+                },
             )
-
         }
 
         HorizontalDivider()
     }
-
 }
 
 @Composable
@@ -105,18 +98,16 @@ fun FeedReplySortCardItem(
 ) {
     Text(
         text = title,
-        style = MaterialTheme.typography.titleSmall.copy(fontSize = 13.sp),
+        style = MiuixTheme.textStyles.headline2.copy(fontSize = 13.sp),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier
-            .clickable(onClick = rememberHapticClick { updateSortReply() })
-            .background(
-                if (isSelected)
-                    MaterialTheme.colorScheme.secondaryContainer
-                else
-                    MaterialTheme.colorScheme.surface
-            )
-            .padding(horizontal = 8.dp, vertical = 2.dp),
+        modifier =
+            Modifier.clickable(onClick = rememberHapticClick { updateSortReply() })
+                .background(
+                    if (isSelected) MiuixTheme.colorScheme.secondaryContainer
+                    else MiuixTheme.colorScheme.surface,
+                )
+                .padding(horizontal = 8.dp, vertical = 2.dp),
     )
 
     VerticalDivider(modifier = modifier)

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -20,26 +19,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/5
- */
+/** Created by bggRGjQaUbCoE on 2024/6/5 */
 @Composable
 fun CardIndicator(
     modifier: Modifier = Modifier,
     dimension: Dp = 6.dp,
     defWidth: Float = 1.0f,
     selectedWidth: Float = 1.0f,
-    defColor: Color = MaterialTheme.colorScheme.primaryContainer,
-    selectedColor: Color = MaterialTheme.colorScheme.primary,
+    defColor: Color = MiuixTheme.colorScheme.primaryContainer,
+    selectedColor: Color = MiuixTheme.colorScheme.primary,
     pagerState: PagerState,
-    isCarousel: Boolean = false
+    isCarousel: Boolean = false,
 ) {
     val currentPage by remember { derivedStateOf { pagerState.currentPage } }
-    val pageCount = with(pagerState.pageCount) {
-        if (isCarousel) this - 2
-        else this
-    }
+    val pageCount =
+        with(pagerState.pageCount) {
+            if (isCarousel) this - 2 else this
+        }
 
     LazyRow(
         modifier = modifier,
@@ -59,22 +57,25 @@ fun CardIndicator(
                     } == i
                 }
             }
-            val color by animateColorAsState(
-                targetValue = if (isSelected) selectedColor else defColor,
-                label = "indicatorColor"
-            )
-            val width by animateDpAsState(
-                targetValue = if (isSelected) dimension.times(selectedWidth)
-                else dimension.times(defWidth),
-                label = "indicatorWidth"
-            )
+            val color by
+                animateColorAsState(
+                    targetValue = if (isSelected) selectedColor else defColor,
+                    label = "indicatorColor",
+                )
+            val width by
+                animateDpAsState(
+                    targetValue =
+                        if (isSelected) dimension.times(selectedWidth)
+                        else dimension.times(defWidth),
+                    label = "indicatorWidth",
+                )
 
             Box(
-                modifier = Modifier
-                    .size(height = dimension, width = width)
-                    .clip(CircleShape)
-                    .background(color = color)
-                    //.clickable { scope.launch { pagerState.animateScrollToPage(i) } }
+                modifier =
+                    Modifier.size(height = dimension, width = width)
+                        .clip(CircleShape)
+                        .background(color = color),
+                // .clickable { scope.launch { pagerState.animateScrollToPage(i) } }
             )
         }
     }

@@ -1,19 +1,14 @@
 package com.example.c001apk.compose.ui.main
 
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Message
-import androidx.compose.material.icons.automirrored.outlined.Message
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.c001apk.compose.R
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Home
+import top.yukonga.miuix.kmp.icon.extended.Messages
+import top.yukonga.miuix.kmp.icon.extended.Settings
 
-/**
- * Created by bggRGjQaUbCoE on 2024/5/30
- */
+/** Created by bggRGjQaUbCoE on 2024/5/30 */
 sealed class Router(
     val name: String,
     @param:StringRes val stringId: Int? = null,
@@ -21,30 +16,34 @@ sealed class Router(
     val selectedIcon: ImageVector? = null,
 ) {
 
-    data object MAIN : Router(
-        name = "MAIN"
-    )
+    data object MAIN :
+        Router(
+            name = "MAIN",
+        )
 
-    data object HOME : Router(
-        name = "HOME",
-        stringId = R.string.home,
-        unselectedIcon = Icons.Outlined.Home,
-        selectedIcon = Icons.Default.Home
-    )
+    data object HOME :
+        Router(
+            name = "HOME",
+            stringId = R.string.home,
+            unselectedIcon = MiuixIcons.Home,
+            selectedIcon = MiuixIcons.Home,
+        )
 
-    data object MESSAGE : Router(
-        name = "MESSAGE",
-        stringId = R.string.message,
-        unselectedIcon = Icons.AutoMirrored.Outlined.Message,
-        selectedIcon = Icons.AutoMirrored.Filled.Message
-    )
+    data object MESSAGE :
+        Router(
+            name = "MESSAGE",
+            stringId = R.string.message,
+            unselectedIcon = MiuixIcons.Messages,
+            selectedIcon = MiuixIcons.Messages,
+        )
 
-    data object SETTINGS : Router(
-        name = "SETTINGS",
-        stringId = R.string.settings,
-        unselectedIcon = Icons.Outlined.Settings,
-        selectedIcon = Icons.Default.Settings
-    )
+    data object SETTINGS :
+        Router(
+            name = "SETTINGS",
+            stringId = R.string.settings,
+            unselectedIcon = MiuixIcons.Settings,
+            selectedIcon = MiuixIcons.Settings,
+        )
 
     data object PARAMS : Router(name = "PARAMS")
 
@@ -93,5 +92,4 @@ sealed class Router(
     data object CHAT : Router(name = "CHAT")
 
     data object COLLECTION : Router(name = "COLLECTION")
-
 }

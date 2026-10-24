@@ -1,6 +1,5 @@
 package com.example.c001apk.compose.ui.component
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
@@ -10,22 +9,21 @@ import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.util.ImageShowUtil.getImageLp
 import com.example.c001apk.compose.util.isGifUrl
 import com.example.c001apk.compose.view.NineGridImageView
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/5
- */
+/** Created by bggRGjQaUbCoE on 2024/6/5 */
 @Composable
 fun NineImageView(
     modifier: Modifier = Modifier,
     pic: String?,
     picArr: List<String>?,
     feedType: String?,
-    isSingle: Boolean = false
+    isSingle: Boolean = false,
 ) {
     val prefs = LocalUserPreferences.current
 
-    val primaryContainer = MaterialTheme.colorScheme.primaryContainer.toArgb()
-    val onPrimaryContainer = MaterialTheme.colorScheme.onPrimaryContainer.toArgb()
+    val primaryContainer = MiuixTheme.colorScheme.primaryContainer.toArgb()
+    val onPrimaryContainer = MiuixTheme.colorScheme.onPrimaryContainer.toArgb()
 
     AndroidView(
         modifier = modifier,
@@ -51,12 +49,11 @@ fun NineImageView(
                     if (feedType in listOf("feedArticle", "trade") && imgWidth > imgHeight)
                         if (!pic.isNullOrEmpty()) urlList.add(pic.toPreviewUrl())
                         else urlList.add(picArr[0].toPreviewUrl())
-                    else
-                        urlList.addAll(picArr.map { it.toPreviewUrl() })
+                    else urlList.addAll(picArr.map { it.toPreviewUrl() })
                     setUrlList(urlList)
                 }
             }
-        }
+        },
     )
 }
 

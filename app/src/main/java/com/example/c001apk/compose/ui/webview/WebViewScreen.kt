@@ -12,17 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ProgressIndicatorDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -35,28 +24,37 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import com.example.c001apk.compose.R
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.c001apk.compose.R
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.constant.Constants.WEB_LOGIN_FAILED
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.ui.component.BackButton
+import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
+import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
+import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.ui.component.WebView
 import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.openInBrowser
-import com.example.c001apk.compose.ui.component.MoreMenuButton
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
+import top.yukonga.miuix.kmp.basic.SnackbarHost
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
+import top.yukonga.miuix.kmp.basic.SnackbarResult
+import top.yukonga.miuix.kmp.basic.Text
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/9
- */
-
+/** Created by bggRGjQaUbCoE on 2024/6/9 */
 enum class ActionType {
-    REFRESH, COPY, OPEN, CLEAN, NONE
+    REFRESH,
+    COPY,
+    OPEN,
+    CLEAN,
+    NONE,
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WebViewScreen(
     onBackClick: () -> Unit,
@@ -72,10 +70,13 @@ fun WebViewScreen(
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
 
     var progress by remember { mutableFloatStateOf(0.0f) }
-    val animatedProgress by animateFloatAsState(
-        targetValue = progress,
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec, label = EMPTY_STRING
-    )
+    val animatedProgress by
+        animateFloatAsState(
+            targetValue = progress,
+            animationSpec =
+                top.yukonga.miuix.kmp.anim.folmeSpring(damping = 0.95f, response = 0.4f),
+            label = EMPTY_STRING,
+        )
     val snackbarHostState = remember(::SnackbarHostState)
     val scope = rememberCoroutineScope()
 
@@ -86,8 +87,8 @@ fun WebViewScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                windowInsets = WindowInsets.systemBars
-                    .only(WindowInsetsSides.Start + WindowInsetsSides.Top),
+                windowInsets =
+                    WindowInsets.systemBars.only(WindowInsetsSides.Start + WindowInsetsSides.Top),
                 navigationIcon = {
                     BackButton { onBackClick() }
                 },
@@ -95,7 +96,7 @@ fun WebViewScreen(
                     Text(
                         text = title,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                 },
                 actions = {
@@ -103,30 +104,30 @@ fun WebViewScreen(
                         MoreMenuButton { dropdownMenuExpanded = true }
                         DropdownMenu(
                             expanded = dropdownMenuExpanded,
-                            onDismissRequest = { dropdownMenuExpanded = false }
+                            onDismissRequest = { dropdownMenuExpanded = false },
                         ) {
                             listOf(
-                                stringResource(id = R.string.menu_refresh),
-                                "复制",
-                                stringResource(id = R.string.menu_open_in_browser),
-                                stringResource(id = R.string.menu_clean_caches)
-                            )
+                                    stringResource(id = R.string.menu_refresh),
+                                    "复制",
+                                    stringResource(id = R.string.menu_open_in_browser),
+                                    stringResource(id = R.string.menu_clean_caches),
+                                )
                                 .forEachIndexed { index, menu ->
                                     DropdownMenuItem(
                                         text = { Text(menu) },
                                         onClick = {
                                             dropdownMenuExpanded = false
-                                            actionType = when (index) {
-                                                0 -> ActionType.REFRESH
-                                                1 -> ActionType.COPY
-                                                2 -> ActionType.OPEN
-                                                3 -> ActionType.CLEAN
-                                                else -> ActionType.NONE
-                                            }
-                                        }
+                                            actionType =
+                                                when (index) {
+                                                    0 -> ActionType.REFRESH
+                                                    1 -> ActionType.COPY
+                                                    2 -> ActionType.OPEN
+                                                    3 -> ActionType.CLEAN
+                                                    else -> ActionType.NONE
+                                                }
+                                        },
                                     )
                                 }
-
                         }
                     }
                 },
@@ -134,20 +135,19 @@ fun WebViewScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { paddingValues ->
-
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    top = paddingValues.calculateTopPadding(),
-                    bottom = paddingValues.calculateBottomPadding(),
-                    start = paddingValues.calculateLeftPadding(layoutDirection),
-                )
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(
+                        top = paddingValues.calculateTopPadding(),
+                        bottom = paddingValues.calculateBottomPadding(),
+                        start = paddingValues.calculateLeftPadding(layoutDirection),
+                    ),
         ) {
             AnimatedVisibility(visible = progress != 1.0f) {
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth(),
-                    progress = { animatedProgress }
+                    progress = animatedProgress,
                 )
             }
 
@@ -158,18 +158,27 @@ fun WebViewScreen(
                     if (cookie.isNotEmpty()) {
                         val split = cookie.split(";")
                         val uid =
-                            split.find { it.contains("uid=") }?.replace("uid=", EMPTY_STRING)
+                            split
+                                .find { it.contains("uid=") }
+                                ?.replace("uid=", EMPTY_STRING)
                                 ?.trim()
                         val username =
-                            split.find { it.contains("username=") }
-                                ?.replace("username=", EMPTY_STRING)?.trim()
-                        val token =
-                            split.find { it.contains("token=") }?.replace("token=", EMPTY_STRING)
+                            split
+                                .find { it.contains("username=") }
+                                ?.replace("username=", EMPTY_STRING)
                                 ?.trim()
-                        if (!uid.isNullOrEmpty() && !username.isNullOrEmpty() && !token.isNullOrEmpty()) {
+                        val token =
+                            split
+                                .find { it.contains("token=") }
+                                ?.replace("token=", EMPTY_STRING)
+                                ?.trim()
+                        if (
+                            !uid.isNullOrEmpty() &&
+                                !username.isNullOrEmpty() &&
+                                !token.isNullOrEmpty()
+                        ) {
 
                             viewModel.setIsLogin(uid, username, token)
-
                         } else {
                             context.makeToast(WEB_LOGIN_FAILED)
                         }
@@ -190,11 +199,12 @@ fun WebViewScreen(
                 onUpdateTitle = { title = it },
                 onShowSnackbar = { requestUrl ->
                     scope.launch {
-                        val result = snackbarHostState.showSnackbar(
-                            message = "当前网页将要打开外部链接，是否打开",
-                            actionLabel = "打开",
-                            withDismissAction = true
-                        )
+                        val result =
+                            snackbarHostState.showSnackbar(
+                                message = "当前网页将要打开外部链接，是否打开",
+                                actionLabel = "打开",
+                                withDismissAction = true,
+                            )
                         when (result) {
                             SnackbarResult.ActionPerformed -> {
                                 context.openInBrowser(requestUrl)
@@ -203,11 +213,9 @@ fun WebViewScreen(
                             SnackbarResult.Dismissed -> {}
                         }
                     }
-                }
+                },
             )
-
         }
-
     }
 
     if (isLogin && prefs.isLogin) {
@@ -217,5 +225,4 @@ fun WebViewScreen(
     BackHandler {
         onBack = true
     }
-
 }

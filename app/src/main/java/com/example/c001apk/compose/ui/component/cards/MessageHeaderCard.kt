@@ -6,15 +6,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProgressIndicatorDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -30,10 +21,17 @@ import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.decode
+import top.yukonga.miuix.kmp.basic.Button as FilledTonalButton
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Forward
+import top.yukonga.miuix.kmp.squircle.squircleSurface
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/10
- */
+/** Created by bggRGjQaUbCoE on 2024/6/10 */
 @Composable
 fun MessageHeaderCard(
     modifier: Modifier = Modifier,
@@ -45,19 +43,25 @@ fun MessageHeaderCard(
     nextLevelExperience: String,
     onLogin: () -> Unit,
     onLogout: () -> Unit,
-    onViewUser: (String) -> Unit
+    onViewUser: (String) -> Unit,
 ) {
 
-    val animatedProgress by animateFloatAsState(
-        targetValue = (experience.toFloatOrNull() ?: 0f) / (nextLevelExperience.toFloatOrNull()
-            ?: 1f),
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec, label = EMPTY_STRING
-    )
+    val animatedProgress by
+        animateFloatAsState(
+            targetValue =
+                (experience.toFloatOrNull() ?: 0f) / (nextLevelExperience.toFloatOrNull() ?: 1f),
+            animationSpec =
+                top.yukonga.miuix.kmp.anim.folmeSpring(damping = 0.95f, response = 0.4f),
+            label = EMPTY_STRING,
+        )
 
     ConstraintLayout(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(10.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+                .squircleSurface(MiuixTheme.colorScheme.surfaceContainer, 16.dp)
+                .padding(16.dp),
     ) {
         val startGuide = createGuidelineFromStart(0.75f)
 
@@ -66,13 +70,13 @@ fun MessageHeaderCard(
         if (!isLogin) {
             FilledTonalButton(
                 onClick = { onLogin() },
-                modifier = Modifier
-                    .constrainAs(login) {
+                modifier =
+                    Modifier.constrainAs(login) {
                         start.linkTo(parent.start)
                         top.linkTo(parent.top)
                         end.linkTo(parent.end)
                         bottom.linkTo(parent.bottom)
-                    }
+                    },
             ) {
                 Text(text = "点击登录")
             }
@@ -81,17 +85,17 @@ fun MessageHeaderCard(
         if (isLogin) {
             CoilLoader(
                 url = userAvatar,
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .clip(CircleShape)
-                    .aspectRatio(1f)
-                    .constrainAs(avatar) {
-                        start.linkTo(parent.start)
-                        top.linkTo(username.top)
-                        bottom.linkTo(indicator.bottom)
-                        height = Dimension.fillToConstraints
-                    }
-                    .clickable { onViewUser(CookieUtil.uid) }
+                modifier =
+                    Modifier.padding(start = 10.dp)
+                        .clip(CircleShape)
+                        .aspectRatio(1f)
+                        .constrainAs(avatar) {
+                            start.linkTo(parent.start)
+                            top.linkTo(username.top)
+                            bottom.linkTo(indicator.bottom)
+                            height = Dimension.fillToConstraints
+                        }
+                        .clickable { onViewUser(CookieUtil.uid) },
             )
         }
 
@@ -99,58 +103,60 @@ fun MessageHeaderCard(
             text = userName.decode,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier
-                .padding(horizontal = 10.dp)
-                .constrainAs(username) {
+            style =
+                MiuixTheme.textStyles.subtitle.copy(
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                ),
+            modifier =
+                Modifier.padding(horizontal = 10.dp).constrainAs(username) {
                     start.linkTo(avatar.end)
                     end.linkTo(if (isLogin) logout.start else parent.end)
                     top.linkTo(parent.top)
                     width = Dimension.fillToConstraints
-                }
+                },
         )
 
         Text(
             text = "Lv.${level}",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 12.sp,
-            ),
-            modifier = Modifier
-                .padding(start = 10.dp)
-                .constrainAs(levelView) {
-                    start.linkTo(avatar.end)
-                    top.linkTo(username.bottom)
-                }
-                .alpha(if (isLogin) 1f else 0f)
+            style =
+                MiuixTheme.textStyles.body1.copy(
+                    fontSize = 12.sp,
+                ),
+            modifier =
+                Modifier.padding(start = 10.dp)
+                    .constrainAs(levelView) {
+                        start.linkTo(avatar.end)
+                        top.linkTo(username.bottom)
+                    }
+                    .alpha(if (isLogin) 1f else 0f),
         )
 
         Text(
             text = "${experience}/${nextLevelExperience}",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 12.sp,
-            ),
-            modifier = Modifier
-                .constrainAs(experienceView) {
-                    top.linkTo(username.bottom)
-                    end.linkTo(startGuide)
-                }
-                .alpha(if (isLogin) 1f else 0f)
+            style =
+                MiuixTheme.textStyles.body1.copy(
+                    fontSize = 12.sp,
+                ),
+            modifier =
+                Modifier.constrainAs(experienceView) {
+                        top.linkTo(username.bottom)
+                        end.linkTo(startGuide)
+                    }
+                    .alpha(if (isLogin) 1f else 0f),
         )
 
         LinearProgressIndicator(
-            progress = { animatedProgress },
-            modifier = Modifier
-                .padding(start = 10.dp)
-                .constrainAs(indicator) {
-                    start.linkTo(avatar.end)
-                    top.linkTo(levelView.bottom)
-                    end.linkTo(startGuide)
-                    width = Dimension.fillToConstraints
-                }
-                .alpha(if (isLogin) 1f else 0f)
+            progress = animatedProgress,
+            modifier =
+                Modifier.padding(start = 10.dp)
+                    .constrainAs(indicator) {
+                        start.linkTo(avatar.end)
+                        top.linkTo(levelView.bottom)
+                        end.linkTo(startGuide)
+                        width = Dimension.fillToConstraints
+                    }
+                    .alpha(if (isLogin) 1f else 0f),
         )
 
         if (isLogin) {
@@ -158,20 +164,18 @@ fun MessageHeaderCard(
                 onClick = {
                     onLogout()
                 },
-                modifier = Modifier
-                    .constrainAs(logout) {
+                modifier =
+                    Modifier.constrainAs(logout) {
                         top.linkTo(parent.top)
                         end.linkTo(parent.end)
                         bottom.linkTo(parent.bottom)
-                    }
+                    },
             ) {
                 Icon(
-                    Icons.AutoMirrored.Default.Logout,
-                    contentDescription = null
+                    MiuixIcons.Forward,
+                    contentDescription = null,
                 )
             }
         }
-
     }
-
 }

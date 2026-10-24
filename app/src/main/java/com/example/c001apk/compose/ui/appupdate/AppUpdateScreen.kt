@@ -7,10 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,16 +26,16 @@ import com.example.c001apk.compose.logic.model.UpdateCheckItem
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.app.AppViewModel
 import com.example.c001apk.compose.ui.component.BackButton
+import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.cards.AppUpdateCard
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
 import com.example.c001apk.compose.util.Utils.getBase64
 import com.example.c001apk.compose.util.downloadApk
 import org.json.JSONObject
+import top.yukonga.miuix.kmp.basic.Text
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/12
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Created by bggRGjQaUbCoE on 2024/6/12 */
 @Composable
 fun AppUpdateScreen(
     onBackClick: () -> Unit,
@@ -79,40 +75,45 @@ fun AppUpdateScreen(
                     BackButton { onBackClick() }
                 },
                 title = {
-                    val title = if (count == 0) {
-                        stringResource(id = R.string.update_title)
-                    } else {
-                        stringResource(id = R.string.update_title_with_count, count)
-                    }
+                    val title =
+                        if (count == 0) {
+                            stringResource(id = R.string.update_title)
+                        } else {
+                            stringResource(id = R.string.update_title_with_count, count)
+                        }
                     Text(text = title)
                 },
             )
-        }
+        },
     ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    top = paddingValues.calculateTopPadding(),
-                    start = paddingValues.calculateLeftPadding(layoutDirection),
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(
+                        top = paddingValues.calculateTopPadding(),
+                        start = paddingValues.calculateLeftPadding(layoutDirection),
+                    ),
+            contentPadding =
+                PaddingValues(
+                    start = 10.dp,
+                    end = 10.dp,
+                    top = 10.dp,
+                    bottom = 10.dp + paddingValues.calculateBottomPadding(),
                 ),
-            contentPadding = PaddingValues(
-                start = 10.dp, end = 10.dp, top = 10.dp,
-                bottom = 10.dp + paddingValues.calculateBottomPadding()
-            ),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-
             when (viewModel.updateState) {
-                LoadingState.Loading, LoadingState.Empty, is LoadingState.Error -> {
+                LoadingState.Loading,
+                LoadingState.Empty,
+                is LoadingState.Error -> {
                     item(key = "updateState") {
                         Box(modifier = Modifier.fillParentMaxSize()) {
                             LoadingCard(
-                                modifier = Modifier
-                                    .align(Alignment.Center),
+                                modifier = Modifier.align(Alignment.Center),
                                 state = viewModel.updateState,
-                                onClick = if (viewModel.updateState is LoadingState.Loading) null
-                                else ::checkUpdate
+                                onClick =
+                                    if (viewModel.updateState is LoadingState.Loading) null
+                                    else ::checkUpdate,
                             )
                         }
                     }
@@ -121,19 +122,22 @@ fun AppUpdateScreen(
                 is LoadingState.Success -> {
                     (viewModel.updateState as? LoadingState.Success)?.response?.let {
                         count = it.size
-                        itemsIndexed(it,
-                            key = { _, item -> item.packageName + item.id }) { _, item ->
+                        itemsIndexed(
+                            it,
+                            key = { _, item -> item.packageName + item.id },
+                        ) { _, item ->
                             AppUpdateCard(
                                 data = item,
                                 onViewApp = onViewApp,
-                                onDownloadApk = { packageName, id, title, versionName, versionCode ->
+                                onDownloadApk = { packageName, id, title, versionName, versionCode
+                                    ->
                                     viewModel.packageName = packageName
                                     viewModel.id = id
                                     viewModel.title = title
                                     viewModel.versionName = versionName
                                     viewModel.versionCode = versionCode
                                     viewModel.onGetDownloadLink()
-                                }
+                                },
                             )
                         }
                     }
@@ -147,9 +151,8 @@ fun AppUpdateScreen(
             viewModel.reset()
             context.downloadApk(
                 viewModel.downloadUrl,
-                "${viewModel.title}-${viewModel.versionName}-${viewModel.versionCode}.apk"
+                "${viewModel.title}-${viewModel.versionName}-${viewModel.versionCode}.apk",
             )
         }
     }
-
 }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">c001apk</string>
+    <string name="app_name">c001apk miuix</string>
     <string name="home">首页</string>
     <string name="message">消息</string>
     <string name="settings">设置</string>
@@ -62,6 +62,8 @@
     <string name="menu_delete">删除</string>
     <string name="menu_sort">排序</string>
     <string name="menu_check">查看</string>
+    <string name="loading_error">暂时无法加载内容</string>
+    <string name="loading_error_retry">暂时无法加载内容，轻触重试</string>
     <string name="loading_empty">这里是空的→_→</string>
     <string name="loading_end">到底了Σ( ￣□￣||)</string>
     <string name="menu_refresh">刷新</string>

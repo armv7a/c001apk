@@ -2,7 +2,6 @@ package com.example.c001apk.compose.ui.chat
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -36,27 +34,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.automirrored.outlined.Backspace
-import androidx.compose.material.icons.outlined.AddPhotoAlternate
-import androidx.compose.material.icons.outlined.EmojiEmotions
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -85,11 +62,19 @@ import com.example.c001apk.compose.logic.model.OSSUploadPrepareModel
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.ChatEditText
+import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
+import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MiuixScaffoldDefaults as ScaffoldDefaults
+import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
+import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.ui.component.cards.CardIndicator
 import com.example.c001apk.compose.ui.component.cards.ChatLeftCard
 import com.example.c001apk.compose.ui.component.cards.ChatRightCard
 import com.example.c001apk.compose.ui.component.cards.ChatTimeCard
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
+import com.example.c001apk.compose.ui.component.icons.Backspace
+import com.example.c001apk.compose.ui.component.icons.EmojiEmotions
 import com.example.c001apk.compose.ui.theme.cardBg
 import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.EmojiUtils
@@ -102,16 +87,25 @@ import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.makeToast
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.UUID
-import com.example.c001apk.compose.ui.component.MoreMenuButton
+import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.basic.Card as ElevatedCard
+import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.VerticalDivider
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Image
+import top.yukonga.miuix.kmp.icon.extended.Send
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/19
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Created by bggRGjQaUbCoE on 2024/6/19 */
 @Composable
 fun ChatScreen(
     onBackClick: () -> Unit,
@@ -149,15 +143,17 @@ fun ChatScreen(
             viewModel.uriList = listOf(uri)
             viewModel.md5List = listOf(md5Byte)
             viewModel.typeList = listOf(type)
-            val list = listOf(
-                OSSUploadPrepareModel(
-                    name = "${
+            val list =
+                listOf(
+                    OSSUploadPrepareModel(
+                        name =
+                            "${
                         UUID.randomUUID().toString().replace("-", "")
                     }.${if (type.startsWith("image/")) type.substring(6) else type}",
-                    resolution = "${width}x${height}",
-                    md5 = md5,
+                        resolution = "${width}x${height}",
+                        md5 = md5,
+                    ),
                 )
-            )
             viewModel.onPostOSSUploadPrepare(uid, list)
         } catch (e: Exception) {
             e.message?.let {
@@ -198,84 +194,86 @@ fun ChatScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                windowInsets = WindowInsets.systemBars
-                    .only(WindowInsetsSides.Start + WindowInsetsSides.Top),
+                windowInsets =
+                    WindowInsets.systemBars.only(WindowInsetsSides.Start + WindowInsetsSides.Top),
                 navigationIcon = {
                     BackButton {
                         clearFocus = true
                         onBackClick()
                     }
                 },
-                title = { Text(text = username) },
+                title = username,
                 actions = {
                     Box {
                         MoreMenuButton { dropdownMenuExpanded = true }
                         DropdownMenu(
                             expanded = dropdownMenuExpanded,
-                            onDismissRequest = { dropdownMenuExpanded = false }) {
+                            onDismissRequest = { dropdownMenuExpanded = false },
+                        ) {
                             listOf(
-                                stringResource(id = R.string.menu_check),
-                                "拉黑",
-                                stringResource(id = R.string.menu_report)
-                            ).forEachIndexed { index, menu ->
-                                DropdownMenuItem(
-                                    text = { Text(text = menu) },
-                                    onClick = {
-                                        dropdownMenuExpanded = false
-                                        when (index) {
-                                            0 -> {
-                                                onClearFocus()
-                                                onViewUser(uid)
-                                            }
-
-                                            1 -> viewModel.onBlockUser(uid)
-                                            2 -> {
-                                                onClearFocus()
-                                                onReport(uid, ReportType.USER)
-                                            }
-                                        }
-                                    }
+                                    stringResource(id = R.string.menu_check),
+                                    "拉黑",
+                                    stringResource(id = R.string.menu_report),
                                 )
-                            }
+                                .forEachIndexed { index, menu ->
+                                    DropdownMenuItem(
+                                        text = { Text(text = menu) },
+                                        onClick = {
+                                            dropdownMenuExpanded = false
+                                            when (index) {
+                                                0 -> {
+                                                    onClearFocus()
+                                                    onViewUser(uid)
+                                                }
+
+                                                1 -> viewModel.onBlockUser(uid)
+                                                2 -> {
+                                                    onClearFocus()
+                                                    onReport(uid, ReportType.USER)
+                                                }
+                                            }
+                                        },
+                                    )
+                                }
                         }
                     }
-                }
+                },
             )
         },
-        contentWindowInsets = ScaffoldDefaults
-            .contentWindowInsets
-            .exclude(WindowInsets.navigationBars)
-            .exclude(WindowInsets.ime),
+        contentWindowInsets =
+            ScaffoldDefaults.contentWindowInsets
+                .exclude(WindowInsets.navigationBars)
+                .exclude(WindowInsets.ime),
     ) { paddingValues ->
-
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    top = paddingValues.calculateTopPadding(),
-                )
-                .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Start))
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(
+                        top = paddingValues.calculateTopPadding(),
+                    )
+                    .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Start)),
         ) {
             HorizontalDivider()
 
             LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxSize(),
+                modifier = Modifier.weight(1f).fillMaxSize(),
                 reverseLayout = true,
                 state = lazyListState,
             ) {
                 when (viewModel.loadingState) {
-                    LoadingState.Loading, LoadingState.Empty, is LoadingState.Error -> {
+                    LoadingState.Loading,
+                    LoadingState.Empty,
+                    is LoadingState.Error -> {
                         item(key = "loadingState") {
                             Box(modifier = Modifier.fillParentMaxSize()) {
                                 LoadingCard(
-                                    modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .padding(horizontal = 10.dp),
+                                    modifier =
+                                        Modifier.align(Alignment.Center)
+                                            .padding(horizontal = 10.dp),
                                     state = viewModel.loadingState,
-                                    onClick = if (viewModel.loadingState is LoadingState.Loading) null
-                                    else viewModel::loadMore
+                                    onClick =
+                                        if (viewModel.loadingState is LoadingState.Loading) null
+                                        else viewModel::loadMore,
                                 )
                             }
                         }
@@ -287,50 +285,56 @@ fun ChatScreen(
                             key = { _, item -> item.entityId + item.dateline },
                         ) { index, item ->
                             when (item.entityType) {
-                                "message" -> when (item.fromuid) {
-                                    CookieUtil.uid ->
-                                        ChatRightCard(
-                                            data = item,
-                                            onGetImageUrl = viewModel::onGetImageUrl,
-                                            onLongClick = { id, msg, url ->
-                                                onClearFocus()
-                                                viewModel.deleteId = id
-                                                viewModel.message = msg
-                                                viewModel.pic = url
-                                                showDialog = true
-                                            },
-                                            onViewUser = { uid ->
-                                                onClearFocus()
-                                                onViewUser(uid)
-                                            },
-                                            onOpenLink = onOpenLink,
-                                            onClearFocus = ::onClearFocus
-                                        )
+                                "message" ->
+                                    when (item.fromuid) {
+                                        CookieUtil.uid ->
+                                            ChatRightCard(
+                                                data = item,
+                                                onGetImageUrl = viewModel::onGetImageUrl,
+                                                onLongClick = { id, msg, url ->
+                                                    onClearFocus()
+                                                    viewModel.deleteId = id
+                                                    viewModel.message = msg
+                                                    viewModel.pic = url
+                                                    showDialog = true
+                                                },
+                                                onViewUser = { uid ->
+                                                    onClearFocus()
+                                                    onViewUser(uid)
+                                                },
+                                                onOpenLink = onOpenLink,
+                                                onClearFocus = ::onClearFocus,
+                                            )
 
-                                    else ->
-                                        ChatLeftCard(
-                                            data = item,
-                                            onGetImageUrl = viewModel::onGetImageUrl,
-                                            onLongClick = { id, msg, url ->
-                                                onClearFocus()
-                                                viewModel.deleteId = id
-                                                viewModel.message = msg
-                                                viewModel.pic = url
-                                                showDialog = true
-                                            },
-                                            onViewUser = { uid ->
-                                                onClearFocus()
-                                                onViewUser(uid)
-                                            },
-                                            onOpenLink = onOpenLink,
-                                            onClearFocus = ::onClearFocus
-                                        )
-                                }
+                                        else ->
+                                            ChatLeftCard(
+                                                data = item,
+                                                onGetImageUrl = viewModel::onGetImageUrl,
+                                                onLongClick = { id, msg, url ->
+                                                    onClearFocus()
+                                                    viewModel.deleteId = id
+                                                    viewModel.message = msg
+                                                    viewModel.pic = url
+                                                    showDialog = true
+                                                },
+                                                onViewUser = { uid ->
+                                                    onClearFocus()
+                                                    onViewUser(uid)
+                                                },
+                                                onOpenLink = onOpenLink,
+                                                onClearFocus = ::onClearFocus,
+                                            )
+                                    }
 
                                 "messageExtra" -> ChatTimeCard(title = item.title.orEmpty())
                             }
 
-                            if (index == (viewModel.loadingState as LoadingState.Success).response.lastIndex && !viewModel.isEnd) {
+                            if (
+                                index ==
+                                    (viewModel.loadingState as LoadingState.Success)
+                                        .response
+                                        .lastIndex && !viewModel.isEnd
+                            ) {
                                 viewModel.loadMore()
                             }
                         }
@@ -339,20 +343,37 @@ fun ChatScreen(
             }
 
             ChatBottom(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(cardBg())
-                    .padding(bottom = androidx.compose.animation.core.animateDpAsState(
-                        targetValue = with(androidx.compose.ui.platform.LocalDensity.current) {
-                            androidx.compose.foundation.layout.WindowInsets.ime.getBottom(this).toDp()
-                        },
-                        animationSpec = androidx.compose.animation.core.spring(
-                            stiffness = androidx.compose.animation.core.Spring.StiffnessHigh,
-                            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioNoBouncy
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .background(cardBg())
+                        .padding(
+                            bottom =
+                                androidx.compose.animation.core
+                                    .animateDpAsState(
+                                        targetValue =
+                                            with(
+                                                androidx.compose.ui.platform.LocalDensity.current,
+                                            ) {
+                                                androidx.compose.foundation.layout.WindowInsets.ime
+                                                    .getBottom(this)
+                                                    .toDp()
+                                            },
+                                        animationSpec =
+                                            androidx.compose.animation.core.spring(
+                                                stiffness =
+                                                    androidx.compose.animation.core.Spring
+                                                        .StiffnessHigh,
+                                                dampingRatio =
+                                                    androidx.compose.animation.core.Spring
+                                                        .DampingRatioNoBouncy,
+                                            ),
+                                        label = "ChatImeAnimation",
+                                    )
+                                    .value,
+                        )
+                        .windowInsetsPadding(
+                            windowInsets.only(WindowInsetsSides.Start + WindowInsetsSides.Bottom),
                         ),
-                        label = "ChatImeAnimation"
-                    ).value)
-                    .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Start + WindowInsetsSides.Bottom)),
                 onPickImage = {
                     onClearFocus()
                     pickContent.launch("image/*")
@@ -376,7 +397,6 @@ fun ChatScreen(
                 viewModel = viewModel,
             )
         }
-
     }
 
     when {
@@ -388,37 +408,36 @@ fun ChatScreen(
             Dialog(onDismissRequest = { showDialog = false }) {
                 ElevatedCard(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = CardDefaults.elevatedCardColors()
-                        .copy(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+                    cornerRadius = 28.dp,
+                    colors =
+                        CardDefaults.defaultColors()
+                            .copy(color = MiuixTheme.colorScheme.surfaceContainerHigh),
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                     ) {
                         Text(
                             text = "删除",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    showDialog = false
-                                    viewModel.onDeleteMsg()
-                                }
-                                .padding(horizontal = 24.dp, vertical = 14.dp),
-                            style = MaterialTheme.typography.titleSmall
+                            modifier =
+                                Modifier.fillMaxWidth()
+                                    .clickable {
+                                        showDialog = false
+                                        viewModel.onDeleteMsg()
+                                    }
+                                    .padding(horizontal = 24.dp, vertical = 14.dp),
+                            style = MiuixTheme.textStyles.headline2,
                         )
                         if (viewModel.pic.isEmpty()) {
                             Text(
                                 text = "复制",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        showDialog = false
-                                        context.copyText(viewModel.message)
-                                    }
-                                    .padding(horizontal = 24.dp, vertical = 14.dp),
-                                style = MaterialTheme.typography.titleSmall
+                                modifier =
+                                    Modifier.fillMaxWidth()
+                                        .clickable {
+                                            showDialog = false
+                                            context.copyText(viewModel.message)
+                                        }
+                                        .padding(horizontal = 24.dp, vertical = 14.dp),
+                                style = MiuixTheme.textStyles.headline2,
                             )
                         }
                     }
@@ -433,32 +452,33 @@ fun ChatScreen(
     }
 
     viewModel.uploadImage?.let { responseData ->
-        scope.launch(Dispatchers.IO) {
-            ossUpload(
-                context = context,
-                responseData = responseData,
-                uriList = viewModel.uriList,
-                typeList = viewModel.typeList,
-                md5List = viewModel.md5List,
-                iOnSuccess = {
-                    viewModel.onSendMessage(
-                        uid,
-                        EMPTY_STRING,
-                        "/${responseData.fileInfo.getOrNull(0)?.uploadFileName}"
-                    )
-                },
-                iOnFailure = {
-                    viewModel.showUploadDialog = false
-                    context.makeToast("图片上传失败")
-                },
-                closeDialog = {
-                    viewModel.showUploadDialog = false
-                }
-            )
+        LaunchedEffect(responseData) {
+            withContext(Dispatchers.IO) {
+                ossUpload(
+                    context = context,
+                    responseData = responseData,
+                    uriList = viewModel.uriList,
+                    typeList = viewModel.typeList,
+                    md5List = viewModel.md5List,
+                    iOnSuccess = {
+                        viewModel.onSendMessage(
+                            uid,
+                            EMPTY_STRING,
+                            "/${responseData.fileInfo.getOrNull(0)?.uploadFileName}",
+                        )
+                    },
+                    iOnFailure = {
+                        viewModel.showUploadDialog = false
+                        context.makeToast("图片上传失败")
+                    },
+                    closeDialog = {
+                        viewModel.showUploadDialog = false
+                    },
+                )
+            }
             viewModel.resetUploadImage()
         }
     }
-
 }
 
 @Composable
@@ -475,7 +495,7 @@ fun ChatBottom(
     onClearFocus: () -> Unit,
 ) {
     val recentList by
-    viewModel.recentEmojiData.collectAsStateWithLifecycle(initialValue = emptyList())
+        viewModel.recentEmojiData.collectAsStateWithLifecycle(initialValue = emptyList())
     var shouldShowSendBtn by remember { mutableStateOf(false) }
     var showEmojiPanel by remember { mutableStateOf(false) }
     var clickedEmoji by remember { mutableStateOf<String?>(null) }
@@ -486,27 +506,26 @@ fun ChatBottom(
     Column(modifier = modifier) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clickable {
+                modifier =
+                    Modifier.size(48.dp).clickable {
                         onClearFocus()
                         showEmojiPanel = !showEmojiPanel
                     },
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Image(
-                    imageVector = Icons.Outlined.EmojiEmotions,
+                    imageVector = MiuixIcons.EmojiEmotions,
                     contentDescription = null,
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
+                    colorFilter = ColorFilter.tint(MiuixTheme.colorScheme.onSurfaceVariantSummary),
                 )
             }
             ChatEditText(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(vertical = 6.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = 6.dp),
+                modifier =
+                    Modifier.weight(1f)
+                        .padding(vertical = 6.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(MiuixTheme.colorScheme.surface)
+                        .padding(horizontal = 6.dp),
                 showSendBtn = { shouldShowSendBtn = it },
                 updateInputText = {
                     textInput = it
@@ -526,63 +545,63 @@ fun ChatBottom(
             if (!shouldShowSendBtn) {
                 Row {
                     Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clickable {
+                        modifier =
+                            Modifier.size(48.dp).clickable {
                                 onPickImage()
                             },
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Image(
-                            imageVector = Icons.Outlined.AddPhotoAlternate,
+                            imageVector = MiuixIcons.Image,
                             contentDescription = null,
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
+                            colorFilter =
+                                ColorFilter.tint(MiuixTheme.colorScheme.onSurfaceVariantSummary),
                         )
                     }
                     Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clickable {
+                        modifier =
+                            Modifier.size(48.dp).clickable {
                                 onPickOtherImage()
                             },
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Image(
-                            painter = androidx.compose.ui.res.painterResource(
-                                id = R.drawable.outline_note_alt_24
-                            ),
+                            painter =
+                                androidx.compose.ui.res.painterResource(
+                                    id = R.drawable.outline_note_alt_24,
+                                ),
                             contentDescription = null,
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
+                            colorFilter =
+                                ColorFilter.tint(MiuixTheme.colorScheme.onSurfaceVariantSummary),
                         )
                     }
                 }
             } else {
                 Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable {
+                    modifier =
+                        Modifier.size(48.dp).clickable {
                             onSendMessage(textInput)
                         },
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Image(
-                        imageVector = Icons.AutoMirrored.Default.Send,
+                        imageVector = MiuixIcons.Send,
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
+                        colorFilter =
+                            ColorFilter.tint(MiuixTheme.colorScheme.onSurfaceVariantSummary),
                     )
                 }
             }
         }
         if (showEmojiPanel) {
-            pagerState = rememberPagerState(
-                initialPage = if (recentList.isEmpty()) 1 else 0,
-                pageCount = { 3 }
-            )
+            pagerState =
+                rememberPagerState(
+                    initialPage = if (recentList.isEmpty()) 1 else 0,
+                    pageCount = { 3 },
+                )
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
+                modifier = Modifier.fillMaxWidth().padding(10.dp),
             ) { index ->
                 Column(modifier = Modifier.fillMaxWidth()) {
                     val pagerState1 = rememberPagerState {
@@ -595,85 +614,86 @@ fun ChatBottom(
                     }
                     HorizontalPager(
                         state = pagerState1,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) { index0 ->
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(7),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
                             items(28) {
-                                val emojiName = when (index) {
-                                    0 -> recentList.getOrNull(it)?.data
-                                    1 -> emojiList.getOrNull(index0)?.getOrNull(it)?.first
-                                    2 -> coolBList.getOrNull(index0)?.getOrNull(it)?.first
-                                    else -> null
-                                }
-                                val emojiRes = when (index) {
-                                    0 -> emojiName?.let { name ->
-                                        EmojiUtils.emojiMap.getValue(name)
+                                val emojiName =
+                                    when (index) {
+                                        0 -> recentList.getOrNull(it)?.data
+                                        1 -> emojiList.getOrNull(index0)?.getOrNull(it)?.first
+                                        2 -> coolBList.getOrNull(index0)?.getOrNull(it)?.first
+                                        else -> null
                                     }
-
-                                    1 -> emojiList.getOrNull(index0)?.getOrNull(it)?.second
-                                    2 -> coolBList.getOrNull(index0)?.getOrNull(it)?.second
-                                    else -> null
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .clickable {
+                                val emojiRes =
+                                    when (index) {
+                                        0 ->
                                             emojiName?.let { name ->
-                                                clickedEmoji = name
-                                                if (pagerState.currentPage != 0) {
-                                                    viewModel.updateRecentEmoji(
-                                                        name,
-                                                        recentList.size,
-                                                        recentList.lastOrNull()?.data
-                                                    )
-                                                }
+                                                EmojiUtils.emojiMap.getValue(name)
                                             }
-                                            if (it == 27) clickedEmoji = "[c001apk]"
-                                        },
+
+                                        1 -> emojiList.getOrNull(index0)?.getOrNull(it)?.second
+                                        2 -> coolBList.getOrNull(index0)?.getOrNull(it)?.second
+                                        else -> null
+                                    }
+                                Box(
+                                    modifier =
+                                        Modifier.size(48.dp)
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .clickable {
+                                                emojiName?.let { name ->
+                                                    clickedEmoji = name
+                                                    if (pagerState.currentPage != 0) {
+                                                        viewModel.updateRecentEmoji(
+                                                            name,
+                                                            recentList.size,
+                                                            recentList.lastOrNull()?.data,
+                                                        )
+                                                    }
+                                                }
+                                                if (it == 27) clickedEmoji = "[c001apk]"
+                                            },
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     if (emojiRes != null) {
                                         Image(
-                                            painter = rememberDrawablePainter(
-                                                drawable = ResourcesCompat.getDrawable(
-                                                    context.resources,
-                                                    emojiRes,
-                                                    context.theme
-                                                )
-                                            ),
+                                            painter =
+                                                rememberDrawablePainter(
+                                                    drawable =
+                                                        ResourcesCompat.getDrawable(
+                                                            context.resources,
+                                                            emojiRes,
+                                                            context.theme,
+                                                        ),
+                                                ),
                                             contentDescription = null,
-                                            modifier = Modifier.size(28.dp)
+                                            modifier = Modifier.size(28.dp),
                                         )
                                     } else if (it == 27) {
                                         Icon(
-                                            imageVector = Icons.AutoMirrored.Outlined.Backspace,
+                                            imageVector = MiuixIcons.Backspace,
                                             contentDescription = null,
-                                            modifier = Modifier.size(28.dp)
+                                            modifier = Modifier.size(28.dp),
                                         )
                                     }
                                 }
-
                             }
                         }
                     }
                     CardIndicator(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(top = 10.dp),
+                        modifier =
+                            Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp),
                         pagerState = pagerState1,
-                        defColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        defColor = MiuixTheme.colorScheme.primary.copy(alpha = 0.3f),
                     )
                 }
             }
             HorizontalDivider()
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Min)
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             ) {
                 TextIndicator(
                     index = 0,
@@ -707,27 +727,25 @@ fun RowScope.TextIndicator(
     val scope = rememberCoroutineScope()
     Text(
         text = title,
-        modifier = modifier
-            .weight(1f)
-            .background(
-                if (pagerState.currentPage == index)
-                    MaterialTheme.colorScheme.primary
-                else
-                    Color.Transparent
-            )
-            .clickable {
-                scope.launch {
-                    pagerState.scrollToPage(index)
+        modifier =
+            modifier
+                .weight(1f)
+                .background(
+                    if (pagerState.currentPage == index) MiuixTheme.colorScheme.primary
+                    else Color.Transparent,
+                )
+                .clickable {
+                    scope.launch {
+                        pagerState.scrollToPage(index)
+                    }
                 }
-            }
-            .padding(vertical = 10.dp),
-        color = if (pagerState.currentPage == index)
-            MaterialTheme.colorScheme.onPrimary
-        else
-            MaterialTheme.colorScheme.onSurfaceVariant,
+                .padding(vertical = 10.dp),
+        color =
+            if (pagerState.currentPage == index) MiuixTheme.colorScheme.onPrimary
+            else MiuixTheme.colorScheme.onSurfaceVariantSummary,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        style = MaterialTheme.typography.titleSmall,
+        style = MiuixTheme.textStyles.headline2,
         textAlign = TextAlign.Center,
     )
 }
@@ -736,10 +754,11 @@ fun RowScope.TextIndicator(
 private fun LoadingDialog() {
     Dialog(
         onDismissRequest = {},
-        properties = DialogProperties(dismissOnClickOutside = false, dismissOnBackPress = false)
+        properties = DialogProperties(dismissOnClickOutside = false, dismissOnBackPress = false),
     ) {
         Surface(
-            modifier = Modifier.size(100.dp), shape = RoundedCornerShape(20.dp)
+            modifier = Modifier.size(100.dp),
+            shape = RoundedCornerShape(20.dp),
         ) {
             Box(
                 contentAlignment = Alignment.Center,

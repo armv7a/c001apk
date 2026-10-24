@@ -12,18 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +21,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.ui.component.CoilLoader
-import com.example.c001apk.compose.ui.theme.cardBg
+import com.example.c001apk.compose.ui.component.MiuixActionButton as TextButton
+import top.yukonga.miuix.kmp.basic.Button as OutlinedButton
+import top.yukonga.miuix.kmp.basic.Card as Surface
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
+import top.yukonga.miuix.kmp.icon.extended.ChevronForward
+import top.yukonga.miuix.kmp.icon.extended.Ok
+import top.yukonga.miuix.kmp.icon.extended.Tune
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun ProductConfigListCard(
@@ -48,24 +47,24 @@ fun ProductConfigListCard(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        color = cardBg(),
+        cornerRadius = 16.dp,
     ) {
         Column(modifier = Modifier.padding(vertical = 12.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, bottom = 8.dp),
+                modifier =
+                    Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = data.title.orEmpty(),
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MiuixTheme.textStyles.subtitle,
                     fontWeight = FontWeight.SemiBold,
                 )
                 TextButton(onClick = onShowComparison) {
                     Text("配置对比")
                     Icon(
-                        imageVector = Icons.Default.ChevronRight,
+                        imageVector = MiuixIcons.ChevronForward,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
@@ -90,7 +89,7 @@ fun ProductConfigListCard(
             ) {
                 Text("跨机型对比（${selectedCompareIds.size}/10）")
                 Icon(
-                    imageVector = Icons.Default.ChevronRight,
+                    imageVector = MiuixIcons.ChevronForward,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )
@@ -107,27 +106,26 @@ private fun ProductConfigRow(
     onToggleCompare: (HomeFeedResponse.ProductConfig) -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = config.title.orEmpty(),
-                style = MaterialTheme.typography.titleMedium,
+                style = MiuixTheme.textStyles.subtitle,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Spacer(Modifier.height(3.dp))
             Text(
                 text = config.price.asPrice(),
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (config.price.isPositivePrice()) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+                style = MiuixTheme.textStyles.main,
+                color =
+                    if (config.price.isPositivePrice()) {
+                        MiuixTheme.colorScheme.error
+                    } else {
+                        MiuixTheme.colorScheme.onSurfaceVariantSummary
+                    },
             )
         }
 
@@ -135,29 +133,33 @@ private fun ProductConfigRow(
             if (!config.id.isNullOrBlank()) {
                 OutlinedButton(
                     modifier = Modifier.height(36.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp),
+                    insideMargin = PaddingValues(horizontal = 10.dp),
                     onClick = { onViewConfig(config) },
                 ) {
-                    Icon(Icons.Default.Tune, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Icon(
+                        MiuixIcons.Tune,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
                     Spacer(Modifier.width(4.dp))
-                    Text("参数", style = MaterialTheme.typography.labelMedium)
+                    Text("参数", style = MiuixTheme.textStyles.footnote1)
                 }
             }
             if (!config.id.isNullOrBlank()) {
                 OutlinedButton(
                     modifier = Modifier.height(36.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp),
+                    insideMargin = PaddingValues(horizontal = 10.dp),
                     onClick = { onToggleCompare(config) },
                 ) {
                     Icon(
-                        if (selectedForCompare) Icons.Default.Check else Icons.Default.Add,
+                        if (selectedForCompare) MiuixIcons.Ok else MiuixIcons.Add,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
                         if (selectedForCompare) "已添加" else "对比",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MiuixTheme.textStyles.footnote1,
                     )
                 }
             }
@@ -178,8 +180,7 @@ fun ProductListCard(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        color = cardBg(),
+        cornerRadius = 16.dp,
     ) {
         Column(modifier = Modifier.padding(vertical = 12.dp)) {
             TitleCard(
@@ -210,31 +211,29 @@ private fun ProductListRow(
     onOpenLink: (String, String?) -> Unit,
     onToggleCompare: (HomeFeedResponse.Entities) -> Unit,
 ) {
-    val description = product.configName
-        ?.takeIf { it.isNotBlank() }
-        ?: product.productSpecs.orEmpty().filter { it.isNotBlank() }.take(2).joinToString(" · ")
+    val description =
+        product.configName?.takeIf { it.isNotBlank() }
+            ?: product.productSpecs.orEmpty().filter { it.isNotBlank() }.take(2).joinToString(" · ")
     val price = productPrice(product)
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(6.dp))
-            .clickable(enabled = !product.url.isNullOrBlank()) {
-                onOpenLink(product.url.orEmpty(), product.title)
-            }
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+        modifier =
+            Modifier.fillMaxWidth()
+                .clip(RoundedCornerShape(6.dp))
+                .clickable(enabled = !product.url.isNullOrBlank()) {
+                    onOpenLink(product.url.orEmpty(), product.title)
+                }
+                .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         CoilLoader(
             url = product.logo,
-            modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(8.dp)),
+            modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)),
         )
         Column(modifier = Modifier.padding(start = 12.dp).weight(1f)) {
             Text(
                 text = product.title.orEmpty(),
-                style = MaterialTheme.typography.titleSmall,
+                style = MiuixTheme.textStyles.headline2,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -243,8 +242,8 @@ private fun ProductListRow(
                 Spacer(Modifier.height(3.dp))
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -254,21 +253,22 @@ private fun ProductListRow(
                 Text(
                     text = price,
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (price == "暂无价格") {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.error
-                    },
+                    style = MiuixTheme.textStyles.body1,
+                    color =
+                        if (price == "暂无价格") {
+                            MiuixTheme.colorScheme.onSurfaceVariantSummary
+                        } else {
+                            MiuixTheme.colorScheme.error
+                        },
                 )
                 if (!product.configId.isNullOrBlank()) {
                     OutlinedButton(
                         onClick = { onToggleCompare(product) },
                         modifier = Modifier.height(32.dp),
-                        contentPadding = PaddingValues(horizontal = 9.dp),
+                        insideMargin = PaddingValues(horizontal = 9.dp),
                     ) {
                         Icon(
-                            if (selectedForCompare) Icons.Default.Check else Icons.Default.Add,
+                            if (selectedForCompare) MiuixIcons.Ok else MiuixIcons.Add,
                             contentDescription = null,
                             modifier = Modifier.size(15.dp),
                         )
@@ -294,8 +294,7 @@ private fun productPrice(product: HomeFeedResponse.Entities): String {
     }
 }
 
-private fun String?.asPrice(): String =
-    takeIf { it.isPositivePrice() }?.let { "¥$it" } ?: "暂无价格"
+private fun String?.asPrice(): String = takeIf { it.isPositivePrice() }?.let { "¥$it" } ?: "暂无价格"
 
 private fun String?.isPositivePrice(): Boolean =
     !isNullOrBlank() && (toBigDecimalOrNull()?.signum() ?: 0) > 0

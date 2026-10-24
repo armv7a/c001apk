@@ -2,9 +2,9 @@ package com.example.c001apk.compose.ui.feed.reply
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,15 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,7 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.c001apk.compose.BuildConfig
 import com.example.c001apk.compose.ui.component.BackButton
+import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.cards.AppCard
 import com.example.c001apk.compose.ui.component.cards.AppCardType
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
@@ -44,9 +39,12 @@ import com.example.c001apk.compose.ui.search.SearchType
 import com.example.c001apk.compose.ui.theme.C001apkComposeTheme
 import com.example.c001apk.compose.util.CookieUtil
 import dagger.hilt.android.AndroidEntryPoint
-import androidx.hilt.navigation.compose.hiltViewModel
-import android.util.Log
-import com.example.c001apk.compose.BuildConfig
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextField as OutlinedTextField
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Search
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @AndroidEntryPoint
 class AtTopicActivity : ComponentActivity() {
@@ -71,14 +69,13 @@ class AtTopicActivity : ComponentActivity() {
                     onSelect = { selected ->
                         setResult(RESULT_OK, Intent().putExtra("data", selected))
                         finish()
-                    }
+                    },
                 )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AtTopicScreen(
     type: String,
@@ -98,26 +95,23 @@ private fun AtTopicScreen(
                     Text(
                         text = title,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+            modifier = Modifier.fillMaxSize().padding(padding),
         ) {
             OutlinedTextField(
                 value = keyword,
                 onValueChange = { keyword = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
                 singleLine = true,
-                placeholder = { Text(title) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
+                label = title,
+                useLabelAsPlaceholder = true,
+                leadingIcon = { Icon(MiuixIcons.Search, contentDescription = null) },
             )
 
             if (keyword.isBlank()) {
@@ -125,12 +119,15 @@ private fun AtTopicScreen(
                     PaddingValues(start = 0.dp, end = 0.dp, top = 0.dp, bottom = 0.dp)
                 }
                 Column(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     Text(
                         text = if (isTopic) "热门话题" else "关注用户",
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium)
+                        style =
+                            MiuixTheme.textStyles.headline2.copy(
+                                fontWeight = FontWeight.Medium,
+                            ),
                     )
                     if (isTopic) {
                         HotTopicList(onSelect = onSelect)
@@ -138,7 +135,7 @@ private fun AtTopicScreen(
                         FollowUserList(
                             uid = CookieUtil.uid,
                             paddingValues = sectionPadding,
-                            onSelect = onSelect
+                            onSelect = onSelect,
                         )
                     }
                 }
@@ -178,12 +175,14 @@ private fun FollowUserList(
     onSelect: (String) -> Unit,
 ) {
     val viewModel =
-        hiltViewModel<FFFContentViewModel, FFFContentViewModel.ViewModelFactory>(key = "at_follow_user_$uid") { factory ->
+        hiltViewModel<FFFContentViewModel, FFFContentViewModel.ViewModelFactory>(
+            key = "at_follow_user_$uid",
+        ) { factory ->
             factory.create(
                 url = "/v6/user/followList",
                 uid = uid,
                 id = null,
-                showDefault = null
+                showDefault = null,
             )
         }
 
@@ -207,26 +206,29 @@ private fun FollowUserList(
             LoadingCard(
                 modifier = Modifier.padding(horizontal = 10.dp),
                 state = state,
-                onClick = if (state is com.example.c001apk.compose.logic.state.LoadingState.Loading) null
-                else viewModel::loadMore
+                onClick =
+                    if (state is com.example.c001apk.compose.logic.state.LoadingState.Loading) null
+                    else viewModel::loadMore,
             )
         }
 
         is com.example.c001apk.compose.logic.state.LoadingState.Success -> {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    top = 10.dp,
-                    bottom = 10.dp + paddingValues.calculateBottomPadding()
-                ),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                contentPadding =
+                    PaddingValues(
+                        top = 10.dp,
+                        bottom = 10.dp + paddingValues.calculateBottomPadding(),
+                    ),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 itemsIndexed(state.response) { index, item ->
-                    val cardType = when (item.entityType) {
-                        "user" -> AppCardType.USER
-                        "contacts" -> AppCardType.CONTACTS
-                        else -> null
-                    }
+                    val cardType =
+                        when (item.entityType) {
+                            "user" -> AppCardType.USER
+                            "contacts" -> AppCardType.CONTACTS
+                            else -> null
+                        }
                     if (cardType != null) {
                         AppCard(
                             data = item,
@@ -234,22 +236,23 @@ private fun FollowUserList(
                             appCardType = cardType,
                             isHomeFeed = false,
                             onViewUser = {
-                                val name = if (item.entityType == "contacts") {
-                                    item.fUserInfo?.username
-                                        ?: item.userInfo?.username
-                                        ?: item.username
-                                } else {
-                                    item.username
-                                        ?: item.userInfo?.username
-                                        ?: item.fUserInfo?.username
-                                }
+                                val name =
+                                    if (item.entityType == "contacts") {
+                                        item.fUserInfo?.username
+                                            ?: item.userInfo?.username
+                                            ?: item.username
+                                    } else {
+                                        item.username
+                                            ?: item.userInfo?.username
+                                            ?: item.fUserInfo?.username
+                                    }
                                 logDebug("itemClick uid=$it name=$name")
                                 if (!name.isNullOrEmpty()) {
                                     onSelect("@$name ")
                                 }
                             },
                             onFollowUser = null,
-                            onHandleRecent = null
+                            onHandleRecent = null,
                         )
                     }
                     if (index == state.response.lastIndex && !viewModel.isEnd) {

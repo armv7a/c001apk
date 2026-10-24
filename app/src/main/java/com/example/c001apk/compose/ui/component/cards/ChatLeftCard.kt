@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,10 +24,9 @@ import com.example.c001apk.compose.ui.component.LinkText
 import com.example.c001apk.compose.ui.theme.cardBg
 import com.example.c001apk.compose.util.ImageShowUtil
 import com.example.c001apk.compose.util.longClick
+import top.yukonga.miuix.kmp.squircle.squircleSurface
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/19
- */
+/** Created by bggRGjQaUbCoE on 2024/6/19 */
 @Composable
 fun ChatLeftCard(
     modifier: Modifier = Modifier,
@@ -41,47 +39,46 @@ fun ChatLeftCard(
 ) {
 
     BoxWithConstraints {
-
         val maxWidth = maxWidth - 142.dp
 
         Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .longClick {
-                    onLongClick(
-                        data.id.orEmpty(),
-                        data.message.orEmpty(),
-                        data.messagePic.orEmpty()
-                    )
-                }
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier =
+                modifier
+                    .fillMaxWidth()
+                    .longClick {
+                        onLongClick(
+                            data.id.orEmpty(),
+                            data.message.orEmpty(),
+                            data.messagePic.orEmpty(),
+                        )
+                    }
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
-
             CoilLoader(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .size(40.dp)
-                    .clickable { onViewUser(data.messageUid.orEmpty()) },
-                url = data.fromUserAvatar
+                modifier =
+                    Modifier.clip(CircleShape).size(40.dp).clickable {
+                        onViewUser(data.messageUid.orEmpty())
+                    },
+                url = data.fromUserAvatar,
             )
 
             if (!data.message.isNullOrEmpty()) {
                 LinkText(
                     text = data.message,
                     onOpenLink = onOpenLink,
-                    modifier = Modifier
-                        .widthIn(max = maxWidth)
-                        .padding(start = 10.dp)
-                        .clip(
-                            RoundedCornerShape(
-                                topStart = 4.dp,
-                                topEnd = 12.dp,
-                                bottomStart = 12.dp,
-                                bottomEnd = 12.dp
+                    modifier =
+                        Modifier.widthIn(max = maxWidth)
+                            .padding(start = 10.dp)
+                            .clip(
+                                RoundedCornerShape(
+                                    topStart = 4.dp,
+                                    topEnd = 12.dp,
+                                    bottomStart = 12.dp,
+                                    bottomEnd = 12.dp,
+                                ),
                             )
-                        )
-                        .background(cardBg())
-                        .padding(horizontal = 10.dp, vertical = 12.dp)
+                            .background(cardBg())
+                            .padding(horizontal = 10.dp, vertical = 12.dp),
                 )
             }
 
@@ -93,7 +90,7 @@ fun ChatLeftCard(
                     ImageShowUtil.getImageLp(
                         if (data.messagePic.startsWith(PREFIX_HTTP))
                             data.messagePic.substring(0, data.messagePic.indexOfFirst { it == '?' })
-                        else data.messagePic
+                        else data.messagePic,
                     )
                 }
                 val imageWidth by lazy { maxWidth / 2f }
@@ -101,17 +98,14 @@ fun ChatLeftCard(
                 ImageView(
                     url = data.messagePic,
                     isChat = true,
-                    modifier = Modifier
-                        .padding(start = 10.dp)
-                        .clip(MaterialTheme.shapes.medium)
-                        .background(cardBg())
-                        .width(maxWidth / 2f)
-                        .height(imageHeight),
+                    modifier =
+                        Modifier.padding(start = 10.dp)
+                            .squircleSurface(cardBg(), 16.dp)
+                            .width(maxWidth / 2f)
+                            .height(imageHeight),
                     onClearFocus = onClearFocus,
                 )
             }
         }
-
     }
-
 }

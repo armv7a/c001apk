@@ -12,24 +12,37 @@ plugins {
     alias(libs.plugins.kotlin.parcelize)
 }
 
-val gitCommitCount = providers.exec {
-    commandLine("git", "rev-list", "HEAD", "--count")
-}.standardOutput.asText.map { it.trim().toInt() }.get()
-val gitCommitHash = providers.exec {
-    commandLine("git", "rev-parse", "--verify", "--short", "HEAD")
-}.standardOutput.asText.map { it.trim() }.get()
+val gitCommitCount =
+    providers
+        .exec {
+            commandLine("git", "rev-list", "HEAD", "--count")
+        }
+        .standardOutput
+        .asText
+        .map { it.trim().toInt() }
+        .get()
+val gitCommitHash =
+    providers
+        .exec {
+            commandLine("git", "rev-parse", "--verify", "--short", "HEAD")
+        }
+        .standardOutput
+        .asText
+        .map { it.trim() }
+        .get()
 
 android {
     namespace = "com.example.c001apk.compose"
-    compileSdk = 35
+    compileSdkVersion("android-37.0")
     buildToolsVersion = "36.0.0"
 
     defaultConfig {
-        applicationId = "com.example.c001apk.compose"
-        minSdk = 24
+        applicationId = "com.example.c001apk.compose.miuix"
+        minSdk = 33
+        ndk { abiFilters += "arm64-v8a" }
         targetSdk = 35
         versionCode = gitCommitCount
-        versionName = gitCommitHash
+        versionName = "$gitCommitHash-miuix"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -38,26 +51,30 @@ android {
         }
     }
 
-    val localProperties = Properties().also {
-        val properties = rootProject.file("local.properties")
-        if (properties.exists())
-            it.load(properties.inputStream())
-    }
-
-    val config = localProperties.getProperty("KEYSTORE_PATH")?.let {
-        signingConfigs.create("release") {
-            storeFile = file(it)
-            storePassword = localProperties.getProperty("KEYSTORE_PASSWORD")
-            keyAlias = localProperties.getProperty("KEY_ALIAS")
-            keyPassword = localProperties.getProperty("KEY_PASSWORD")
-            enableV2Signing = true
-            enableV3Signing = true
+    val localProperties =
+        Properties().also {
+            val properties = rootProject.file("local.properties")
+            if (properties.exists()) it.load(properties.inputStream())
         }
-    }
+
+    val config =
+        localProperties.getProperty("KEYSTORE_PATH")?.let {
+            signingConfigs.create("release") {
+                storeFile = file(it)
+                storePassword = localProperties.getProperty("KEYSTORE_PASSWORD")
+                keyAlias = localProperties.getProperty("KEY_ALIAS")
+                keyPassword = localProperties.getProperty("KEY_PASSWORD")
+                enableV2Signing = true
+                enableV3Signing = true
+            }
+        }
 
     val disableR8 = (project.findProperty("disableR8") as? String) == "true"
 
     buildTypes {
+        debug {
+            resValue("string", "app_name", "c001apk miuix")
+        }
         all {
             signingConfig = config ?: signingConfigs["debug"]
         }
@@ -66,7 +83,7 @@ android {
             isShrinkResources = !disableR8
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -83,6 +100,7 @@ android {
     }
 
     buildFeatures {
+        resValues = true
         compose = true
         viewBinding = true
         buildConfig = true
@@ -92,15 +110,16 @@ android {
         kotlinCompilerExtensionVersion = "1.5.15"
     }
 
-    packagingOptions.resources.excludes += setOf(
-        "META-INF/**",
-        "okhttp3/**",
-        "kotlin/**",
-        "org/**",
-        "**.properties",
-        "**.bin",
-        "**/*.proto"
-    )
+    packagingOptions.resources.excludes +=
+        setOf(
+            "META-INF/**",
+            "okhttp3/**",
+            "kotlin/**",
+            "org/**",
+            "**.properties",
+            "**.bin",
+            "**/*.proto",
+        )
 
     dependenciesInfo.includeInApk = false
 
@@ -136,20 +155,24 @@ protobuf {
 }
 
 dependencies {
+    implementation(libs.miuix.ui)
+    implementation(libs.miuix.blur)
+    implementation(libs.miuix.preference)
+    implementation(libs.miuix.icons)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     testImplementation(libs.junit)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.navigation)
     implementation(libs.androidx.constraintlayout.compose)
+    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.viewpager2)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.datastore.core)
     implementation(libs.androidx.exifinterface)
@@ -161,20 +184,15 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime:2.8.5")
     implementation("androidx.lifecycle:lifecycle-viewmodel:2.8.5")
     implementation("androidx.savedstate:savedstate:1.2.1")
-    implementation(libs.androidx.material3)
-    implementation(libs.androidx.material3.window.size.android)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.webkit)
-    implementation(libs.androidx.material3.adaptive.navigation.suite)
 
     implementation(libs.google.accompanist.drawablepainter)
-    implementation(libs.google.android.material)
     implementation(libs.google.dagger.hilt.android)
     ksp(libs.google.dagger.hilt.android.compiler)
     implementation(libs.google.protobuf.kotlin.lite)
@@ -190,14 +208,15 @@ dependencies {
 
     implementation(libs.jbcrypt)
     implementation(libs.jsoup)
-    implementation(libs.toolbar.compose)
+    implementation(libs.toolbar.compose) {
+        // This library uses only Foundation; its published UI demo dependencies are unused.
+        exclude(group = "androidx.compose.material")
+        exclude(group = "androidx.compose.ui", module = "ui-tooling")
+        exclude(group = "androidx.compose", module = "compose-bom")
+    }
     implementation(libs.oss.android.sdk)
-    implementation(libs.material.kolor)
 
     implementation(project(":mojito"))
     implementation(project(":SketchImageViewLoader"))
     implementation(project(":media-support"))
-    implementation("com.github.MikaelZero.mojito:coilimageloader:1.8.7") {
-        exclude(group = "com.github.MikaelZero.mojito", module = "mojito")
-    }
 }

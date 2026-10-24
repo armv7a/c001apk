@@ -2,9 +2,7 @@ package com.example.c001apk.compose.constant
 
 import com.example.c001apk.compose.util.CookieUtil.isDarkMode
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/3
- */
+/** Created by bggRGjQaUbCoE on 2024/6/3 */
 object Constants {
     const val REQUEST_WITH = "XMLHttpRequest"
     const val LOCALE = "zh-CN"
@@ -13,9 +11,9 @@ object Constants {
     const val CHANNEL = "coolapk"
     const val MODE = "universal"
     const val APP_LABEL = "token://com.coolapk.market/dcf01e569c1e3db93a3d0fcf191a622c"
-    const val VERSION_NAME = "13.4.1"
-    const val API_VERSION = "13"
-    const val VERSION_CODE = "2312121"
+    const val VERSION_NAME = "16.1.3"
+    const val API_VERSION = "16"
+    const val VERSION_CODE = "2604022"
 
     const val PREFIX_COOLMARKET = "coolmarket://"
     const val PREFIX_HTTP = "http"
@@ -76,26 +74,26 @@ object Constants {
             "time",
         )
 
-    val seedColors = listOf(
-        0xFF6650A4,
-        0xFFF44336,
-        0xFFE91E63,
-        0xFF9C27B0,
-        0xFF3F51B5,
-        0xFF2196F3,
-        0xFF03A9F4,
-        0xFF00BCD4,
-        0xFF009688,
-        0xFF4FAF50,
-        0xFF8BC3A4,
-        0xFFCDDC39,
-        0xFFFFEB3B,
-        0xFFFFC107,
-        0xFFFF9800,
-        0xFFFF5722,
-        0xFF795548,
-        0xFF607D8F,
-        0xFFFF9CA8,
-    )
-
+    val seedColors =
+        listOf(
+            0xFF6650A4,
+            0xFFF44336,
+            0xFFE91E63,
+            0xFF9C27B0,
+            0xFF3F51B5,
+            0xFF2196F3,
+            0xFF03A9F4,
+            0xFF00BCD4,
+            0xFF009688,
+            0xFF4FAF50,
+            0xFF8BC3A4,
+            0xFFCDDC39,
+            0xFFFFEB3B,
+            0xFFFFC107,
+            0xFFFF9800,
+            0xFFFF5722,
+            0xFF795548,
+            0xFF607D8F,
+            0xFFFF9CA8,
+        )
 }

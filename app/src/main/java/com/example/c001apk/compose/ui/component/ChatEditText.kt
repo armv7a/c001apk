@@ -9,7 +9,6 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
@@ -18,10 +17,9 @@ import androidx.core.graphics.ColorUtils.setAlphaComponent
 import com.example.c001apk.compose.util.EmojiTextWatcher
 import com.example.c001apk.compose.util.FastDeleteAtUserKeyListener
 import com.example.c001apk.compose.util.OnTextInputListener
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/20
- */
+/** Created by bggRGjQaUbCoE on 2024/6/20 */
 @SuppressLint("ClickableViewAccessibility")
 @Composable
 fun ChatEditText(
@@ -37,9 +35,9 @@ fun ChatEditText(
     onCloseEmojiPanel: () -> Unit,
 ) {
 
-    val primary = MaterialTheme.colorScheme.primary.toArgb()
-    val onSurface = MaterialTheme.colorScheme.onSurface.toArgb()
-    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
+    val primary = MiuixTheme.colorScheme.primary.toArgb()
+    val onSurface = MiuixTheme.colorScheme.onSurface.toArgb()
+    val onSurfaceVariant = MiuixTheme.colorScheme.onSurfaceVariantSummary.toArgb()
 
     AndroidView(
         modifier = modifier,
@@ -76,7 +74,7 @@ fun ChatEditText(
                             }
                             updateInputText(text.toString())
                         },
-                    )
+                    ),
                 )
                 addTextChangedListener(
                     OnTextInputListener(
@@ -84,8 +82,8 @@ fun ChatEditText(
                         onTextChange = {
                             // isFromAt = true
                             // launchAtTopic()
-                        }
-                    )
+                        },
+                    ),
                 )
                 setOnKeyListener(FastDeleteAtUserKeyListener)
             }
@@ -102,10 +100,11 @@ fun ChatEditText(
                 resetFocus()
                 editText.clearFocus()
                 val inputMethodManager =
-                    editText.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    editText.context.getSystemService(Context.INPUT_METHOD_SERVICE)
+                        as InputMethodManager
                 inputMethodManager.hideSoftInputFromWindow(
                     editText.windowToken,
-                    InputMethodManager.HIDE_NOT_ALWAYS
+                    InputMethodManager.HIDE_NOT_ALWAYS,
                 )
             }
             clickedEmoji?.let {
@@ -114,10 +113,11 @@ fun ChatEditText(
                     editText.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL))
                 else
                     editText.editableText.replace(
-                        editText.selectionStart, editText.selectionEnd, it
+                        editText.selectionStart,
+                        editText.selectionEnd,
+                        it,
                     )
             }
-        }
+        },
     )
-
 }

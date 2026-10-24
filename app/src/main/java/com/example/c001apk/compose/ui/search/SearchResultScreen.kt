@@ -3,7 +3,6 @@ package com.example.c001apk.compose.ui.search
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,23 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowRight
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SecondaryScrollableTabRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import com.example.c001apk.compose.ui.component.rememberHapticClick
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,32 +25,52 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.c001apk.compose.ui.component.BackButton
+import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
+import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
+import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.noRippleClickable
 import kotlinx.coroutines.launch
-import com.example.c001apk.compose.ui.component.MoreMenuButton
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.RadioButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Forward
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/9
- */
-
+/** Created by bggRGjQaUbCoE on 2024/6/9 */
 enum class SearchType {
-    FEED, APP, GAME, PRODUCT, USER, TOPIC
+    FEED,
+    APP,
+    GAME,
+    PRODUCT,
+    USER,
+    TOPIC,
 }
 
 enum class SearchFeedType {
-    ALL, FEED, ARTICLE, COOLPIC, COMMENT, RATING, ANSWER, QUESTION, VOTE
+    ALL,
+    FEED,
+    ARTICLE,
+    COOLPIC,
+    COMMENT,
+    RATING,
+    ANSWER,
+    QUESTION,
+    VOTE,
 }
 
 enum class SearchOrderType {
-    DATELINE, HOT, REPLY
+    DATELINE,
+    HOT,
+    REPLY,
 }
 
 private fun searchTypeTitle(type: SearchType): String {
@@ -110,7 +112,6 @@ private fun pageTypeTitle(pageType: String?): String? {
     return match?.let { searchTypeTitle(it) } ?: pageType
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchResultScreen(
     onBackClick: () -> Unit,
@@ -130,10 +131,11 @@ fun SearchResultScreen(
     val layoutDirection = LocalLayoutDirection.current
     val tabList = SearchType.entries
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
-    val pagerState = rememberPagerState(
-        initialPage = initialPage,
-        pageCount = { if (pageType.isNullOrEmpty()) tabList.size else 1 }
-    )
+    val pagerState =
+        rememberPagerState(
+            initialPage = initialPage,
+            pageCount = { if (pageType.isNullOrEmpty()) tabList.size else 1 },
+        )
     var refreshState by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     var typeMenuExpanded by remember { mutableStateOf(false) }
@@ -145,123 +147,97 @@ fun SearchResultScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                windowInsets = WindowInsets.systemBars
-                    .only(WindowInsetsSides.Start + WindowInsetsSides.Top),
+                windowInsets =
+                    WindowInsets.systemBars.only(WindowInsetsSides.Start + WindowInsetsSides.Top),
                 navigationIcon = {
                     BackButton { onBackClick() }
                 },
-                title = {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .noRippleClickable { onBackClick() },
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Text(
-                            text = keyword.decode,
-                            style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        if (!title.isNullOrEmpty()) {
-                            Text(
-                                text = "${pageTypeTitle(pageType)}: $title",
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 14.sp),
-                            )
-                        }
-                    }
-                },
+                title = keyword.decode,
+                subtitle = if (!title.isNullOrEmpty()) "${pageTypeTitle(pageType)}: $title" else "",
+                modifier = Modifier.noRippleClickable { onBackClick() },
                 actions = {
                     androidx.compose.animation.AnimatedVisibility(
                         visible = pagerState.currentPage == 0,
                         enter = fadeIn(),
-                        exit = fadeOut()
+                        exit = fadeOut(),
                     ) {
                         Box {
                             MoreMenuButton { dropdownMenuExpanded = true }
                             DropdownMenu(
                                 expanded = dropdownMenuExpanded,
-                                onDismissRequest = { dropdownMenuExpanded = false }
+                                onDismissRequest = { dropdownMenuExpanded = false },
                             ) {
-                                listOf("类型", "排序")
-                                    .forEachIndexed { index, menu ->
-                                        DropdownMenuItem(
-                                            text = { Text(menu) },
-                                            onClick = {
-                                                dropdownMenuExpanded = false
-                                                when (index) {
-                                                    0 -> typeMenuExpanded = true
-                                                    1 -> orderMenuExpanded = true
-                                                }
-                                            },
-                                            trailingIcon = {
-                                                Icon(
-                                                    imageVector = Icons.AutoMirrored.Filled.ArrowRight,
-                                                    contentDescription = null
-                                                )
+                                listOf("类型", "排序").forEachIndexed { index, menu ->
+                                    DropdownMenuItem(
+                                        text = { Text(menu) },
+                                        onClick = {
+                                            dropdownMenuExpanded = false
+                                            when (index) {
+                                                0 -> typeMenuExpanded = true
+                                                1 -> orderMenuExpanded = true
                                             }
-                                        )
-                                    }
-
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                imageVector = MiuixIcons.Forward,
+                                                contentDescription = null,
+                                            )
+                                        },
+                                    )
+                                }
                             }
                             DropdownMenu(
                                 expanded = typeMenuExpanded,
-                                onDismissRequest = { typeMenuExpanded = false }
+                                onDismissRequest = { typeMenuExpanded = false },
                             ) {
                                 SearchFeedType.entries.forEach { feed ->
                                     Row(
-                                        modifier = Modifier
-                                            .clickable {
+                                        modifier =
+                                            Modifier.clickable {
                                                 typeMenuExpanded = false
                                                 feedType = feed
                                             },
-                                        verticalAlignment = Alignment.CenterVertically
+                                        verticalAlignment = Alignment.CenterVertically,
                                     ) {
                                         RadioButton(
                                             selected = feedType == feed,
                                             onClick = {
                                                 typeMenuExpanded = false
                                                 feedType = feed
-                                            }
+                                            },
                                         )
                                         Text(
                                             text = searchFeedTitle(feed),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(end = 16.dp)
+                                            style = MiuixTheme.textStyles.body1,
+                                            modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
                                         )
                                     }
                                 }
                             }
                             DropdownMenu(
                                 expanded = orderMenuExpanded,
-                                onDismissRequest = { orderMenuExpanded = false }
+                                onDismissRequest = { orderMenuExpanded = false },
                             ) {
                                 SearchOrderType.entries.forEach { order ->
                                     Row(
-                                        modifier = Modifier
-                                            .clickable {
+                                        modifier =
+                                            Modifier.clickable {
                                                 orderMenuExpanded = false
                                                 orderType = order
                                             },
-                                        verticalAlignment = Alignment.CenterVertically
+                                        verticalAlignment = Alignment.CenterVertically,
                                     ) {
                                         RadioButton(
                                             selected = orderType == order,
                                             onClick = {
                                                 orderMenuExpanded = false
                                                 orderType = order
-                                            }
+                                            },
                                         )
                                         Text(
                                             text = searchOrderTitle(order),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(end = 16.dp)
+                                            style = MiuixTheme.textStyles.body1,
+                                            modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
                                         )
                                     }
                                 }
@@ -272,52 +248,25 @@ fun SearchResultScreen(
             )
         },
     ) { paddingValues ->
-
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding())
+            modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding()),
         ) {
-
             if (pageType.isNullOrEmpty()) {
-                SecondaryScrollableTabRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            start = paddingValues.calculateLeftPadding(layoutDirection),
-                        ),
+                top.yukonga.miuix.kmp.basic.TabRow(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    tabs = tabList.map(::searchTypeTitle),
                     selectedTabIndex = pagerState.currentPage,
-                    indicator = {
-                        TabRowDefaults.SecondaryIndicator(
-                            Modifier
-                                .tabIndicatorOffset(
-                                    pagerState.currentPage,
-                                    matchContentSize = true
-                                )
-                                .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
-                        )
+                    onTabSelected = { index ->
+                        if (pagerState.currentPage == index) refreshState = true
+                        scope.launch { pagerState.animateScrollToPage(index) }
                     },
-                    divider = {}
-                ) {
-                    tabList.forEachIndexed { index, tab ->
-                        Tab(
-                            selected = pagerState.currentPage == index,
-                            onClick = rememberHapticClick {
-                                if (pagerState.currentPage == index) {
-                                    refreshState = true
-                                }
-                                scope.launch { pagerState.animateScrollToPage(index) }
-                            },
-                            text = { Text(text = searchTypeTitle(tab)) }
-                        )
-                    }
-                }
+                )
             }
 
             HorizontalDivider()
 
             HorizontalPager(
-                state = pagerState
+                state = pagerState,
             ) { index ->
                 SearchContentScreen(
                     searchType = SearchType.valueOf(SearchType.entries[index].name),
@@ -330,10 +279,11 @@ fun SearchResultScreen(
                     },
                     feedType = feedType,
                     orderType = orderType,
-                    paddingValues = PaddingValues(
-                        start = paddingValues.calculateLeftPadding(layoutDirection),
-                        bottom = paddingValues.calculateBottomPadding(),
-                    ),
+                    paddingValues =
+                        PaddingValues(
+                            start = paddingValues.calculateLeftPadding(layoutDirection),
+                            bottom = paddingValues.calculateBottomPadding(),
+                        ),
                     onViewUser = onViewUser,
                     onViewFeed = onViewFeed,
                     onOpenLink = onOpenLink,
@@ -345,7 +295,5 @@ fun SearchResultScreen(
                 )
             }
         }
-
     }
-
 }

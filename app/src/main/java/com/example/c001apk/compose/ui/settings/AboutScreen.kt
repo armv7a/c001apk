@@ -9,17 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.outlined.AllInclusive
-import androidx.compose.material.icons.outlined.Code
-import androidx.compose.material.icons.outlined.ForkRight
-import androidx.compose.material.icons.outlined.Source
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,14 +21,20 @@ import com.example.c001apk.compose.R
 import com.example.c001apk.compose.constant.Constants.URL_SOURCE_CODE
 import com.example.c001apk.compose.constant.Constants.URL_SOURCE_CODE_FORK
 import com.example.c001apk.compose.ui.component.BackButton
+import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.ui.component.settings.BasicListItem
 import com.example.c001apk.compose.util.openInBrowser
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.All
+import top.yukonga.miuix.kmp.icon.extended.Create
+import top.yukonga.miuix.kmp.icon.extended.File
+import top.yukonga.miuix.kmp.icon.extended.Info
+import top.yukonga.miuix.kmp.icon.extended.Share
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/2
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Created by bggRGjQaUbCoE on 2024/6/2 */
 @Composable
 fun AboutScreen(
     onBackClick: () -> Unit,
@@ -56,66 +51,59 @@ fun AboutScreen(
                 navigationIcon = {
                     BackButton { onBackClick() }
                 },
-                title = { Text(text = "关于") },
+                title = "关于",
             )
-        }
+        },
     ) { paddingValues ->
         Column(
-            Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState)
+            Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState),
         ) {
             Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(125.dp)
-                    .align(Alignment.CenterHorizontally)
+                Modifier.fillMaxWidth().height(125.dp).align(Alignment.CenterHorizontally),
             ) {
-                val drawable = ResourcesCompat.getDrawable(
-                    context.resources,
-                    R.mipmap.ic_launcher,
-                    context.theme
-                )
+                val drawable =
+                    ResourcesCompat.getDrawable(
+                        context.resources,
+                        R.mipmap.ic_launcher,
+                        context.theme,
+                    )
                 Image(
                     painter = rememberDrawablePainter(drawable),
                     contentDescription = null,
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
                 )
             }
             HorizontalDivider()
             BasicListItem(
-                leadingImageVector = Icons.Outlined.AllInclusive,
+                leadingImageVector = MiuixIcons.All,
                 headlineText = stringResource(id = R.string.app_name),
-                supportingText = "c001apk Revived"
-            ) { }
+                supportingText = "c001apk · miuix",
+            ) {}
             BasicListItem(
-                leadingImageVector = Icons.Default.ErrorOutline,
+                leadingImageVector = MiuixIcons.Info,
                 headlineText = "版本",
-                supportingText = "${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})"
-            ) { }
+                supportingText = "${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
+            ) {}
             BasicListItem(
-                leadingImageVector = Icons.Outlined.Code,
+                leadingImageVector = MiuixIcons.Create,
                 headlineText = "原项目地址",
-                supportingText = URL_SOURCE_CODE
+                supportingText = URL_SOURCE_CODE,
             ) {
                 context.openInBrowser(URL_SOURCE_CODE)
             }
             BasicListItem(
-                leadingImageVector = Icons.Outlined.ForkRight,
-                headlineText = "本项目地址",
-                supportingText = URL_SOURCE_CODE_FORK
+                leadingImageVector = MiuixIcons.Share,
+                headlineText = "Compose 基线项目",
+                supportingText = URL_SOURCE_CODE_FORK,
             ) {
                 context.openInBrowser(URL_SOURCE_CODE_FORK)
             }
             BasicListItem(
-                leadingImageVector = Icons.Outlined.Source,
-                headlineText = "开源许可证"
+                leadingImageVector = MiuixIcons.File,
+                headlineText = "开源许可证",
             ) {
                 onLicenseClick()
             }
-
         }
     }
-
 }

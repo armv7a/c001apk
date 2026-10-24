@@ -29,12 +29,9 @@ import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.openInBrowser
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.net.URISyntaxException
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/9
- */
+/** Created by bggRGjQaUbCoE on 2024/6/9 */
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun WebView(
@@ -59,10 +56,11 @@ fun WebView(
         modifier = modifier.fillMaxSize(),
         factory = { context ->
             WebView(context).apply {
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
+                layoutParams =
+                    ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    )
 
                 settings.apply {
                     javaScriptEnabled = true
@@ -90,7 +88,7 @@ fun WebView(
                     it.setAcceptCookie(true)
                     it.setAcceptThirdPartyCookies(this@apply, true)
                     if (prefs.isLogin) {
-                        it.removeAllCookies { }
+                        it.removeAllCookies {}
                         it.setCookie(".coolapk.com", "DID=${prefs.szlmId}")
                         it.setCookie(".coolapk.com", "forward=https://www.coolapk.com")
                         it.setCookie(".coolapk.com", "displayVersion=v14")
@@ -102,7 +100,7 @@ fun WebView(
 
                 setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
                     val fileName = URLUtil.guessFileName(url, contentDisposition, mimetype).decode
-                    MaterialAlertDialogBuilder(context).apply {
+                    MiuixViewDialogBuilder(context).apply {
                         setTitle("确定下载文件吗？")
                         setMessage(fileName)
                         setNeutralButton("外部打开") { _, _ ->
@@ -111,21 +109,26 @@ fun WebView(
                         setNegativeButton(android.R.string.cancel, null)
                         setPositiveButton(android.R.string.ok) { _, _ ->
                             try {
-                                val request = DownloadManager.Request(Uri.parse(url))
-                                    .setMimeType(mimetype)
-                                    .addRequestHeader(
-                                        "cookie",
-                                        CookieManager.getInstance().getCookie(url)
-                                    )
-                                    .addRequestHeader("User-Agent", userAgent)
-                                    .setTitle(fileName)
-                                    .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                                    .setDestinationInExternalPublicDir(
-                                        Environment.DIRECTORY_DOWNLOADS,
-                                        fileName
-                                    )
+                                val request =
+                                    DownloadManager.Request(Uri.parse(url))
+                                        .setMimeType(mimetype)
+                                        .addRequestHeader(
+                                            "cookie",
+                                            CookieManager.getInstance().getCookie(url),
+                                        )
+                                        .addRequestHeader("User-Agent", userAgent)
+                                        .setTitle(fileName)
+                                        .setNotificationVisibility(
+                                            DownloadManager.Request
+                                                .VISIBILITY_VISIBLE_NOTIFY_COMPLETED,
+                                        )
+                                        .setDestinationInExternalPublicDir(
+                                            Environment.DIRECTORY_DOWNLOADS,
+                                            fileName,
+                                        )
                                 val downloadManager =
-                                    context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                                    context.getSystemService(Context.DOWNLOAD_SERVICE)
+                                        as DownloadManager
                                 downloadManager.enqueue(request)
                             } catch (e: Exception) {
                                 context.makeToast("下载失败")
@@ -137,76 +140,81 @@ fun WebView(
                     }
                 }
 
-                webViewClient = object : WebViewClient() {
-                    override fun shouldOverrideUrlLoading(
-                        webView: WebView?, request: WebResourceRequest?
-                    ): Boolean {
+                webViewClient =
+                    object : WebViewClient() {
+                        override fun shouldOverrideUrlLoading(
+                            webView: WebView?,
+                            request: WebResourceRequest?,
+                        ): Boolean {
 
-                        request?.let {
-                            val requestUrl = request.url.toString()
+                            request?.let {
+                                val requestUrl = request.url.toString()
 
-                            if (isLogin && requestUrl == "https://www.coolapk.com/") {
-                                val cookie = CookieManager.getInstance().getCookie(requestUrl)
-                                onFinishLogin(cookie)
-                            }
+                                if (isLogin && requestUrl == "https://www.coolapk.com/") {
+                                    val cookie = CookieManager.getInstance().getCookie(requestUrl)
+                                    onFinishLogin(cookie)
+                                }
 
-                            try {
-                                //处理intent协议
-                                if (requestUrl.startsWith("intent://")) {
-                                    val intent: Intent
-                                    try {
-                                        intent =
-                                            Intent.parseUri(requestUrl, Intent.URI_INTENT_SCHEME)
-                                        intent.addCategory("android.intent.category.BROWSABLE")
-                                        intent.component = null
-                                        intent.selector = null
-                                        val resolves =
-                                            context.packageManager.queryIntentActivities(
-                                                intent,
-                                                0
-                                            )
-                                        if (resolves.size > 0) {
-                                            ContextCompat.startActivity(context, intent, null)
+                                try {
+                                    // 处理intent协议
+                                    if (requestUrl.startsWith("intent://")) {
+                                        val intent: Intent
+                                        try {
+                                            intent =
+                                                Intent.parseUri(
+                                                    requestUrl,
+                                                    Intent.URI_INTENT_SCHEME,
+                                                )
+                                            intent.addCategory("android.intent.category.BROWSABLE")
+                                            intent.component = null
+                                            intent.selector = null
+                                            val resolves =
+                                                context.packageManager.queryIntentActivities(
+                                                    intent,
+                                                    0,
+                                                )
+                                            if (resolves.size > 0) {
+                                                ContextCompat.startActivity(context, intent, null)
+                                            }
+                                            return true
+                                        } catch (e: URISyntaxException) {
+                                            e.printStackTrace()
                                         }
-                                        return true
-                                    } catch (e: URISyntaxException) {
-                                        e.printStackTrace()
                                     }
+                                    // 处理自定义scheme协议
+                                    if (!requestUrl.startsWith("http")) {
+                                        onShowSnackbar(requestUrl)
+                                        return true
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
                                 }
-                                // 处理自定义scheme协议
-                                if (!requestUrl.startsWith("http")) {
-                                    onShowSnackbar(requestUrl)
-                                    return true
-                                }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
                             }
+                            return super.shouldOverrideUrlLoading(webView, request)
                         }
-                        return super.shouldOverrideUrlLoading(webView, request)
-                    }
-                }
-
-                webChromeClient = object : WebChromeClient() {
-                    override fun onCloseWindow(window: WebView?) {
-                        super.onCloseWindow(window)
-                        onFinish()
                     }
 
-                    override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                        onUpdateProgress(newProgress / 100f)
-                    }
+                webChromeClient =
+                    object : WebChromeClient() {
+                        override fun onCloseWindow(window: WebView?) {
+                            super.onCloseWindow(window)
+                            onFinish()
+                        }
 
-                    override fun onReceivedTitle(view: WebView, title: String) {
-                        super.onReceivedTitle(view, title)
-                        onUpdateTitle(title)
+                        override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                            onUpdateProgress(newProgress / 100f)
+                        }
+
+                        override fun onReceivedTitle(view: WebView, title: String) {
+                            super.onReceivedTitle(view, title)
+                            onUpdateTitle(title)
+                        }
                     }
-                }
 
                 loadUrl(url, mapOf("X-Requested-With" to APP_ID))
             }
         },
         update = { webView ->
-
             when (actionType) {
                 ActionType.REFRESH -> {
                     resetActionType()
@@ -234,15 +242,10 @@ fun WebView(
                 ActionType.NONE -> {}
             }
 
-
             if (onBack) {
                 onBackReset()
-                if (webView.canGoBack())
-                    webView.goBack()
-                else
-                    onFinish()
+                if (webView.canGoBack()) webView.goBack() else onFinish()
             }
-        }
+        },
     )
-
 }

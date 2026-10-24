@@ -1,23 +1,47 @@
 package com.example.c001apk.compose.ui.settings
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.example.c001apk.compose.FollowType
 import com.example.c001apk.compose.ThemeMode
 import com.example.c001apk.compose.ThemeType
 import com.example.c001apk.compose.logic.model.HapticStrength
 import com.example.c001apk.compose.logic.repository.UserPreferencesRepository
+import com.example.c001apk.compose.logic.smid.DigitalUnionRepository
 import com.example.c001apk.compose.ui.base.PrefsViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
-/**
- * Created by bggRGjQaUbCoE on 2024/5/31
- */
+/** Created by bggRGjQaUbCoE on 2024/5/31 */
 @HiltViewModel
-class SettingsViewModel @Inject constructor(
-    private val userPreferencesRepository: UserPreferencesRepository
+class SettingsViewModel
+@Inject
+constructor(
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val digitalUnion: DigitalUnionRepository,
 ) : PrefsViewModel(userPreferencesRepository) {
+
+    var generatingId by mutableStateOf(false)
+        private set
+
+    var idError by mutableStateOf<String?>(null)
+        private set
+
+    fun generateSZLMId() {
+        if (generatingId) return
+        generatingId = true
+        idError = null
+        viewModelScope.launch {
+            try {
+                digitalUnion.ensureId(force = true).onFailure { idError = it.message }
+            } finally {
+                generatingId = false
+            }
+        }
+    }
 
     fun setDarkTheme(value: ThemeMode) {
         viewModelScope.launch {
@@ -222,5 +246,4 @@ class SettingsViewModel @Inject constructor(
             userPreferencesRepository.setReverseHapticEffects(value)
         }
     }
-
 }

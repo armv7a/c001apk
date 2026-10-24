@@ -1,7 +1,6 @@
 package com.example.c001apk.compose.ui.component.cards
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -11,15 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Smartphone
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +29,9 @@ import com.example.c001apk.compose.logic.model.FeedEntity
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.component.IconText
 import com.example.c001apk.compose.ui.component.LinkText
+import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
+import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
+import com.example.c001apk.compose.ui.component.icons.Smartphone
 import com.example.c001apk.compose.ui.theme.cardBg
 import com.example.c001apk.compose.util.CookieUtil.isLogin
 import com.example.c001apk.compose.util.DateUtils.fromToday
@@ -47,10 +40,15 @@ import com.example.c001apk.compose.util.ShareType
 import com.example.c001apk.compose.util.Utils.richToString
 import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.getShareText
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.More
+import top.yukonga.miuix.kmp.squircle.squircleSurface
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/17
- */
+/** Created by bggRGjQaUbCoE on 2024/6/17 */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HistoryCard(
@@ -66,27 +64,26 @@ fun HistoryCard(
 ) {
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .background(cardBg())
-            .combinedClickable(
-                onClick = {
-                    onViewFeed(data.id, false)
-                },
-                onLongClick = {
-                    onCopyText(data.message)
-                }
-            )
-            .padding(start = 10.dp, bottom = 10.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .squircleSurface(cardBg(), 16.dp)
+                .combinedClickable(
+                    onClick = {
+                        onViewFeed(data.id, false)
+                    },
+                    onLongClick = {
+                        onCopyText(data.message)
+                    },
+                )
+                .padding(start = 10.dp, bottom = 10.dp),
     ) {
-
         HistoryHeader(
             data = data,
             onViewUser = onViewUser,
             onReport = onReport,
             onDelete = onDelete,
-            onBlockUser = onBlockUser
+            onBlockUser = onBlockUser,
         )
 
         LinkText(
@@ -94,11 +91,9 @@ fun HistoryCard(
             textSize = 16f,
             lineSpacingMultiplier = 1.3f,
             modifier = modifier.padding(top = 10.dp, end = 10.dp),
-            onOpenLink = onOpenLink
+            onOpenLink = onOpenLink,
         )
-
     }
-
 }
 
 @Composable
@@ -115,91 +110,85 @@ fun HistoryHeader(
     val context = LocalContext.current
 
     ConstraintLayout(
-        modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
+        modifier = modifier.fillMaxWidth().wrapContentHeight(),
     ) {
         val (avatar, username, dateline, device, expand) = createRefs()
 
         CoilLoader(
             url = data.avatar,
-            modifier = Modifier
-                .padding(top = 10.dp)
-                .clip(CircleShape)
-                .aspectRatio(1f, false)
-                .constrainAs(avatar) {
-                    top.linkTo(username.top)
-                    bottom.linkTo(device.bottom)
-                    start.linkTo(parent.start)
-                    height = Dimension.fillToConstraints
-                }
-                .clickable {
-                    onViewUser(data.uid)
-                },
+            modifier =
+                Modifier.padding(top = 10.dp)
+                    .clip(CircleShape)
+                    .aspectRatio(1f, false)
+                    .constrainAs(avatar) {
+                        top.linkTo(username.top)
+                        bottom.linkTo(device.bottom)
+                        start.linkTo(parent.start)
+                        height = Dimension.fillToConstraints
+                    }
+                    .clickable {
+                        onViewUser(data.uid)
+                    },
         )
 
         Text(
-            modifier = Modifier
-                .padding(start = 10.dp, top = 10.dp, end = 10.dp)
-                .constrainAs(username) {
+            modifier =
+                Modifier.padding(start = 10.dp, top = 10.dp, end = 10.dp).constrainAs(username) {
                     start.linkTo(avatar.end)
                     top.linkTo(parent.top)
                     end.linkTo(expand.start)
                     width = Dimension.fillToConstraints
                 },
             text = data.uname,
-            style = MaterialTheme.typography.titleSmall,
+            style = MiuixTheme.textStyles.headline2,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
 
         Text(
             text = fromToday(data.pubDate.toLongOrNull() ?: 0),
-            modifier = Modifier
-                .padding(start = 10.dp)
-                .constrainAs(dateline) {
+            modifier =
+                Modifier.padding(start = 10.dp).constrainAs(dateline) {
                     start.linkTo(avatar.end)
                     top.linkTo(username.bottom)
                 },
-            style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-            color = MaterialTheme.colorScheme.outline,
+            style = MiuixTheme.textStyles.body2.copy(fontSize = 13.sp),
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
 
         IconText(
-            modifier = Modifier
-                .padding(start = 10.dp, end = 10.dp)
-                .constrainAs(device) {
+            modifier =
+                Modifier.padding(start = 10.dp, end = 10.dp).constrainAs(device) {
                     start.linkTo(dateline.end)
                     bottom.linkTo(dateline.bottom)
                     end.linkTo(parent.end)
                     width = Dimension.fillToConstraints
                 },
-            imageVector = Icons.Default.Smartphone,
+            imageVector = MiuixIcons.Smartphone,
             title = data.device.richToString(),
             textSize = 13f,
         )
 
         Box(
-            modifier = Modifier
-                .aspectRatio(1f, false)
-                .constrainAs(expand) {
+            modifier =
+                Modifier.aspectRatio(1f, false).constrainAs(expand) {
                     top.linkTo(parent.top)
                     end.linkTo(parent.end)
                     bottom.linkTo(device.bottom)
                     height = Dimension.fillToConstraints
-                }) {
-
+                },
+        ) {
             IconButton(
                 onClick = {
                     dropdownMenuExpanded = true
-                }
+                },
             ) {
                 Icon(
-                    imageVector = Icons.Default.ExpandMore,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.outline
+                    imageVector = MiuixIcons.More,
+                    contentDescription = "更多操作",
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
             }
 
@@ -219,7 +208,7 @@ fun HistoryHeader(
 
                                 1 -> onBlockUser(data.uid)
                             }
-                        }
+                        },
                     )
                 }
                 if (isLogin) {
@@ -228,7 +217,7 @@ fun HistoryHeader(
                         onClick = {
                             dropdownMenuExpanded = false
                             onReport(data.id, ReportType.FEED)
-                        }
+                        },
                     )
                 }
                 DropdownMenuItem(
@@ -236,10 +225,9 @@ fun HistoryHeader(
                     onClick = {
                         dropdownMenuExpanded = false
                         onDelete(data.id)
-                    }
+                    },
                 )
             }
         }
     }
-
 }

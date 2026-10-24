@@ -10,12 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AllInclusive
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.surfaceColorAtElevation
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -60,6 +54,7 @@ import com.example.c001apk.compose.ui.carousel.CarouselScreen
 import com.example.c001apk.compose.ui.chat.ChatScreen
 import com.example.c001apk.compose.ui.collection.CollectionScreen
 import com.example.c001apk.compose.ui.component.SlideTransition
+import com.example.c001apk.compose.ui.component.WindowWidthSizeClass
 import com.example.c001apk.compose.ui.coolpic.CoolPicScreen
 import com.example.c001apk.compose.ui.dyh.DyhScreen
 import com.example.c001apk.compose.ui.event.EventScreen
@@ -89,10 +84,12 @@ import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.openInBrowser
 import kotlin.math.max
 import kotlin.math.min
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.All
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Created by bggRGjQaUbCoE on 2024/5/30
- */
+/** Created by bggRGjQaUbCoE on 2024/5/30 */
 @Composable
 fun MainNavigation(
     navController: NavHostController,
@@ -121,11 +118,11 @@ fun MainNavigation(
         }
     }
 
-    fun onOpenLink(url:String, title: String?){
+    fun onOpenLink(url: String, title: String?) {
         navController.onOpenLink(
             context,
             url,
-            title
+            title,
         ) { viewId, isViewReply ->
             onViewFeed(viewId, isViewReply)
         }
@@ -147,9 +144,8 @@ fun MainNavigation(
             },
             popExitTransition = {
                 SlideTransition.slideRight.exitTransition()
-            }
+            },
         ) {
-
             composable(route = Router.MAIN.name) {
                 MainScreen(
                     selectIndex = selectIndex,
@@ -194,7 +190,7 @@ fun MainNavigation(
 
             composable(route = Router.PARAMS.name) {
                 ParamsScreen(
-                    onBackClick = navController::popBackStack
+                    onBackClick = navController::popBackStack,
                 )
             }
 
@@ -203,26 +199,27 @@ fun MainNavigation(
                     onBackClick = navController::popBackStack,
                     onLicenseClick = {
                         navController.navigate(Router.LICENSE.name)
-                    }
+                    },
                 )
             }
 
             composable(route = Router.LICENSE.name) {
                 LicenseScreen(
-                    onBackClick = navController::popBackStack
+                    onBackClick = navController::popBackStack,
                 )
             }
 
             composable(
                 route = "${Router.FEED.name}/{id}/{isViewReply}",
-                arguments = listOf(
-                    navArgument("id") {
-                        type = NavType.StringType
-                    },
-                    navArgument("isViewReply") {
-                        type = NavType.BoolType
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("id") {
+                            type = NavType.StringType
+                        },
+                        navArgument("isViewReply") {
+                            type = NavType.BoolType
+                        },
+                    ),
             ) {
                 val id = it.arguments?.getString("id").orEmpty()
                 val isViewReply = it.arguments?.getBoolean("isViewReply") ?: false
@@ -240,11 +237,12 @@ fun MainNavigation(
 
             composable(
                 route = "${Router.USER.name}/{uid}",
-                arguments = listOf(
-                    navArgument("uid") {
-                        type = NavType.StringType
-                    }
-                )
+                arguments =
+                    listOf(
+                        navArgument("uid") {
+                            type = NavType.StringType
+                        },
+                    ),
             ) {
                 val uid = it.arguments?.getString("uid").orEmpty()
                 UserScreen(
@@ -267,37 +265,38 @@ fun MainNavigation(
                             "${
                                 min(
                                     viewUid.toLongOrNull() ?: 0,
-                                    CookieUtil.uid.toLongOrNull() ?: 0
+                                    CookieUtil.uid.toLongOrNull() ?: 0,
                                 )
                             }_${
                                 max(
                                     viewUid.toLongOrNull() ?: 0,
-                                    CookieUtil.uid.toLongOrNull() ?: 0
+                                    CookieUtil.uid.toLongOrNull() ?: 0,
                                 )
                             }",
                             viewUid,
-                            viewUsername
+                            viewUsername,
                         )
-                    }
+                    },
                 )
             }
 
             composable(
                 route = "${Router.SEARCH.name}/{title}/{pageType}/{pageParam}",
-                arguments = listOf(
-                    navArgument("title") {
-                        type = NavType.StringType
-                        nullable = true
-                    },
-                    navArgument("pageType") {
-                        type = NavType.StringType
-                        nullable = true
-                    },
-                    navArgument("pageParam") {
-                        type = NavType.StringType
-                        nullable = true
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("title") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                        navArgument("pageType") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                        navArgument("pageParam") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                    ),
             ) {
                 val title = it.arguments?.getString("title")
                 val pageType = it.arguments?.getString("pageType")
@@ -307,29 +306,30 @@ fun MainNavigation(
                     title = title,
                     onSearch = { keyword ->
                         navController.navigateToSearchResult(keyword, title, pageType, pageParam)
-                    }
+                    },
                 )
             }
 
             composable(
                 route = "${Router.SEARCHRESULT.name}/{keyword}/{title}/{pageType}/{pageParam}",
-                arguments = listOf(
-                    navArgument("keyword") {
-                        type = NavType.StringType
-                    },
-                    navArgument("title") {
-                        type = NavType.StringType
-                        nullable = true
-                    },
-                    navArgument("pageType") {
-                        type = NavType.StringType
-                        nullable = true
-                    },
-                    navArgument("pageParam") {
-                        type = NavType.StringType
-                        nullable = true
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("keyword") {
+                            type = NavType.StringType
+                        },
+                        navArgument("title") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                        navArgument("pageType") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                        navArgument("pageParam") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                    ),
             ) {
                 val keyword = it.arguments?.getString("keyword").orEmpty()
                 val title = it.arguments?.getString("title")
@@ -349,18 +349,19 @@ fun MainNavigation(
                     updateInitPage = { index ->
                         initialPage = index
                     },
-                    onReport = ::onReport
+                    onReport = ::onReport,
                 )
             }
 
             composable(
                 route = "${Router.COPY.name}/{text}",
-                arguments = listOf(
-                    navArgument("text") {
-                        type = NavType.StringType
-                        nullable = true
-                    }
-                )
+                arguments =
+                    listOf(
+                        navArgument("text") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                    ),
             ) {
                 val text = it.arguments?.getString("text").orEmpty()
                 CopyTextScreen(text = text)
@@ -368,16 +369,17 @@ fun MainNavigation(
 
             composable(
                 route = "${Router.TOPIC}/{tag}/{id}",
-                arguments = listOf(
-                    navArgument("tag") {
-                        type = NavType.StringType
-                        nullable = true
-                    },
-                    navArgument("id") {
-                        type = NavType.StringType
-                        nullable = true
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("tag") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                        navArgument("id") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                    ),
             ) {
                 val tag = it.arguments?.getString("tag")
                 val id = it.arguments?.getString("id")
@@ -393,26 +395,31 @@ fun MainNavigation(
                         initialPage = 0
                         navController.navigateToSearch(title, pageType, pageParam)
                     },
-                    onReport = ::onReport
+                    onReport = ::onReport,
                 )
             }
 
             composable(
                 route = "${Router.WEBVIEW.name}/{url}/{isLogin}",
-                arguments = listOf(
-                    navArgument("url") {
-                        type = NavType.StringType
-                    },
-                    navArgument("isLogin") {
-                        type = NavType.BoolType
-                    }
-                )
+                arguments =
+                    listOf(
+                        navArgument("url") {
+                            type = NavType.StringType
+                        },
+                        navArgument("isLogin") {
+                            type = NavType.BoolType
+                        },
+                    ),
             ) {
                 val url = it.arguments?.getString("url").orEmpty()
                 val isLogin = it.arguments?.getBoolean("isLogin") ?: false
                 WebViewScreen(
                     onBackClick = {
-                        if (navController.currentDestination?.route?.contains(Router.WEBVIEW.name) == true) {
+                        if (
+                            navController.currentDestination
+                                ?.route
+                                ?.contains(Router.WEBVIEW.name) == true
+                        ) {
                             navController.popBackStack()
                         }
                     },
@@ -423,10 +430,10 @@ fun MainNavigation(
 
             composable(
                 route = "${Router.APP.name}/{packageName}",
-                arguments = listOf(
-                    navArgument("packageName") {
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("packageName") {},
+                    ),
             ) {
                 val packageName = it.arguments?.getString("packageName").orEmpty()
                 AppScreen(
@@ -440,7 +447,7 @@ fun MainNavigation(
                         initialPage = 0
                         navController.navigateToSearch(title, pageType, pageParam)
                     },
-                    onReport = ::onReport
+                    onReport = ::onReport,
                 )
             }
 
@@ -453,20 +460,21 @@ fun MainNavigation(
                     },
                     onWebLogin = {
                         navController.navigateToWebView(url = URL_LOGIN, isLogin = true)
-                    }
+                    },
                 )
             }
 
             composable(
                 route = "${Router.CAROUSEL.name}/{url}/{title}",
-                arguments = listOf(
-                    navArgument("url") {
-                        type = NavType.StringType
-                    },
-                    navArgument("title") {
-                        type = NavType.StringType
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("url") {
+                            type = NavType.StringType
+                        },
+                        navArgument("title") {
+                            type = NavType.StringType
+                        },
+                    ),
             ) {
                 val url = it.arguments?.getString("url").orEmpty()
                 val title = it.arguments?.getString("title").orEmpty()
@@ -478,15 +486,16 @@ fun MainNavigation(
                     onViewFeed = ::onViewFeed,
                     onOpenLink = ::onOpenLink,
                     onCopyText = navController::navigateToCopyText,
-                    onReport = ::onReport
+                    onReport = ::onReport,
                 )
             }
 
             composable(
                 route = "${Router.EVENT.name}/{id}",
-                arguments = listOf(
-                    navArgument("id") { type = NavType.StringType },
-                ),
+                arguments =
+                    listOf(
+                        navArgument("id") { type = NavType.StringType },
+                    ),
             ) {
                 val id = it.arguments?.getString("id").orEmpty()
                 EventScreen(
@@ -512,23 +521,24 @@ fun MainNavigation(
 
             composable(
                 route = "${Router.FFFLIST.name}/{uid}/{type}/{id}/{title}",
-                arguments = listOf(
-                    navArgument("uid") {
-                        type = NavType.StringType
-                        nullable = true
-                    },
-                    navArgument("type") {
-                        type = NavType.StringType
-                    },
-                    navArgument("id") {
-                        type = NavType.StringType
-                        nullable = true
-                    },
-                    navArgument("title") {
-                        type = NavType.StringType
-                        nullable = true
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("uid") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                        navArgument("type") {
+                            type = NavType.StringType
+                        },
+                        navArgument("id") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                        navArgument("title") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                    ),
             ) {
                 val uid = it.arguments?.getString("uid")
                 val type = it.arguments?.getString("type").orEmpty()
@@ -551,14 +561,15 @@ fun MainNavigation(
 
             composable(
                 route = "${Router.DYH.name}/{id}/{title}",
-                arguments = listOf(
-                    navArgument("id") {
-                        type = NavType.StringType
-                    },
-                    navArgument("title") {
-                        type = NavType.StringType
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("id") {
+                            type = NavType.StringType
+                        },
+                        navArgument("title") {
+                            type = NavType.StringType
+                        },
+                    ),
             ) {
                 val id = it.arguments?.getString("id").orEmpty()
                 val title = it.arguments?.getString("title").orEmpty()
@@ -570,17 +581,18 @@ fun MainNavigation(
                     onViewFeed = ::onViewFeed,
                     onOpenLink = ::onOpenLink,
                     onCopyText = navController::navigateToCopyText,
-                    onReport = ::onReport
+                    onReport = ::onReport,
                 )
             }
 
             composable(
                 route = "${Router.COOLPIC.name}/{title}",
-                arguments = listOf(
-                    navArgument("title") {
-                        type = NavType.StringType
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("title") {
+                            type = NavType.StringType
+                        },
+                    ),
             ) {
                 val title = it.arguments?.getString("title").orEmpty()
                 CoolPicScreen(
@@ -590,17 +602,18 @@ fun MainNavigation(
                     onViewFeed = ::onViewFeed,
                     onOpenLink = ::onOpenLink,
                     onCopyText = navController::navigateToCopyText,
-                    onReport = ::onReport
+                    onReport = ::onReport,
                 )
             }
 
             composable(
                 route = "${Router.NOTICE.name}/{type}",
-                arguments = listOf(
-                    navArgument("type") {
-                        type = NavType.StringType
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("type") {
+                            type = NavType.StringType
+                        },
+                    ),
             ) {
                 val type = it.arguments?.getString("type").orEmpty()
                 NoticeScreen(
@@ -617,11 +630,12 @@ fun MainNavigation(
 
             composable(
                 route = "${Router.BLACKLIST.name}/{type}",
-                arguments = listOf(
-                    navArgument("type") {
-                        type = NavType.StringType
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("type") {
+                            type = NavType.StringType
+                        },
+                    ),
             ) {
                 val type = it.arguments?.getString("type").orEmpty()
                 BlackListScreen(
@@ -630,17 +644,18 @@ fun MainNavigation(
                     onViewUser = navController::navigateToUser,
                     onViewTopic = { tag ->
                         navController.navigateToTopic(tag, null)
-                    }
+                    },
                 )
             }
 
             composable(
                 route = "${Router.HISTORY.name}/{type}",
-                arguments = listOf(
-                    navArgument("type") {
-                        type = NavType.StringType
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("type") {
+                            type = NavType.StringType
+                        },
+                    ),
             ) {
                 val type = it.arguments?.getString("type").orEmpty()
                 HistoryScreen(
@@ -656,17 +671,18 @@ fun MainNavigation(
 
             composable(
                 route = "${Router.CHAT.name}/{ukey}/{uid}/{username}",
-                arguments = listOf(
-                    navArgument("ukey") {
-                        type = NavType.StringType
-                    },
-                    navArgument("uid") {
-                        type = NavType.StringType
-                    },
-                    navArgument("username") {
-                        type = NavType.StringType
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("ukey") {
+                            type = NavType.StringType
+                        },
+                        navArgument("uid") {
+                            type = NavType.StringType
+                        },
+                        navArgument("username") {
+                            type = NavType.StringType
+                        },
+                    ),
             ) {
                 val ukey = it.arguments?.getString("ukey").orEmpty()
                 val uid = it.arguments?.getString("uid").orEmpty()
@@ -684,11 +700,12 @@ fun MainNavigation(
 
             composable(
                 route = "${Router.COLLECTION.name}/{id}",
-                arguments = listOf(
-                    navArgument("id") {
-                        type = NavType.StringType
-                    },
-                )
+                arguments =
+                    listOf(
+                        navArgument("id") {
+                            type = NavType.StringType
+                        },
+                    ),
             ) {
                 val id = it.arguments?.getString("id").orEmpty()
                 CollectionScreen(
@@ -701,24 +718,23 @@ fun MainNavigation(
                     onReport = ::onReport,
                 )
             }
-
         }
         if (selectIndex != 2 && !isCompat) {
             if (compatId.isNullOrEmpty()) {
                 Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxSize()
-                        .background(
-                            MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
-                        ),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier.weight(1f)
+                            .fillMaxSize()
+                            .background(
+                                MiuixTheme.colorScheme.surfaceContainer,
+                            ),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Default.AllInclusive,
+                        imageVector = MiuixIcons.All,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(55.dp)
+                        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        modifier = Modifier.size(55.dp),
                     )
                 }
             } else {
@@ -740,8 +756,6 @@ fun MainNavigation(
             }
         }
     }
-
-
 }
 
 fun NavHostController.onOpenLink(
@@ -752,20 +766,17 @@ fun NavHostController.onOpenLink(
     onSearch: ((String) -> Unit)? = null,
     onViewFeed: ((String, Boolean) -> Unit)? = null,
 ) {
-    if (url.isEmpty())
-        return
-    val path = with(url.decode) {
-        if (needConvert) {
-            if (this.startsWith(PREFIX_COOLMARKET))
-                this.replaceFirst(PREFIX_COOLMARKET, "/")
-            else {
-                val uri = Uri.parse(this)
-                if (uri.host?.contains(CHANNEL) == true)
-                    uri.path ?: url
-                else url
-            }
-        } else this
-    }
+    if (url.isEmpty()) return
+    val path =
+        with(url.decode) {
+            if (needConvert) {
+                if (this.startsWith(PREFIX_COOLMARKET)) this.replaceFirst(PREFIX_COOLMARKET, "/")
+                else {
+                    val uri = Uri.parse(this)
+                    if (uri.host?.contains(CHANNEL) == true) uri.path ?: url else url
+                }
+            } else this
+        }
     when {
         path.startsWith(PREFIX_USER) -> {
             navigateToUser(path.replaceFirst(PREFIX_USER, EMPTY_STRING))
@@ -781,12 +792,12 @@ fun NavHostController.onOpenLink(
         }
 
         path.startsWith(PREFIX_TOPIC) -> {
-            val tag = path.replaceFirst(PREFIX_TOPIC, EMPTY_STRING)
-                .replace("\\?type=[A-Za-z0-9]+".toRegex(), EMPTY_STRING)
-            if (path.contains("type=8"))
-                navigateToCoolPic(tag)
-            else
-                navigateToTopic(id = null, tag = tag)
+            val tag =
+                path
+                    .replaceFirst(PREFIX_TOPIC, EMPTY_STRING)
+                    .replace("\\?type=[A-Za-z0-9]+".toRegex(), EMPTY_STRING)
+            if (path.contains("type=8")) navigateToCoolPic(tag)
+            else navigateToTopic(id = null, tag = tag)
         }
 
         path.startsWith(PREFIX_PRODUCT) -> {
@@ -807,7 +818,7 @@ fun NavHostController.onOpenLink(
         path.startsWith(PREFIX_CAROUSEL) -> {
             navigateToCarousel(
                 path.replaceFirst(PREFIX_CAROUSEL, EMPTY_STRING),
-                title.orEmpty()
+                title.orEmpty(),
             )
         }
 
@@ -816,10 +827,11 @@ fun NavHostController.onOpenLink(
         }
 
         path.startsWith(PREFIX_USER_LIST) -> {
-            val type = when {
-                path.contains("myFollowList") -> FFFListType.USER_FOLLOW.name
-                else -> EMPTY_STRING
-            }
+            val type =
+                when {
+                    path.contains("myFollowList") -> FFFListType.USER_FOLLOW.name
+                    else -> EMPTY_STRING
+                }
             navigateToFFFList(CookieUtil.uid, type, null, null)
         }
 
@@ -832,16 +844,15 @@ fun NavHostController.onOpenLink(
         }
 
         path.startsWith(PREFIX_EVENT) -> {
-            val id = path.removePrefix(PREFIX_EVENT)
-                .substringBefore('?')
-                .substringBefore('/')
+            val id = path.removePrefix(PREFIX_EVENT).substringBefore('?').substringBefore('/')
             if (id.isNotEmpty()) navigateToEvent(id)
         }
 
         path.startsWith(PREFIX_SEARCH) -> {
-            val sourceUri = Uri.parse(url)
-                .takeIf { it.scheme.equals(PREFIX_COOLMARKET.removeSuffix("://"), ignoreCase = true) }
-                ?: Uri.parse(path)
+            val sourceUri =
+                Uri.parse(url).takeIf {
+                    it.scheme.equals(PREFIX_COOLMARKET.removeSuffix("://"), ignoreCase = true)
+                } ?: Uri.parse(path)
             val keyword = sourceUri.getQueryParameter("searchValue").orEmpty()
             if (keyword.isEmpty()) {
                 navigateToSearch(null, null, null)
@@ -852,14 +863,10 @@ fun NavHostController.onOpenLink(
         }
 
         else -> {
-            if (!needConvert)
-                onOpenLink(context, url, title, true)
+            if (!needConvert) onOpenLink(context, url, title, true)
             else {
                 if (url.startsWith(PREFIX_HTTP)) {
-                    if (openInBrowser)
-                        context.openInBrowser(url)
-                    else
-                        navigateToWebView(url)
+                    if (openInBrowser) context.openInBrowser(url) else navigateToWebView(url)
                 } else {
                     context.makeToast("unsupported url: $url")
                     context.copyText(url, false)
@@ -897,7 +904,7 @@ fun NavHostController.navigateToSearchResult(
     keyword: String,
     title: String?,
     pageType: String?,
-    pageParam: String?
+    pageParam: String?,
 ) {
     navigate("${Router.SEARCHRESULT.name}/${keyword.encode}/$title/$pageType/$pageParam")
 }
@@ -918,7 +925,7 @@ fun NavHostController.navigate(
     route: String,
     args: Bundle,
     navOptions: NavOptions? = null,
-    navigatorExtras: Navigator.Extras? = null
+    navigatorExtras: Navigator.Extras? = null,
 ) {
     val nodeId = graph.findNode(route = route)?.id
     if (nodeId != null) {
@@ -964,7 +971,6 @@ private inline fun <reified T : Parcelable> Bundle.getParcelableArrayListCompat(
     return if (SDK_INT >= 33) {
         getParcelableArrayList(key, T::class.java)
     } else {
-        @Suppress("DEPRECATION")
-        getParcelableArrayList(key)
+        @Suppress("DEPRECATION") getParcelableArrayList(key)
     }
 }
