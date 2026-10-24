@@ -92,7 +92,7 @@
 
 ## 下载安装
 
-当前源码版本为 **1.3.8**，支持 **Android 13 / API 33 及以上的 ARM64 设备**。
+当前源码版本为 **1.3.9**，支持 **Android 13 / API 33 及以上的 ARM64 设备**。
 
 正式 APK 请前往 [GitHub Releases](https://github.com/KiritoXDone/c001apk/releases/latest) 下载，每个版本同时提供签名校验报告与 SHA256SUMS。也可按下方步骤自行构建；配置签名并手动运行 [Android 工作流](.github/workflows/android.yml) 后，可从 Actions 的 Artifacts 获取构建产物。
 
@@ -163,8 +163,8 @@ python3 tools/verify_apk.py /path/to/app.apk \
 先更新 `CHANGELOG.md`，提交代码后创建并推送版本标签：
 
 ```sh
-git tag v1.3.8
-git push origin v1.3.8
+git tag v1.3.9
+git push origin v1.3.9
 ```
 
 [发布工作流](.github/workflows/release.yml) 从标签读取版本号，依次执行单元测试、Lint、Release 构建和签名校验。全部成功后才发布 Release，并使用对应版本的更新记录作为说明；重新运行同一标签时更新已有资产。正式签名已配置在本仓库的 Actions Secrets，私钥不存入 Git。其他 fork 需要自行配置签名 Secrets。
