@@ -12,7 +12,7 @@
 ![Android](https://img.shields.io/badge/Android-13%2B-3DDC84?style=flat-square&logo=android&logoColor=white)
 ![ABI](https://img.shields.io/badge/ABI-ARM64-486B78?style=flat-square)
 
-[功能](#功能) · [下载安装](#下载安装) · [自行构建](#自行构建) · [项目文档](#项目文档) · [致谢与许可](#致谢与许可)
+[界面预览](#界面预览) · [功能](#功能) · [下载安装](#下载安装) · [自行构建](#自行构建) · [项目文档](#项目文档) · [致谢与许可](#致谢与许可)
 
 </div>
 
@@ -21,6 +21,23 @@
 基于 [frisk1127/c001apk-compose](https://github.com/frisk1127/c001apk-compose) 继续开发，使用 Kotlin、Jetpack Compose 和原生 [miuix](https://github.com/compose-miuix-ui/miuix) 组件，围绕动态浏览、图文阅读和日常互动重新整理界面。
 
 功能参考 [TG-Twilight/c001apk](https://github.com/TG-Twilight/c001apk) 的 Android 增量，采用「主页 / 关注 / 我的」导航，补齐多账号、本地关注、Markdown、正文导出和应用更新等能力。视觉参考 [flutter_miuix](https://github.com/ChuxinNeko/flutter_miuix) 与 [Mishka UI 规范](https://github.com/YuKongA/Mishka/blob/main/docs/ui-guidelines.md)，在 Android 上使用原生 Compose 实现。
+
+## 界面预览
+
+通过 ADB 截取的 Android 真机画面，使用设备当前的深色主题与字体。可见头像、昵称及通知图标已在本地像素化处理，其余画面保持原样；「我的」展示游客状态。
+
+<table align="center">
+  <tr>
+    <th>主页</th>
+    <th>我的</th>
+    <th>外观与字号</th>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/home.png" alt="主页：顶部标签、快捷入口与动态列表，头像和昵称已打码" width="280"></td>
+    <td><img src="docs/screenshots/my.png" alt="我的：游客登录入口、常用功能与消息分组" width="280"></td>
+    <td><img src="docs/screenshots/settings.png" alt="外观设置：原生 miuix 选择器、开关与分组" width="280"></td>
+  </tr>
+</table>
 
 ## 功能
 

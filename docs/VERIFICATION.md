@@ -1,6 +1,6 @@
 # 移植验证记录
 
-日期：2026-10-24。参考冻结点：TG-Twilight/c001apk `fb3e06c`。源码分支：`feat/miuix`。最终 APK 的精确提交、版本、证书和 SHA-256 以交付目录 `apk-verification.json` 为准。
+日期：2026-10-24。参考冻结点：TG-Twilight/c001apk `fb3e06c`。源码分支：`main`。最终 APK 的精确提交、版本、证书和 SHA-256 以交付目录 `apk-verification.json` 为准。
 
 ## 自动验证
 
@@ -62,3 +62,7 @@
 `release.yml` 仅由 `vMAJOR.MINOR.PATCH` 标签触发，复用 `android.yml` 完成验证和固定签名构建，再发布 APK、校验报告、SHA256SUMS 与对应 CHANGELOG 条目。仓库 Secrets 已配置专用签名材料；两个工作流通过 Actionlint、YAML 与内嵌 Shell 语法检查。本轮不主动打标签，不将本地成功构建等同于远端工作流运行成功。
 
 专用签名构建经 apksigner 验证为有效 APK v3 签名。校验器接受 Android 13 支持的 v2 或 v3（含 v3.1），仍要求 apksigner 整体验证成功、唯一且匹配的签名证书；Source Stamp 不作为应用签名。校验报告分别记录实际 v2/v3 结果。
+
+## README 真机截图
+
+按用户后续授权，在 1.3.7 新包中通过 ADB 浏览并截取主页、游客「我的」和外观设置，首页已显示真实数据。原始截图仅保存在本机临时目录；提交到 `docs/screenshots` 的图片已对头像、昵称及通知图标做像素化处理并清除 PNG 元数据。逐张检查处理后的图像，并用像素比较确认掩码外画面未改动。截图浏览不包含发帖、点赞、收藏、创建收藏夹、删除或账号迁移，也不等同于完整界面回归。
