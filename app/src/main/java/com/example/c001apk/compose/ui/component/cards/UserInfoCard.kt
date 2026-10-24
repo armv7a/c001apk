@@ -94,7 +94,11 @@ fun UserInfoCard(
                         }
                     }
                     Text(
-                        "UID ${data.uid.orEmpty()}",
+                        buildString {
+                            append("UID ${data.uid.orEmpty()}")
+                            if ((data.logintime ?: 0) > 0)
+                                append(" · ${fromToday(data.logintime ?: 0)}活跃")
+                        },
                         modifier =
                             Modifier.noRippleClickable { context.copyText(data.uid.orEmpty()) },
                         fontSize = 12.sp,
@@ -125,14 +129,7 @@ fun UserInfoCard(
                     fontSize = 14.sp,
                     lineHeight = 21.sp,
                 )
-                Spacer(Modifier.height(6.dp))
             }
-            if ((data.logintime ?: 0) > 0)
-                Text(
-                    "${fromToday(data.logintime ?: 0)}活跃",
-                    fontSize = 12.sp,
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                )
 
             Row(
                 Modifier.fillMaxWidth()
