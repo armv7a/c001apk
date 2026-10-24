@@ -2,12 +2,18 @@ package com.example.c001apk.compose.ui.feed
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.component.icons.Smartphone
@@ -59,13 +65,45 @@ fun FeedDetailAuthor(data: HomeFeedResponse.Data, onViewUser: (String) -> Unit) 
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        listOfNotNull(
-                                fromToday(data.dateline ?: 0),
-                                data.ipLocation?.takeIf(String::isNotBlank),
-                            )
-                            .joinToString(" · "),
+                        text =
+                            buildAnnotatedString {
+                                append(
+                                    listOfNotNull(
+                                            fromToday(data.dateline ?: 0),
+                                            data.ipLocation?.takeIf(String::isNotBlank),
+                                        )
+                                        .joinToString(" · "),
+                                )
+                                data.deviceTitle?.richToString()?.takeIf(String::isNotBlank)?.let {
+                                    device ->
+                                    append(" · ")
+                                    appendInlineContent("device", "机型")
+                                    append(" $device")
+                                }
+                            },
+                        inlineContent =
+                            mapOf(
+                                "device" to
+                                    InlineTextContent(
+                                        Placeholder(
+                                            12.sp,
+                                            12.sp,
+                                            PlaceholderVerticalAlign.TextCenter,
+                                        ),
+                                    ) {
+                                        Icon(
+                                            MiuixIcons.Smartphone,
+                                            null,
+                                            Modifier.fillMaxSize(),
+                                            tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                        )
+                                    },
+                            ),
                         style = MiuixTheme.textStyles.footnote1,
+                        fontSize = 12.sp,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
                 Icon(
@@ -74,27 +112,6 @@ fun FeedDetailAuthor(data: HomeFeedResponse.Data, onViewUser: (String) -> Unit) 
                     tint = MiuixTheme.colorScheme.onSurfaceVariantActions,
                     modifier = Modifier.size(18.dp),
                 )
-            }
-            data.deviceTitle?.richToString()?.takeIf(String::isNotBlank)?.let { device ->
-                Row(
-                    Modifier.padding(top = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Icon(
-                        MiuixIcons.Smartphone,
-                        null,
-                        modifier = Modifier.size(14.dp),
-                        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                    )
-                    Text(
-                        device,
-                        style = MiuixTheme.textStyles.footnote1,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
             }
         }
     }
