@@ -22,7 +22,6 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -493,12 +492,7 @@ fun FeedReplyCard(
                 ReplyRows(
                     modifier =
                         Modifier.padding(start = 10.dp, top = 10.dp, end = 16.dp)
-                            .squircleSurface(
-                                MiuixTheme.colorScheme.onSurface
-                                    .copy(alpha = 0.08f)
-                                    .compositeOver(MiuixTheme.colorScheme.surfaceContainer),
-                                12.dp,
-                            )
+                            .squircleSurface(MiuixTheme.colorScheme.surface, 16.dp)
                             .padding(vertical = 6.dp)
                             .constrainAs(replyRows) {
                                 top.linkTo(dateLine.bottom)

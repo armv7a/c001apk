@@ -181,7 +181,7 @@ fun FeedRows(
             dataList.forEach {
                 item(key = it.url) {
                     IconMiniScrollCardItem(
-                        isFeedContent = isFeedContent,
+                        isFeedContent = false,
                         logoUrl = it.logo.orEmpty(),
                         linkUrl = it.url.orEmpty(),
                         titleText = it.title.orEmpty(),
