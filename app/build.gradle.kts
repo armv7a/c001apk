@@ -21,17 +21,7 @@ val gitCommitCount =
         .asText
         .map { it.trim().toInt() }
         .get()
-val gitCommitHash =
-    providers
-        .exec {
-            commandLine("git", "rev-parse", "--verify", "--short", "HEAD")
-        }
-        .standardOutput
-        .asText
-        .map { it.trim() }
-        .get()
-
-val appVersion = providers.gradleProperty("appVersion").orElse("1.3.5").get()
+val appVersion = providers.gradleProperty("appVersion").orElse("1.3.6").get()
 
 require(Regex("[0-9]+\\.[0-9]+\\.[0-9]+").matches(appVersion))
 
@@ -52,7 +42,7 @@ android {
         ndk { abiFilters += "arm64-v8a" }
         targetSdk = 35
         versionCode = gitCommitCount
-        versionName = "$appVersion-miuix+$gitCommitHash"
+        versionName = appVersion
         buildConfigField("String", "APP_VERSION", "\"$appVersion\"")
         buildConfigField("String", "UPDATE_REPOSITORY", "\"$updateRepository\"")
 
@@ -92,7 +82,7 @@ android {
 
     buildTypes {
         debug {
-            resValue("string", "app_name", "c001apk miuix")
+            resValue("string", "app_name", "c001apk")
         }
         all {
             signingConfig = config ?: signingConfigs["debug"]
@@ -142,7 +132,7 @@ android {
         outputs.configureEach {
             if (baseName == "release")
                 (this as? ApkVariantOutputImpl)?.outputFileName =
-                    "c001apk-miuix_$versionName($versionCode).apk"
+                    "c001apk_$versionName($versionCode).apk"
         }
     }
 }

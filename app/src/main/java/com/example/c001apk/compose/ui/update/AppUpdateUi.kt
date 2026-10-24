@@ -126,7 +126,7 @@ fun AppUpdateSettings(compact: Boolean = false, model: AppUpdateViewModel = hilt
         headlineText = if (state.checking) "正在检查 c001apk 更新…" else "检查 c001apk 更新",
         leadingImageVector = MiuixIcons.Update,
         enabled = !state.checking,
-        supportingText = if (prefs.repository.isBlank()) "设置此 miuix 版本的发布仓库" else prefs.repository,
+        supportingText = if (prefs.repository.isBlank()) "设置此应用的发布仓库" else prefs.repository,
         onClick = { if (prefs.repository.isBlank()) configure = true else model.updates.check() },
     )
     if (!compact)
@@ -141,7 +141,7 @@ fun AppUpdateSettings(compact: Boolean = false, model: AppUpdateViewModel = hilt
             title = { Text("更新来源") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("填写本 miuix 版本的 GitHub 发布仓库。酷安账号与设备标识不会发送给更新服务。")
+                    Text("填写此应用的 GitHub 发布仓库。酷安账号与设备标识不会发送给更新服务。")
                     TextField(
                         value = repository,
                         onValueChange = {

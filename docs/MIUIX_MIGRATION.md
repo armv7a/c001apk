@@ -43,9 +43,9 @@ bash ./gradlew :app:assembleDebugAndroidTest
 bash ./gradlew :app:connectedDebugAndroidTest
 ```
 
-压缩 APK：`app/build/outputs/apk/release/c001apk-miuix_<版本名>(<版本号>).apk`；调试 APK：`app/build/outputs/apk/debug/app-debug.apk`。调试包使用本地调试签名；调试版和发布版统一使用独立包名 `com.example.c001apk.compose.miuix`；后续覆盖更新需保留同一签名密钥。发布包启用 R8 和资源压缩。未配置发布密钥时，本地构建使用本机调试密钥；CI Release 强制要求发布密钥。签名配置支持环境变量及 local.properties；公开分发需保管固定发布密钥。
+压缩 APK：`app/build/outputs/apk/release/c001apk_<版本名>(<版本号>).apk`；调试 APK：`app/build/outputs/apk/debug/app-debug.apk`。调试包使用本地调试签名；调试版和发布版统一使用独立包名 `com.example.c001apk.compose.miuix`；后续覆盖更新需保留同一签名密钥。发布包启用 R8 和资源压缩。未配置发布密钥时，本地构建使用本机调试密钥；CI Release 强制要求发布密钥。签名配置支持环境变量及 local.properties；公开分发需保管固定发布密钥。
 
-版本名使用 `1.3.5-miuix+<Git 提交>`，支持 `-PappVersion=x.y.z`；建议从包含 Git 历史的仓库或 bundle 构建。网络环境需要代理时，Gradle/JVM 应配置对应代理属性。
+版本名使用 `1.3.6`，支持 `-PappVersion=x.y.z`；建议从包含 Git 历史的仓库或 bundle 构建。网络环境需要代理时，Gradle/JVM 应配置对应代理属性。
 
 ## 验证范围
 
@@ -53,7 +53,7 @@ bash ./gradlew :app:connectedDebugAndroidTest
 
 ## 数盟 ID
 
-根据用户提供的 `smid.zip` 接入 `cn.shuzilm.core` Java 包装层、配置资源和 ARM64 `libdu.so`。SDK 使用资料中的官方身份 `com.coolapk.market` / `16.1.3` / `2604022`；应用安装包继续使用独立的 miuix 包名和 Git 版本号。身份适配仅作用于 SDK 的 Context / PackageManager，不改动系统包管理器或官方客户端。
+根据用户提供的 `smid.zip` 接入 `cn.shuzilm.core` Java 包装层、配置资源和 ARM64 `libdu.so`。SDK 使用资料中的官方身份 `com.coolapk.market` / `16.1.3` / `2604022`；应用安装包继续使用现有独立包名与正常应用版本号。身份适配仅作用于 SDK 的 Context / PackageManager，不改动系统包管理器或官方客户端。
 
 首次进入时异步获取并等待 native 注册完成，最长等待 35 秒；已经保存的 ID 直接复用。设置中的“数字联盟 ID”可以重新获取或手动填写。保存 ID 时在同一 DataStore 事务内更新设备请求头和旧协议默认参数，保留账号、主题以及用户自定义参数。重新获取失败不会覆盖已保存的 ID。SDK 回调、超时和重复操作由仓库层统一处理；日志只记录成功与否，不输出 ID、Cookie 或 token。
 

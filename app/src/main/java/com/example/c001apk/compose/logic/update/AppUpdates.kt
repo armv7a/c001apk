@@ -81,7 +81,7 @@ class AppUpdates @Inject constructor(@param:ApplicationContext context: Context)
         }
         val repository = preferences.value.repository
         if (repository.isBlank()) {
-            if (manual) _state.value = State(message = "请先设置本 miuix 版本的发布仓库。", manual = true)
+            if (manual) _state.value = State(message = "请先设置此应用的发布仓库。", manual = true)
             return
         }
         manualRequested = manual
@@ -146,7 +146,7 @@ class AppUpdates @Inject constructor(@param:ApplicationContext context: Context)
                         .url("https://api.github.com/repos/$repository/releases/latest")
                         .header("Accept", "application/vnd.github+json")
                         .header("X-GitHub-Api-Version", "2026-03-10")
-                        .header("User-Agent", "c001apk-miuix/${BuildConfig.APP_VERSION}")
+                        .header("User-Agent", "c001apk/${BuildConfig.APP_VERSION}")
                         .build(),
                 )
             continuation.invokeOnCancellation { call.cancel() }
