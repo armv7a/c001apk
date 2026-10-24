@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.res.ResourcesCompat
 import com.example.c001apk.compose.BuildConfig
 import com.example.c001apk.compose.R
+import com.example.c001apk.compose.constant.Constants.URL_PROJECT
 import com.example.c001apk.compose.constant.Constants.URL_SOURCE_CODE
 import com.example.c001apk.compose.constant.Constants.URL_SOURCE_CODE_FORK
 import com.example.c001apk.compose.ui.component.BackButton
@@ -87,6 +88,12 @@ fun AboutScreen(
                 com.example.c001apk.compose.ui.update.AppUpdateSettings(compact = true)
             }
             PreferenceGroup(title = "开源") {
+                BasicListItem(
+                    leadingImageVector = MiuixIcons.Create,
+                    headlineText = "项目主页",
+                    supportingText = "KiritoXDone/c001apk",
+                    onClick = { context.openInBrowser(URL_PROJECT) },
+                )
                 BasicListItem(
                     leadingImageVector = MiuixIcons.Create,
                     headlineText = "原项目地址",

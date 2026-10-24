@@ -1,0 +1,91 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+    steps:
+      - name: Validate release tag
+        id: tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          tag = os.environ['RELEASE_TAG']
+          if not re.fullmatch(r'v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', tag):
+              raise SystemExit('Release tags must use vMAJOR.MINOR.PATCH')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'version={tag[1:]}\n')
+          PY
+
+  build:
+    needs: version
+    uses: ./.github/workflows/android.yml
+    with:
+      variant: release
+      app_version: ${{ needs.version.outputs.version }}
+    secrets: inherit
+
+  publish:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: c001apk-release
+          path: release-assets
+      - name: Prepare release notes and checksums
+        env:
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import os
+          import re
+          from pathlib import Path
+          version = os.environ['RELEASE_VERSION']
+          changelog = Path('CHANGELOG.md').read_text()
+          section = re.search(r'^## ' + re.escape(version) + r'(?:\s[^\n]*)?\n(.*?)(?=^## |\Z)', changelog, re.M | re.S)
+          notes = section[1].strip() if section else f'c001apk {version}'
+          notes += '\n\nAndroid 13+ · ARM64\n\n包名：`com.example.c001apk.compose`。\n'
+          Path('release-notes.md').write_text(notes)
+          apks = sorted(Path('release-assets').glob('*.apk'))
+          if len(apks) != 1:
+              raise SystemExit('Expected exactly one verified release APK')
+          Path('release-assets/SHA256SUMS').write_text(''.join(
+              hashlib.sha256(apk.read_bytes()).hexdigest() + '  ' + apk.name + '\n'
+              for apk in apks
+          ))
+          PY
+      - name: Publish verified APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          assets=(release-assets/*.apk release-assets/*.json release-assets/SHA256SUMS)
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
+            gh release edit "$RELEASE_TAG" --title "$RELEASE_TAG" --notes-file release-notes.md --draft=false
+          else
+            gh release create "$RELEASE_TAG" "${assets[@]}" --verify-tag --title "$RELEASE_TAG" --notes-file release-notes.md
+          fi

@@ -21,11 +21,12 @@ val gitCommitCount =
         .asText
         .map { it.trim().toInt() }
         .get()
-val appVersion = providers.gradleProperty("appVersion").orElse("1.3.6").get()
+val appVersion = providers.gradleProperty("appVersion").orElse("1.3.7").get()
 
 require(Regex("[0-9]+\\.[0-9]+\\.[0-9]+").matches(appVersion))
 
-val updateRepository = providers.gradleProperty("updateRepository").orElse("").get()
+val updateRepository =
+    providers.gradleProperty("updateRepository").orElse("KiritoXDone/c001apk").get()
 
 require(
     updateRepository.isEmpty() || Regex("[A-Za-z0-9-]+/[A-Za-z0-9_.-]+").matches(updateRepository),

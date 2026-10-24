@@ -45,7 +45,7 @@ bash ./gradlew :app:connectedDebugAndroidTest
 
 压缩 APK：`app/build/outputs/apk/release/c001apk_<版本名>(<版本号>).apk`；调试 APK：`app/build/outputs/apk/debug/app-debug.apk`。调试包使用本地调试签名；调试版和发布版统一使用独立包名 `com.example.c001apk.compose`；后续覆盖更新需保留同一签名密钥。发布包启用 R8 和资源压缩。未配置发布密钥时，本地构建使用本机调试密钥；CI Release 强制要求发布密钥。签名配置支持环境变量及 local.properties；公开分发需保管固定发布密钥。
 
-版本名使用 `1.3.6`，支持 `-PappVersion=x.y.z`；建议从包含 Git 历史的仓库或 bundle 构建。网络环境需要代理时，Gradle/JVM 应配置对应代理属性。
+版本名使用 `1.3.7`，支持 `-PappVersion=x.y.z`；建议从包含 Git 历史的仓库或 bundle 构建。网络环境需要代理时，Gradle/JVM 应配置对应代理属性。
 
 ## 验证范围
 

@@ -75,9 +75,9 @@
 
 ## 下载安装
 
-当前源码版本为 **1.3.6**，支持 **Android 13 / API 33 及以上的 ARM64 设备**。
+当前源码版本为 **1.3.7**，支持 **Android 13 / API 33 及以上的 ARM64 设备**。
 
-本项目尚未配置独立的公开下载渠道。可按下方步骤自行构建 APK；在自己的仓库启用 [Android 工作流](.github/workflows/android.yml) 后，也可从 Actions 的 Artifacts 获取构建产物。
+项目源码发布在 [KiritoXDone/c001apk](https://github.com/KiritoXDone/c001apk)。目前尚未发布正式 APK Release，可按下方步骤自行构建；配置签名并手动运行 [Android 工作流](.github/workflows/android.yml) 后，也可从 Actions 的 Artifacts 获取构建产物。
 
 应用显示名称为 **c001apk**，独立包名为 `com.example.c001apk.compose`，可与其他包名的版本共存。账号与本地数据不会从原版或 Flutter 版自动迁移；同包名、同签名的后续版本可覆盖安装并保留数据。
 
@@ -124,7 +124,7 @@ C001APK_KEY_ALIAS
 C001APK_KEY_PASSWORD
 ```
 
-配置完成后，可用 `-PrequireReleaseSigning=true` 要求构建必须使用已配置的发布密钥。GitHub Actions 的 Release 构建还要求 `KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD` 和 `SIGNING_CERT_SHA256` Secrets；工作流会校验 APK 身份和签名，再上传产物，不自动发布 Release。
+配置完成后，可用 `-PrequireReleaseSigning=true` 要求构建必须使用已配置的发布密钥。GitHub Actions 的 Release 构建还要求 `KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD` 和 `SIGNING_CERT_SHA256` Secrets；工作流会校验 APK 身份和签名，再上传产物。推送 `vMAJOR.MINOR.PATCH` 标签会调用同一构建流程，并在校验通过后自动发布 APK、校验报告和 SHA256SUMS 到 GitHub Release。
 
 ### 检查与验证
 
@@ -141,6 +141,17 @@ python3 tools/verify_apk.py /path/to/app.apk \
 
 校验工具检查包名、最低 Android 版本、ARM64、运行必需资源、原生库压缩、签名证书、v2 签名与 ZIP 对齐。设备测试和显式启用网络测试的方式见 [改造与构建说明](docs/MIUIX_MIGRATION.md)。历史验证结果见 [验证记录](docs/VERIFICATION.md)，不代表每次提交都已执行全部检查。
 
+### 发布版本
+
+先更新 `CHANGELOG.md`，提交代码后创建并推送版本标签：
+
+```sh
+git tag v1.3.7
+git push origin v1.3.7
+```
+
+[发布工作流](.github/workflows/release.yml) 从标签读取版本号，依次执行单元测试、Lint、Release 构建和签名校验。全部成功后才发布 Release，并使用对应版本的更新记录作为说明；重新运行同一标签时更新已有资产。正式签名已配置在本仓库的 Actions Secrets，私钥不存入 Git。其他 fork 需要自行配置签名 Secrets。
+
 ### 应用更新
 
 自更新从配置的 GitHub 仓库读取正式 Release，可在设置中填写 `owner/repo`，或在构建时传入：
@@ -149,7 +160,7 @@ python3 tools/verify_apk.py /path/to/app.apk \
 bash ./gradlew :app:assembleRelease -PupdateRepository=owner/repo
 ```
 
-本地构建默认不预置发布仓库；CI 构建默认使用当前 GitHub 仓库。更新检查支持冷启动检查、手动检查和跳过版本，根据版本与设备 ABI 选择 APK，并交由浏览器下载。
+本地构建默认使用 `KiritoXDone/c001apk`；CI 构建默认使用当前 GitHub 仓库。更新检查支持冷启动检查、手动检查和跳过版本，根据版本与设备 ABI 选择 APK，并交由浏览器下载。
 
 ## 项目文档
 

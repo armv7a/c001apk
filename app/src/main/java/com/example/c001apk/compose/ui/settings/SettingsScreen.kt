@@ -41,6 +41,7 @@ import com.example.c001apk.compose.BuildConfig
 import com.example.c001apk.compose.R
 import com.example.c001apk.compose.ThemeMode
 import com.example.c001apk.compose.ThemeType
+import com.example.c001apk.compose.constant.Constants.URL_PROJECT
 import com.example.c001apk.compose.constant.Constants.URL_SOURCE_CODE
 import com.example.c001apk.compose.constant.Constants.URL_SOURCE_CODE_FORK
 import com.example.c001apk.compose.logic.model.HapticStrength
@@ -173,7 +174,7 @@ fun SettingsScreen(
                                             when (index) {
                                                 0 ->
                                                     context.openInBrowser(
-                                                        "$URL_SOURCE_CODE_FORK/issues",
+                                                        "$URL_PROJECT/issues",
                                                     )
 
                                                 1 -> showAboutDialog = true
