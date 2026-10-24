@@ -24,9 +24,9 @@ import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.ui.component.settings.BasicListItem
+import com.example.c001apk.compose.ui.component.settings.PreferenceGroup
 import com.example.c001apk.compose.util.openInBrowser
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.All
 import top.yukonga.miuix.kmp.icon.extended.Create
@@ -73,37 +73,40 @@ fun AboutScreen(
                     modifier = Modifier.align(Alignment.Center),
                 )
             }
-            HorizontalDivider()
-            BasicListItem(
-                leadingImageVector = MiuixIcons.All,
-                headlineText = stringResource(id = R.string.app_name),
-                supportingText = "c001apk · miuix",
-            ) {}
-            BasicListItem(
-                leadingImageVector = MiuixIcons.Info,
-                headlineText = "版本",
-                supportingText = "${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
-            ) {}
-            com.example.c001apk.compose.ui.update.AppUpdateSettings(compact = true)
-            BasicListItem(
-                leadingImageVector = MiuixIcons.Create,
-                headlineText = "原项目地址",
-                supportingText = URL_SOURCE_CODE,
-            ) {
-                context.openInBrowser(URL_SOURCE_CODE)
+            PreferenceGroup {
+                BasicListItem(
+                    leadingImageVector = MiuixIcons.All,
+                    headlineText = stringResource(id = R.string.app_name),
+                    supportingText = "第三方酷安客户端",
+                )
+                BasicListItem(
+                    leadingImageVector = MiuixIcons.Info,
+                    headlineText = "版本",
+                    supportingText = "${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
+                )
+                com.example.c001apk.compose.ui.update.AppUpdateSettings(compact = true)
             }
-            BasicListItem(
-                leadingImageVector = MiuixIcons.Share,
-                headlineText = "Compose 基线项目",
-                supportingText = URL_SOURCE_CODE_FORK,
-            ) {
-                context.openInBrowser(URL_SOURCE_CODE_FORK)
-            }
-            BasicListItem(
-                leadingImageVector = MiuixIcons.File,
-                headlineText = "开源许可证",
-            ) {
-                onLicenseClick()
+            PreferenceGroup(title = "开源") {
+                BasicListItem(
+                    leadingImageVector = MiuixIcons.Create,
+                    headlineText = "原项目地址",
+                    supportingText = URL_SOURCE_CODE,
+                ) {
+                    context.openInBrowser(URL_SOURCE_CODE)
+                }
+                BasicListItem(
+                    leadingImageVector = MiuixIcons.Share,
+                    headlineText = "Compose 基线项目",
+                    supportingText = URL_SOURCE_CODE_FORK,
+                ) {
+                    context.openInBrowser(URL_SOURCE_CODE_FORK)
+                }
+                BasicListItem(
+                    leadingImageVector = MiuixIcons.File,
+                    headlineText = "开源许可证",
+                ) {
+                    onLicenseClick()
+                }
             }
         }
     }

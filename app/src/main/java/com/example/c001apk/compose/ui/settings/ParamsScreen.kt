@@ -20,6 +20,7 @@ import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.ui.component.settings.BasicListItem
+import com.example.c001apk.compose.ui.component.settings.PreferenceGroup
 import com.example.c001apk.compose.util.TokenDeviceUtils.encode
 import com.example.c001apk.compose.util.Utils.randomMacAddress
 
@@ -47,117 +48,120 @@ fun ParamsScreen(
         Column(
             Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState),
         ) {
-            ParamsItem(
-                title = stringResource(id = R.string.params_version_name),
-                data = prefs.versionName.ifEmpty { null },
-            ) {
-                viewModel.setVersionName(it)
-                viewModel.setUserAgent(
-                    "Dalvik/2.1.0 (Linux; U; Android ${prefs.androidVersion}; ${prefs.model} ${prefs.buildNumber}) (#Build; ${prefs.brand}; ${prefs.model}; ${prefs.buildNumber}; ${prefs.androidVersion}) +CoolMarket/$it-${prefs.versionCode}-${Constants.MODE}",
+            PreferenceGroup(title = "酷安协议") {
+                ParamsItem(
+                    title = stringResource(id = R.string.params_version_name),
+                    data = prefs.versionName.ifEmpty { null },
+                ) {
+                    viewModel.setVersionName(it)
+                    viewModel.setUserAgent(
+                        "Dalvik/2.1.0 (Linux; U; Android ${prefs.androidVersion}; ${prefs.model} ${prefs.buildNumber}) (#Build; ${prefs.brand}; ${prefs.model}; ${prefs.buildNumber}; ${prefs.androidVersion}) +CoolMarket/$it-${prefs.versionCode}-${Constants.MODE}",
+                    )
+                }
+
+                ParamsItem(
+                    title = stringResource(id = R.string.params_api_version),
+                    data = prefs.apiVersion.ifEmpty { null },
+                ) {
+                    viewModel.setApiVersion(it)
+                }
+
+                ParamsItem(
+                    title = stringResource(id = R.string.params_version_code),
+                    data = prefs.versionCode.ifEmpty { null },
+                ) {
+                    viewModel.setVersionCode(it)
+                    viewModel.setUserAgent(
+                        "Dalvik/2.1.0 (Linux; U; Android ${prefs.androidVersion}; ${prefs.model} ${prefs.buildNumber}) (#Build; ${prefs.brand}; ${prefs.model}; ${prefs.buildNumber}; ${prefs.androidVersion}) +CoolMarket/${prefs.versionName}-$it-${Constants.MODE}",
+                    )
+                }
+            }
+            PreferenceGroup(title = "设备信息") {
+                ParamsItem(
+                    title = stringResource(id = R.string.params_manufacturer),
+                    data = prefs.manufacturer.ifEmpty { null },
+                ) {
+                    viewModel.setManufacturer(it)
+                    viewModel.setXAppDevice(
+                        encode(
+                            "${prefs.szlmId}; ; ; ${randomMacAddress()}; $it; ${prefs.brand}; ${prefs.model}; ${prefs.buildNumber}; null",
+                        ),
+                    )
+                }
+
+                ParamsItem(
+                    title = stringResource(id = R.string.params_brand),
+                    data = prefs.brand.ifEmpty { null },
+                ) {
+                    viewModel.setBrand(it)
+                    viewModel.setXAppDevice(
+                        encode(
+                            "${prefs.szlmId}; ; ; ${randomMacAddress()}; ${prefs.manufacturer}; $it; ${prefs.model}; ${prefs.buildNumber}; null",
+                        ),
+                    )
+                    viewModel.setUserAgent(
+                        "Dalvik/2.1.0 (Linux; U; Android ${prefs.androidVersion}; ${prefs.model} ${prefs.buildNumber}) (#Build; $it; ${prefs.model}; ${prefs.buildNumber}; ${prefs.androidVersion}) +CoolMarket/${prefs.versionName}-${prefs.versionCode}-${Constants.MODE}",
+                    )
+                }
+
+                ParamsItem(
+                    title = stringResource(id = R.string.params_model),
+                    data = prefs.model.ifEmpty { null },
+                ) {
+                    viewModel.setModel(it)
+                    viewModel.setXAppDevice(
+                        encode(
+                            "${prefs.szlmId}; ; ; ${randomMacAddress()}; ${prefs.manufacturer}; ${prefs.brand}; $it; ${prefs.buildNumber}; null",
+                        ),
+                    )
+                    viewModel.setUserAgent(
+                        "Dalvik/2.1.0 (Linux; U; Android ${prefs.androidVersion}; $it ${prefs.buildNumber}) (#Build; ${prefs.brand}; $it; ${prefs.buildNumber}; ${prefs.androidVersion}) +CoolMarket/${prefs.versionName}-${prefs.versionCode}-${Constants.MODE}",
+                    )
+                }
+
+                ParamsItem(
+                    title = stringResource(id = R.string.params_build_number),
+                    data = prefs.buildNumber.ifEmpty { null },
+                ) {
+                    viewModel.setBuildNumber(it)
+                    viewModel.setXAppDevice(
+                        encode(
+                            "${prefs.szlmId}; ; ; ${randomMacAddress()}; ${prefs.manufacturer}; ${prefs.brand}; ${prefs.model}; $it; null",
+                        ),
+                    )
+                    viewModel.setUserAgent(
+                        "Dalvik/2.1.0 (Linux; U; Android ${prefs.androidVersion}; ${prefs.model} ${prefs.buildNumber}) (#Build; ${prefs.brand}; ${prefs.model}; $it; ${prefs.androidVersion}) +CoolMarket/${prefs.versionName}-${prefs.versionCode}-${Constants.MODE}",
+                    )
+                }
+
+                ParamsItem(
+                    title = stringResource(id = R.string.params_sdk_int),
+                    data = prefs.sdkInt.ifEmpty { null },
+                ) {
+                    viewModel.setSdkInt(it)
+                }
+
+                ParamsItem(
+                    title = stringResource(id = R.string.params_android_version),
+                    data = prefs.androidVersion.ifEmpty { null },
+                ) {
+                    viewModel.setAndroidVersion(it)
+                    viewModel.setUserAgent(
+                        "Dalvik/2.1.0 (Linux; U; Android $it; ${prefs.model} ${prefs.buildNumber}) (#Build; ${prefs.brand}; ${prefs.model}; ${prefs.buildNumber}; $it) +CoolMarket/${prefs.versionName}-${prefs.versionCode}-${Constants.MODE}",
+                    )
+                }
+            }
+            PreferenceGroup(title = "请求参数") {
+                ParamsItem(
+                    title = stringResource(id = R.string.params_user_agent),
+                    data = prefs.userAgent.ifEmpty { null },
+                )
+
+                ParamsItem(
+                    title = stringResource(id = R.string.params_x_app_device),
+                    data = prefs.xAppDevice.ifEmpty { null },
                 )
             }
-
-            ParamsItem(
-                title = stringResource(id = R.string.params_api_version),
-                data = prefs.apiVersion.ifEmpty { null },
-            ) {
-                viewModel.setApiVersion(it)
-            }
-
-            ParamsItem(
-                title = stringResource(id = R.string.params_version_code),
-                data = prefs.versionCode.ifEmpty { null },
-            ) {
-                viewModel.setVersionCode(it)
-                viewModel.setUserAgent(
-                    "Dalvik/2.1.0 (Linux; U; Android ${prefs.androidVersion}; ${prefs.model} ${prefs.buildNumber}) (#Build; ${prefs.brand}; ${prefs.model}; ${prefs.buildNumber}; ${prefs.androidVersion}) +CoolMarket/${prefs.versionName}-$it-${Constants.MODE}",
-                )
-            }
-
-            ParamsItem(
-                title = stringResource(id = R.string.params_manufacturer),
-                data = prefs.manufacturer.ifEmpty { null },
-            ) {
-                viewModel.setManufacturer(it)
-                viewModel.setXAppDevice(
-                    encode(
-                        "${prefs.szlmId}; ; ; ${randomMacAddress()}; $it; ${prefs.brand}; ${prefs.model}; ${prefs.buildNumber}; null",
-                    ),
-                )
-            }
-
-            ParamsItem(
-                title = stringResource(id = R.string.params_brand),
-                data = prefs.brand.ifEmpty { null },
-            ) {
-                viewModel.setBrand(it)
-                viewModel.setXAppDevice(
-                    encode(
-                        "${prefs.szlmId}; ; ; ${randomMacAddress()}; ${prefs.manufacturer}; $it; ${prefs.model}; ${prefs.buildNumber}; null",
-                    ),
-                )
-                viewModel.setUserAgent(
-                    "Dalvik/2.1.0 (Linux; U; Android ${prefs.androidVersion}; ${prefs.model} ${prefs.buildNumber}) (#Build; $it; ${prefs.model}; ${prefs.buildNumber}; ${prefs.androidVersion}) +CoolMarket/${prefs.versionName}-${prefs.versionCode}-${Constants.MODE}",
-                )
-            }
-
-            ParamsItem(
-                title = stringResource(id = R.string.params_model),
-                data = prefs.model.ifEmpty { null },
-            ) {
-                viewModel.setModel(it)
-                viewModel.setXAppDevice(
-                    encode(
-                        "${prefs.szlmId}; ; ; ${randomMacAddress()}; ${prefs.manufacturer}; ${prefs.brand}; $it; ${prefs.buildNumber}; null",
-                    ),
-                )
-                viewModel.setUserAgent(
-                    "Dalvik/2.1.0 (Linux; U; Android ${prefs.androidVersion}; $it ${prefs.buildNumber}) (#Build; ${prefs.brand}; $it; ${prefs.buildNumber}; ${prefs.androidVersion}) +CoolMarket/${prefs.versionName}-${prefs.versionCode}-${Constants.MODE}",
-                )
-            }
-
-            ParamsItem(
-                title = stringResource(id = R.string.params_build_number),
-                data = prefs.buildNumber.ifEmpty { null },
-            ) {
-                viewModel.setBuildNumber(it)
-                viewModel.setXAppDevice(
-                    encode(
-                        "${prefs.szlmId}; ; ; ${randomMacAddress()}; ${prefs.manufacturer}; ${prefs.brand}; ${prefs.model}; $it; null",
-                    ),
-                )
-                viewModel.setUserAgent(
-                    "Dalvik/2.1.0 (Linux; U; Android ${prefs.androidVersion}; ${prefs.model} ${prefs.buildNumber}) (#Build; ${prefs.brand}; ${prefs.model}; $it; ${prefs.androidVersion}) +CoolMarket/${prefs.versionName}-${prefs.versionCode}-${Constants.MODE}",
-                )
-            }
-
-            ParamsItem(
-                title = stringResource(id = R.string.params_sdk_int),
-                data = prefs.sdkInt.ifEmpty { null },
-            ) {
-                viewModel.setSdkInt(it)
-            }
-
-            ParamsItem(
-                title = stringResource(id = R.string.params_android_version),
-                data = prefs.androidVersion.ifEmpty { null },
-            ) {
-                viewModel.setAndroidVersion(it)
-                viewModel.setUserAgent(
-                    "Dalvik/2.1.0 (Linux; U; Android $it; ${prefs.model} ${prefs.buildNumber}) (#Build; ${prefs.brand}; ${prefs.model}; ${prefs.buildNumber}; $it) +CoolMarket/${prefs.versionName}-${prefs.versionCode}-${Constants.MODE}",
-                )
-            }
-
-            ParamsItem(
-                title = stringResource(id = R.string.params_user_agent),
-                data = prefs.userAgent.ifEmpty { null },
-            )
-
-            ParamsItem(
-                title = stringResource(id = R.string.params_x_app_device),
-                data = prefs.xAppDevice.ifEmpty { null },
-            )
-
             BasicListItem(
                 headlineText = "使用本机设备参数",
                 supportingText = "保留数盟 ID，恢复当前手机的品牌、型号和系统版本",
@@ -182,11 +186,8 @@ fun ParamsItem(
     BasicListItem(
         headlineText = title,
         supportingText = data,
-    ) {
-        setData?.let {
-            showDialog = true
-        }
-    }
+        onClick = if (setData != null) ({ showDialog = true }) else null,
+    )
 
     when {
         showDialog -> {

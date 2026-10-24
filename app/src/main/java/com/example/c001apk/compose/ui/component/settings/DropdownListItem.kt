@@ -1,11 +1,13 @@
 package com.example.c001apk.compose.ui.component.settings
 
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import top.yukonga.miuix.kmp.basic.DropdownDefaults
-import top.yukonga.miuix.kmp.basic.DropdownEntry
-import top.yukonga.miuix.kmp.basic.DropdownItem
-import top.yukonga.miuix.kmp.popup.WindowDropdownDialog
+import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 data class SelectionItem<T>(val label: String, val value: T)
 
@@ -18,35 +20,26 @@ fun <T> DropdownListItem(
     onValueChanged: (index: Int, value: T) -> Unit,
     enabled: Boolean = true,
 ) {
-    var show by remember { mutableStateOf(false) }
-    val currentOnChange by rememberUpdatedState(onValueChanged)
-    val entry =
-        remember(selections, value) {
-            DropdownEntry(
-                selections.mapIndexed { index, option ->
-                    DropdownItem(
-                        text = option.label,
-                        selected = option.value == value,
-                        onClick = { currentOnChange(index, option.value) },
-                    )
+    PreferenceCard {
+        WindowDropdownPreference(
+            title = headlineText,
+            items = selections.map { it.label },
+            selectedIndex = selections.indexOfFirst { it.value == value },
+            enabled = enabled,
+            startAction =
+                leadingImageVector?.let { icon ->
+                    {
+                        Icon(
+                            icon,
+                            null,
+                            Modifier.size(24.dp),
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        )
+                    }
                 },
-            )
-        }
-    BasicListItem(
-        headlineText = headlineText,
-        supportingText = selections.find { it.value == value }?.label.orEmpty(),
-        leadingImageVector = leadingImageVector,
-        enabled = enabled,
-        holdDownState = show,
-        onClick = { show = true },
-    )
-    WindowDropdownDialog(
-        entry = entry,
-        title = headlineText,
-        dialogButtonString = "取消",
-        show = show,
-        onDismiss = { show = false },
-        onDismissFinished = { show = false },
-        dropdownColors = DropdownDefaults.dialogDropdownColors(),
-    )
+            onSelectedIndexChange = { index ->
+                selections.getOrNull(index)?.let { onValueChanged(index, it.value) }
+            },
+        )
+    }
 }

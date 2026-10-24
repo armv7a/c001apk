@@ -10,8 +10,7 @@ import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.SmallTitle
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.ChevronForward
+import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.squircle.squircleClip
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -32,40 +31,44 @@ fun BasicListItem(
         SmallTitle(text = leadingText, modifier = modifier)
         return
     }
-    PreferenceCard(modifier) {
-        BasicComponent(
-            title = headlineText,
-            summary = supportingText,
-            enabled = enabled,
-            holdDownState = holdDownState,
-            onClick = onClick,
-            startAction =
-                if (leadingImageVector != null || leadingPainter != null) {
-                    {
-                        if (leadingImageVector != null)
-                            Icon(
-                                leadingImageVector,
-                                null,
-                                tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                                modifier = Modifier.size(24.dp),
-                            )
-                        else if (leadingPainter != null)
-                            Image(
-                                leadingPainter,
-                                null,
-                                modifier = Modifier.size(24.dp).squircleClip(6.dp),
-                            )
-                    }
-                } else null,
-            endActions = {
-                if (trailingContent != null) trailingContent()
-                else if (onClick != null)
+    val leading: (@Composable () -> Unit)? =
+        if (leadingImageVector != null || leadingPainter != null) {
+            {
+                if (leadingImageVector != null)
                     Icon(
-                        MiuixIcons.ChevronForward,
+                        leadingImageVector,
                         null,
-                        tint = MiuixTheme.colorScheme.onSurfaceVariantActions,
+                        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        modifier = Modifier.size(24.dp),
                     )
-            },
-        )
+                else if (leadingPainter != null)
+                    Image(
+                        leadingPainter,
+                        null,
+                        modifier = Modifier.size(24.dp).squircleClip(6.dp),
+                    )
+            }
+        } else null
+    PreferenceCard(modifier) {
+        if (onClick != null && trailingContent == null) {
+            ArrowPreference(
+                title = headlineText.orEmpty(),
+                summary = supportingText,
+                enabled = enabled,
+                holdDownState = holdDownState,
+                onClick = onClick,
+                startAction = leading,
+            )
+        } else {
+            BasicComponent(
+                title = headlineText,
+                summary = supportingText,
+                enabled = enabled,
+                holdDownState = holdDownState,
+                onClick = onClick,
+                startAction = leading,
+                endActions = trailingContent?.let { trailing -> { trailing() } },
+            )
+        }
     }
 }

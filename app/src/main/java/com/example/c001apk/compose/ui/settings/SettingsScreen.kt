@@ -3,23 +3,18 @@ package com.example.c001apk.compose.ui.settings
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -40,7 +35,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.core.content.res.ResourcesCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.BuildConfig
@@ -65,8 +59,7 @@ import com.example.c001apk.compose.ui.component.icons.Swatch
 import com.example.c001apk.compose.ui.component.rememberHapticClick
 import com.example.c001apk.compose.ui.component.settings.BasicListItem
 import com.example.c001apk.compose.ui.component.settings.DropdownListItem
-import com.example.c001apk.compose.ui.component.settings.LocalPreferencePosition
-import com.example.c001apk.compose.ui.component.settings.PreferencePosition
+import com.example.c001apk.compose.ui.component.settings.PreferenceGroup
 import com.example.c001apk.compose.ui.component.settings.SelectionItem
 import com.example.c001apk.compose.ui.component.settings.StateDropdownListItem
 import com.example.c001apk.compose.ui.component.settings.SwitchListItem
@@ -75,15 +68,11 @@ import com.example.c001apk.compose.util.CacheDataManager.getTotalCacheSize
 import com.example.c001apk.compose.util.openInBrowser
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import java.util.Formatter
-import top.yukonga.miuix.kmp.basic.Card as ElevatedCard
-import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.RadioButton
-import top.yukonga.miuix.kmp.basic.Slider
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar as TopAppBar
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextField as OutlinedTextField
+import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.All
 import top.yukonga.miuix.kmp.icon.extended.Back
@@ -99,7 +88,6 @@ import top.yukonga.miuix.kmp.icon.extended.SelectAll
 import top.yukonga.miuix.kmp.icon.extended.Theme
 import top.yukonga.miuix.kmp.icon.extended.Update
 import top.yukonga.miuix.kmp.icon.extended.WorldClock
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.ThemePaletteStyle as PaletteStyle
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
@@ -146,7 +134,6 @@ fun SettingsScreen(
     var showSZLMIDDialog by remember { mutableStateOf(false) }
     var showFontScaleDialog by remember { mutableStateOf(false) }
     var showContentScaleDialog by remember { mutableStateOf(false) }
-    var showImageQualityDialog by remember { mutableStateOf(false) }
     var showCleanCacheDialog by remember { mutableStateOf(false) }
     var showThemeTypeDialog by remember { mutableStateOf(false) }
     var showHapticStrengthDialog by remember { mutableStateOf(false) }
@@ -238,445 +225,324 @@ fun SettingsScreen(
                             end = paddingValues.calculateRightPadding(layoutDirection),
                         ),
                 ) {
-                    if (activeSection == SettingsSection.Appearance)
-                        item(key = "reading_mode") {
-                            DropdownListItem(
-                                value = prefs.readingMode,
-                                headlineText = "分栏阅读",
-                                selections =
-                                    listOf(
-                                        SelectionItem("自动适配大屏", 0),
-                                        SelectionItem("开启（窗口足够宽时）", 1),
-                                        SelectionItem("关闭", 2),
-                                    ),
-                                onValueChanged = { _, value -> viewModel.setReadingMode(value) },
-                            )
-                        }
-                    if (activeSection == SettingsSection.Accounts)
-                        item(key = "accounts") {
-                            BasicListItem(
-                                headlineText = "账号管理",
-                                supportingText = "切换账号、添加账号与游客模式",
-                                leadingImageVector =
-                                    com.example.c001apk.compose.ui.component.icons
-                                        .FlutterProfileIcons
-                                        .Account,
-                                onClick = onAccountsClick,
-                            )
-                        }
-                    if (false)
-                        item(key = "settings_0") {
-                            BasicListItem(leadingText = stringResource(id = R.string.app_name))
-                        }
-                    if (activeSection == SettingsSection.Device)
-                        item(key = "settings_1") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.First,
-                            ) {
-                                BasicListItem(
-                                    leadingImageVector = MiuixIcons.Smartphone,
-                                    headlineText = "数字联盟ID",
-                                    supportingText =
-                                        if (prefs.szlmId.isBlank()) "尚未生成，点击获取" else "已保存，点击管理",
-                                ) {
-                                    showSZLMIDDialog = true
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Device)
-                        item(key = "settings_2") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Last,
-                            ) {
-                                BasicListItem(
-                                    leadingImageVector = MiuixIcons.Smartphone,
-                                    headlineText = "机型参数",
-                                ) {
-                                    onParamsClick()
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Content)
-                        item(key = "home_tabs") {
-                            BasicListItem(
-                                leadingImageVector = MiuixIcons.All,
-                                headlineText = "首页板块",
-                                supportingText = "选择首页显示的内容 Tab",
-                                onClick = onHomeTabsClick,
-                            )
-                        }
-                    if (false)
-                        item(key = "settings_3") {
-                            BasicListItem(leadingText = "主题")
-                        }
-                    if (activeSection == SettingsSection.Appearance)
-                        item(key = "settings_4") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.First,
-                            ) {
-                                SwitchListItem(
-                                    value = prefs.materialYou,
-                                    leadingImageVector = MiuixIcons.Theme,
-                                    headlineText = "系统主题色",
-                                ) {
-                                    viewModel.setMaterialYou(it)
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Appearance)
-                        item(key = "settings_5") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                StateDropdownListItem(
-                                    isEnable = !prefs.materialYou,
-                                    leadingImageVector = MiuixIcons.Theme,
-                                    headlineText = "主题颜色",
-                                    value = prefs.themeType,
-                                    selections =
-                                        ThemeType.entries
-                                            .toMutableList()
-                                            .also { it.remove(ThemeType.UNRECOGNIZED) }
-                                            .map {
+                    when (activeSection) {
+                        SettingsSection.Appearance -> {
+                            item(key = "Appearance_0") {
+                                PreferenceGroup(title = "主题") {
+                                    SwitchListItem(
+                                        value = prefs.materialYou,
+                                        leadingImageVector = MiuixIcons.Theme,
+                                        headlineText = "系统主题色",
+                                    ) {
+                                        viewModel.setMaterialYou(it)
+                                    }
+                                    StateDropdownListItem(
+                                        isEnable = !prefs.materialYou,
+                                        leadingImageVector = MiuixIcons.Theme,
+                                        headlineText = "主题颜色",
+                                        value = prefs.themeType,
+                                        selections =
+                                            ThemeType.entries
+                                                .toMutableList()
+                                                .also { it.remove(ThemeType.UNRECOGNIZED) }
+                                                .map {
+                                                    SelectionItem(
+                                                        stringResource(id = themeTypeLabelRes(it)),
+                                                        it,
+                                                    )
+                                                },
+                                        onValueChanged = { _, value ->
+                                            if (value == ThemeType.Custom)
+                                                showThemeTypeDialog = true
+                                            viewModel.setThemeType(value)
+                                        },
+                                    )
+                                    StateDropdownListItem(
+                                        isEnable = !prefs.materialYou,
+                                        leadingImageVector = MiuixIcons.Swatch,
+                                        headlineText = "调色版风格",
+                                        value = prefs.paletteStyle,
+                                        selections =
+                                            PaletteStyle.entries.mapIndexed { index, label ->
                                                 SelectionItem(
-                                                    stringResource(id = themeTypeLabelRes(it)),
-                                                    it,
+                                                    stringResource(
+                                                        id = paletteStyleLabelRes(label),
+                                                    ),
+                                                    index,
                                                 )
                                             },
-                                    onValueChanged = { _, value ->
-                                        if (value == ThemeType.Custom) showThemeTypeDialog = true
-                                        viewModel.setThemeType(value)
-                                    },
-                                )
-                            }
-                        }
-                    if (activeSection == SettingsSection.Appearance)
-                        item(key = "settings_6") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                StateDropdownListItem(
-                                    isEnable = !prefs.materialYou,
-                                    leadingImageVector = MiuixIcons.Swatch,
-                                    headlineText = "调色版风格",
-                                    value = prefs.paletteStyle,
-                                    selections =
-                                        PaletteStyle.entries.mapIndexed { index, label ->
-                                            SelectionItem(
-                                                stringResource(id = paletteStyleLabelRes(label)),
-                                                index,
-                                            )
+                                        onValueChanged = { index, _ ->
+                                            viewModel.setPaletteStyle(index)
                                         },
-                                    onValueChanged = { index, _ ->
-                                        viewModel.setPaletteStyle(index)
-                                    },
-                                )
-                            }
-                        }
-                    if (activeSection == SettingsSection.Appearance)
-                        item(key = "settings_7") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                DropdownListItem(
-                                    leadingImageVector = MiuixIcons.Theme,
-                                    headlineText = "深色主题",
-                                    value = prefs.themeMode.name,
-                                    selections =
-                                        (0..2).map {
-                                            SelectionItem(
-                                                themeList[it],
-                                                ThemeMode.entries[it].name,
-                                            )
-                                        },
-                                    onValueChanged = { index, _ ->
-                                        viewModel.setDarkTheme(ThemeMode.forNumber(index))
-                                    },
-                                )
-                            }
-                        }
-                    if (activeSection == SettingsSection.Appearance)
-                        item(key = "settings_8") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Last,
-                            ) {
-                                SwitchListItem(
-                                    value = prefs.pureBlack,
-                                    leadingImageVector = MiuixIcons.Theme,
-                                    headlineText = "纯黑主题",
-                                ) {
-                                    viewModel.setPureBlack(it)
-                                }
-                            }
-                        }
-                    if (false)
-                        item(key = "settings_9") {
-                            BasicListItem(leadingText = "显示")
-                        }
-                    if (activeSection == SettingsSection.Content)
-                        item(key = "settings_10") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.First,
-                            ) {
-                                BasicListItem(
-                                    leadingImageVector = MiuixIcons.Blocklist,
-                                    headlineText = "用户黑名单",
-                                ) {
-                                    onViewBlackList(BlackListType.USER.name)
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Content)
-                        item(key = "settings_11") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                BasicListItem(
-                                    leadingImageVector = MiuixIcons.Blocklist,
-                                    headlineText = "话题黑名单",
-                                ) {
-                                    onViewBlackList(BlackListType.TOPIC.name)
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Appearance)
-                        item(key = "settings_12") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                BasicListItem(
-                                    leadingImageVector = MiuixIcons.Rename,
-                                    headlineText = "字体大小",
-                                    supportingText =
-                                        "${Formatter().format("%.2f", prefs.fontScale)}x",
-                                ) {
-                                    showFontScaleDialog = true
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Appearance)
-                        item(key = "settings_13") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                BasicListItem(
-                                    leadingImageVector = MiuixIcons.ScreenMirroring,
-                                    headlineText = "内容大小",
-                                    supportingText =
-                                        "${Formatter().format("%.2f", prefs.contentScale)}x",
-                                ) {
-                                    showContentScaleDialog = true
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Content)
-                        item(key = "local_follow") {
-                            BasicListItem(
-                                headlineText = "本地 / 悄悄关注",
-                                supportingText = "管理本机名单与长按关注行为",
-                                leadingImageVector =
-                                    com.example.c001apk.compose.ui.component.icons
-                                        .FlutterProfileIcons
-                                        .Favorite,
-                                onClick = onLocalFollowsClick,
-                            )
-                        }
-                    if (activeSection == SettingsSection.Privacy)
-                        item(key = "settings_15") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                DropdownListItem(
-                                    leadingImageVector = MiuixIcons.Image,
-                                    headlineText = "图片画质",
-                                    value = prefs.imageQuality,
-                                    selections =
-                                        imageQualityList.mapIndexed { index, label ->
-                                            SelectionItem(label, index)
-                                        },
-                                    onValueChanged = { index, _ ->
-                                        viewModel.setImageQuality(index)
-                                    },
-                                )
-                            }
-                        }
-                    if (activeSection == SettingsSection.Appearance)
-                        item(key = "settings_16") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                SwitchListItem(
-                                    value = prefs.imageFilter,
-                                    leadingImageVector = MiuixIcons.Photos,
-                                    headlineText = "压暗图片",
-                                ) {
-                                    viewModel.setImageFilter(it)
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Privacy)
-                        item(key = "settings_17") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                SwitchListItem(
-                                    value = prefs.openInBrowser,
-                                    leadingImageVector = MiuixIcons.WorldClock,
-                                    headlineText = "使用外部浏览器打开链接",
-                                ) {
-                                    viewModel.setOpenInBrowser(it)
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Content)
-                        item(key = "settings_18") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                SwitchListItem(
-                                    value = prefs.showSquare,
-                                    leadingImageVector = MiuixIcons.Notes,
-                                    headlineText = "头条显示广场",
-                                ) {
-                                    viewModel.setShowSquare(it)
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Privacy)
-                        item(key = "settings_19") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                SwitchListItem(
-                                    value = prefs.recordHistory,
-                                    leadingImageVector = MiuixIcons.Recent,
-                                    headlineText = "记录浏览历史",
-                                ) {
-                                    viewModel.setRecordHistory(it)
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Content)
-                        item(key = "settings_20") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                SwitchListItem(
-                                    value = prefs.showEmoji,
-                                    leadingImageVector = MiuixIcons.EmojiEmotions,
-                                    headlineText = "显示表情",
-                                ) {
-                                    viewModel.setShowEmoji(it)
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Storage)
-                        item(key = "settings_21") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Last,
-                            ) {
-                                SwitchListItem(
-                                    value = prefs.checkUpdate,
-                                    leadingImageVector = MiuixIcons.Update,
-                                    headlineText = "检查已安装应用更新",
-                                ) {
-                                    viewModel.setCheckUpdate(it)
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Storage)
-                        item(key = "app_updates") {
-                            BasicListItem(leadingText = "c001apk 更新")
-                            com.example.c001apk.compose.ui.update.AppUpdateSettings()
-                        }
-                    if (false)
-                        item(key = "settings_22") {
-                            BasicListItem(leadingText = "其他")
-                        }
-                    if (activeSection == SettingsSection.Appearance)
-                        item(key = "settings_23") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.First,
-                            ) {
-                                SwitchListItem(
-                                    value = prefs.hapticFeedback,
-                                    leadingImageVector = MiuixIcons.SelectAll,
-                                    headlineText = "触感反馈",
-                                ) {
-                                    viewModel.setHapticFeedback(it)
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Appearance)
-                        item(key = "settings_24") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                SwitchListItem(
-                                    value = prefs.customHaptics,
-                                    leadingImageVector = MiuixIcons.SelectAll,
-                                    headlineText = "自定义触感",
-                                    supportingText = "关闭时跟随系统触感设置",
-                                ) {
-                                    viewModel.setCustomHaptics(it)
-                                }
-                            }
-                        }
-                    if (activeSection == SettingsSection.Appearance)
-                        item(key = "settings_25") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                if (prefs.customHaptics) {
-                                    BasicListItem(
-                                        leadingImageVector = MiuixIcons.SelectAll,
-                                        headlineText = "触感强度",
-                                        supportingText = prefs.hapticStrength.label,
-                                        onClick = showHapticStrengthDialogClick,
                                     )
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                        SwitchListItem(
-                                            value = prefs.reverseHapticEffects,
+                                    DropdownListItem(
+                                        leadingImageVector = MiuixIcons.Theme,
+                                        headlineText = "深色主题",
+                                        value = prefs.themeMode.name,
+                                        selections =
+                                            (0..2).map {
+                                                SelectionItem(
+                                                    themeList[it],
+                                                    ThemeMode.entries[it].name,
+                                                )
+                                            },
+                                        onValueChanged = { index, _ ->
+                                            viewModel.setDarkTheme(ThemeMode.forNumber(index))
+                                        },
+                                    )
+                                    SwitchListItem(
+                                        value = prefs.pureBlack,
+                                        leadingImageVector = MiuixIcons.Theme,
+                                        headlineText = "纯黑主题",
+                                    ) {
+                                        viewModel.setPureBlack(it)
+                                    }
+                                }
+                            }
+                            item(key = "Appearance_1") {
+                                PreferenceGroup(title = "显示") {
+                                    DropdownListItem(
+                                        value = prefs.readingMode,
+                                        headlineText = "分栏阅读",
+                                        selections =
+                                            listOf(
+                                                SelectionItem("自动适配大屏", 0),
+                                                SelectionItem("开启（窗口足够宽时）", 1),
+                                                SelectionItem("关闭", 2),
+                                            ),
+                                        onValueChanged = { _, value ->
+                                            viewModel.setReadingMode(value)
+                                        },
+                                    )
+                                    BasicListItem(
+                                        leadingImageVector = MiuixIcons.Rename,
+                                        headlineText = "字体大小",
+                                        supportingText =
+                                            "${Formatter().format("%.2f", prefs.fontScale)}x",
+                                    ) {
+                                        showFontScaleDialog = true
+                                    }
+                                    BasicListItem(
+                                        leadingImageVector = MiuixIcons.ScreenMirroring,
+                                        headlineText = "内容大小",
+                                        supportingText =
+                                            "${Formatter().format("%.2f", prefs.contentScale)}x",
+                                    ) {
+                                        showContentScaleDialog = true
+                                    }
+                                    SwitchListItem(
+                                        value = prefs.imageFilter,
+                                        leadingImageVector = MiuixIcons.Photos,
+                                        headlineText = "压暗图片",
+                                    ) {
+                                        viewModel.setImageFilter(it)
+                                    }
+                                }
+                            }
+                            item(key = "Appearance_2") {
+                                PreferenceGroup(title = "触感") {
+                                    SwitchListItem(
+                                        value = prefs.hapticFeedback,
+                                        leadingImageVector = MiuixIcons.SelectAll,
+                                        headlineText = "触感反馈",
+                                    ) {
+                                        viewModel.setHapticFeedback(it)
+                                    }
+                                    SwitchListItem(
+                                        value = prefs.customHaptics,
+                                        leadingImageVector = MiuixIcons.SelectAll,
+                                        headlineText = "自定义触感",
+                                        supportingText = "关闭时跟随系统触感设置",
+                                    ) {
+                                        viewModel.setCustomHaptics(it)
+                                    }
+                                    if (prefs.customHaptics) {
+                                        BasicListItem(
                                             leadingImageVector = MiuixIcons.SelectAll,
-                                            headlineText = "触感兼容模式",
-                                            supportingText = "轻重反馈与预期相反时开启",
-                                        ) {
-                                            viewModel.setReverseHapticEffects(it)
+                                            headlineText = "触感强度",
+                                            supportingText = prefs.hapticStrength.label,
+                                            onClick = showHapticStrengthDialogClick,
+                                        )
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                            SwitchListItem(
+                                                value = prefs.reverseHapticEffects,
+                                                leadingImageVector = MiuixIcons.SelectAll,
+                                                headlineText = "触感兼容模式",
+                                                supportingText = "轻重反馈与预期相反时开启",
+                                            ) {
+                                                viewModel.setReverseHapticEffects(it)
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    if (activeSection == SettingsSection.Accounts)
-                        item(key = "settings_26") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Middle,
-                            ) {
-                                BasicListItem(
-                                    leadingImageVector = MiuixIcons.All,
-                                    headlineText = "关于",
-                                    supportingText =
-                                        "${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
-                                ) {
-                                    onAboutClick()
+                        SettingsSection.Content -> {
+                            item(key = "Content_0") {
+                                PreferenceGroup(title = "首页内容") {
+                                    BasicListItem(
+                                        leadingImageVector = MiuixIcons.All,
+                                        headlineText = "首页板块",
+                                        supportingText = "选择首页显示的内容 Tab",
+                                        onClick = onHomeTabsClick,
+                                    )
+                                    SwitchListItem(
+                                        value = prefs.showSquare,
+                                        leadingImageVector = MiuixIcons.Notes,
+                                        headlineText = "头条显示广场",
+                                    ) {
+                                        viewModel.setShowSquare(it)
+                                    }
+                                    SwitchListItem(
+                                        value = prefs.showEmoji,
+                                        leadingImageVector = MiuixIcons.EmojiEmotions,
+                                        headlineText = "显示表情",
+                                    ) {
+                                        viewModel.setShowEmoji(it)
+                                    }
+                                }
+                            }
+                            item(key = "Content_1") {
+                                PreferenceGroup(title = "关注") {
+                                    BasicListItem(
+                                        headlineText = "本地 / 悄悄关注",
+                                        supportingText = "管理本机名单与长按关注行为",
+                                        leadingImageVector =
+                                            com.example.c001apk.compose.ui.component.icons
+                                                .FlutterProfileIcons
+                                                .Favorite,
+                                        onClick = onLocalFollowsClick,
+                                    )
+                                }
+                            }
+                            item(key = "Content_2") {
+                                PreferenceGroup(title = "屏蔽") {
+                                    BasicListItem(
+                                        leadingImageVector = MiuixIcons.Blocklist,
+                                        headlineText = "用户黑名单",
+                                    ) {
+                                        onViewBlackList(BlackListType.USER.name)
+                                    }
+                                    BasicListItem(
+                                        leadingImageVector = MiuixIcons.Blocklist,
+                                        headlineText = "话题黑名单",
+                                    ) {
+                                        onViewBlackList(BlackListType.TOPIC.name)
+                                    }
                                 }
                             }
                         }
-                    if (activeSection == SettingsSection.Storage)
-                        item(key = "settings_27") {
-                            CompositionLocalProvider(
-                                LocalPreferencePosition provides PreferencePosition.Last,
-                            ) {
-                                BasicListItem(
-                                    leadingImageVector = MiuixIcons.Delete,
-                                    headlineText = "清理缓存",
-                                    supportingText = cacheSize,
-                                ) {
-                                    cacheSize = getTotalCacheSize(context)
-                                    showCleanCacheDialog = true
+                        SettingsSection.Privacy -> {
+                            item(key = "Privacy_0") {
+                                PreferenceGroup(title = "图片") {
+                                    DropdownListItem(
+                                        leadingImageVector = MiuixIcons.Image,
+                                        headlineText = "图片画质",
+                                        value = prefs.imageQuality,
+                                        selections =
+                                            imageQualityList.mapIndexed { index, label ->
+                                                SelectionItem(label, index)
+                                            },
+                                        onValueChanged = { index, _ ->
+                                            viewModel.setImageQuality(index)
+                                        },
+                                    )
+                                }
+                            }
+                            item(key = "Privacy_1") {
+                                PreferenceGroup(title = "浏览") {
+                                    SwitchListItem(
+                                        value = prefs.openInBrowser,
+                                        leadingImageVector = MiuixIcons.WorldClock,
+                                        headlineText = "使用外部浏览器打开链接",
+                                    ) {
+                                        viewModel.setOpenInBrowser(it)
+                                    }
+                                    SwitchListItem(
+                                        value = prefs.recordHistory,
+                                        leadingImageVector = MiuixIcons.Recent,
+                                        headlineText = "记录浏览历史",
+                                    ) {
+                                        viewModel.setRecordHistory(it)
+                                    }
                                 }
                             }
                         }
+                        SettingsSection.Storage -> {
+                            item(key = "Storage_0") {
+                                PreferenceGroup(title = "缓存与应用") {
+                                    BasicListItem(
+                                        leadingImageVector = MiuixIcons.Delete,
+                                        headlineText = "清理缓存",
+                                        supportingText = cacheSize,
+                                    ) {
+                                        cacheSize = getTotalCacheSize(context)
+                                        showCleanCacheDialog = true
+                                    }
+                                    SwitchListItem(
+                                        value = prefs.checkUpdate,
+                                        leadingImageVector = MiuixIcons.Update,
+                                        headlineText = "检查已安装应用更新",
+                                    ) {
+                                        viewModel.setCheckUpdate(it)
+                                    }
+                                }
+                            }
+                            item(key = "Storage_1") {
+                                PreferenceGroup(title = "c001apk 更新") {
+                                    com.example.c001apk.compose.ui.update.AppUpdateSettings()
+                                }
+                            }
+                        }
+                        SettingsSection.Device -> {
+                            item(key = "Device_0") {
+                                PreferenceGroup(title = "协议与设备") {
+                                    BasicListItem(
+                                        leadingImageVector = MiuixIcons.Smartphone,
+                                        headlineText = "数字联盟ID",
+                                        supportingText =
+                                            if (prefs.szlmId.isBlank()) "尚未生成，点击获取" else "已保存，点击管理",
+                                    ) {
+                                        showSZLMIDDialog = true
+                                    }
+                                    BasicListItem(
+                                        leadingImageVector = MiuixIcons.Smartphone,
+                                        headlineText = "机型参数",
+                                    ) {
+                                        onParamsClick()
+                                    }
+                                }
+                            }
+                        }
+                        SettingsSection.Accounts -> {
+                            item(key = "Accounts_0") {
+                                PreferenceGroup(title = "账号") {
+                                    BasicListItem(
+                                        headlineText = "账号管理",
+                                        supportingText = "切换账号、添加账号与游客模式",
+                                        leadingImageVector =
+                                            com.example.c001apk.compose.ui.component.icons
+                                                .FlutterProfileIcons
+                                                .Account,
+                                        onClick = onAccountsClick,
+                                    )
+                                }
+                            }
+                            item(key = "Accounts_1") {
+                                PreferenceGroup(title = "应用信息") {
+                                    BasicListItem(
+                                        leadingImageVector = MiuixIcons.All,
+                                        headlineText = "关于",
+                                        supportingText =
+                                            "${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
+                                    ) {
+                                        onAboutClick()
+                                    }
+                                }
+                            }
+                        }
+                        null -> Unit
+                    }
                 }
             }
         }
@@ -686,21 +552,6 @@ fun SettingsScreen(
                 AboutDialog {
                     showAboutDialog = false
                 }
-            }
-
-            showImageQualityDialog -> {
-                ListItemDialog(
-                    title = "图片画质",
-                    list = imageQualityList,
-                    selected = prefs.imageQuality,
-                    onDismiss = {
-                        showImageQualityDialog = false
-                    },
-                    setData = {
-                        showImageQualityDialog = false
-                        viewModel.setImageQuality(it)
-                    },
-                )
             }
 
             showThemeTypeDialog -> {
@@ -870,28 +721,6 @@ fun ListItemDialog(
 }
 
 @Composable
-fun ListItemDialogItem(
-    title: String,
-    selected: Boolean,
-    hapticStrength: HapticStrength? = null,
-    onClick: () -> Unit,
-) {
-    val hapticClick =
-        rememberHapticClick(strength = hapticStrength) {
-            onClick()
-        }
-    Row(
-        modifier = Modifier.clickable { hapticClick() },
-    ) {
-        RadioButton(selected = selected, onClick = { hapticClick() })
-        Text(
-            modifier = Modifier.fillMaxWidth().align(Alignment.CenterVertically),
-            text = title,
-        )
-    }
-}
-
-@Composable
 fun EditTextDialog(
     data: String,
     title: String,
@@ -945,8 +774,8 @@ fun EditTextDialog(
             )
         },
         text = {
-            OutlinedTextField(
-                modifier = Modifier.focusRequester(focusRequest),
+            TextField(
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequest),
                 value = text,
                 onValueChange = {
                     if (maxLength != null) {
@@ -1006,12 +835,13 @@ fun SliderDialog(
             Column(
                 Modifier.fillMaxWidth(),
             ) {
-                Slider(
+                top.yukonga.miuix.kmp.preference.SliderPreference(
+                    title = hint,
                     value = progress,
-                    onValueChange = {
-                        progress = it
-                    },
+                    valueText = "${Formatter().format("%.2f", progress)}x",
+                    onValueChange = { progress = it },
                     valueRange = 0.8f..1.3f,
+                    insideMargin = PaddingValues(vertical = 12.dp),
                 )
                 Text(
                     text = "$hint: ${Formatter().format("%.2f", progress)}",
@@ -1027,62 +857,38 @@ fun SliderDialog(
 @Composable
 fun AboutDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
-    Dialog(onDismissRequest = { onDismiss() }) {
-        ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            cornerRadius = 28.dp,
-            colors =
-                CardDefaults.defaultColors()
-                    .copy(color = MiuixTheme.colorScheme.surfaceContainerHigh),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(24.dp),
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.app_name)) },
+        icon = {
+            val drawable =
+                ResourcesCompat.getDrawable(context.resources, R.mipmap.ic_launcher, context.theme)
+            Image(rememberDrawablePainter(drawable), null, Modifier.size(56.dp))
+        },
+        text = {
+            Column(
+                verticalArrangement =
+                    androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
             ) {
-                val drawable =
-                    ResourcesCompat.getDrawable(
-                        context.resources,
-                        R.mipmap.ic_launcher,
-                        context.theme,
-                    )
-                Image(
-                    painter = rememberDrawablePainter(drawable),
-                    contentDescription = "icon",
-                    modifier = Modifier.size(40.dp),
+                Text("${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+                HtmlText(
+                    html =
+                        stringResource(
+                            R.string.about_source_code,
+                            "<b><a href=\"${URL_SOURCE_CODE}\">GitHub</a></b>",
+                        ),
                 )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column {
-                    Text(
-                        stringResource(id = R.string.app_name),
-                        style = MiuixTheme.textStyles.headline2,
-                        fontSize = 18.sp,
-                    )
-                    Text(
-                        text = "${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
-                        style = MiuixTheme.textStyles.body2,
-                        fontSize = 14.sp,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    HtmlText(
-                        html =
-                            stringResource(
-                                id = R.string.about_source_code,
-                                "<b><a href=\"${URL_SOURCE_CODE}\">GitHub</a></b>",
-                            ),
-                    )
-                    HtmlText(
-                        html =
-                            stringResource(
-                                id = R.string.about_source_code_fork,
-                                "<b><a href=\"${URL_SOURCE_CODE_FORK}\">GitHub</a></b>",
-                            ),
-                    )
-                }
+                HtmlText(
+                    html =
+                        stringResource(
+                            R.string.about_source_code_fork,
+                            "<b><a href=\"${URL_SOURCE_CODE_FORK}\">GitHub</a></b>",
+                        ),
+                )
             }
-        }
-    }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("知道了") } },
+    )
 }
 
 private fun themeTypeLabelRes(themeType: ThemeType): Int =
