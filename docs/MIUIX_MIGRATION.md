@@ -26,7 +26,7 @@
 
 最低 Android **13 / API 33，ARM64**，使用官方 miuix-blur 的 AGSL 渲染；没有低版本模糊降级分支。目标 API 35，编译平台 `android-37.0`。
 
-构建工具版本已固定：JDK 17、Gradle 9.7.1、AGP 9.4.1、Kotlin 2.4.20、KSP 2.3.12、Hilt 2.60.1。Android SDK 需安装 `platforms;android-37.0` 和 `build-tools;36.0.0`，子模块还使用 API 34/35。
+构建工具版本已固定：JDK 17、Gradle 9.7.1、AGP 9.4.1、Kotlin 2.4.20、KSP 2.3.12、Hilt 2.60.1、Activity / Activity Compose 1.13.0。Activity 版本提供 miuix 窗口菜单要求的 NavigationEventDispatcher。Android SDK 需安装 `platforms;android-37.0` 和 `build-tools;36.0.0`，子模块还使用 API 34/35。
 
 ```sh
 export JAVA_HOME=/path/to/jdk17
@@ -39,13 +39,13 @@ bash ./gradlew :app:assembleDebugAndroidTest
 bash ./gradlew :app:connectedDebugAndroidTest
 ```
 
-压缩 APK：`app/build/outputs/apk/release/c001apk-compose_<版本名>(<版本号>).apk`；调试 APK：`app/build/outputs/apk/debug/app-debug.apk`。调试包使用本地调试签名；调试版和发布版统一使用独立包名 `com.example.c001apk.compose.miuix`；后续覆盖更新需保留同一签名密钥。发布包启用 R8 和资源压缩。仍沿用上游的签名配置方式：未配置发布密钥时使用本地调试密钥；公开分发需自行配置正式发布签名。
+压缩 APK：`app/build/outputs/apk/release/c001apk-miuix_<版本名>(<版本号>).apk`；调试 APK：`app/build/outputs/apk/debug/app-debug.apk`。调试包使用本地调试签名；调试版和发布版统一使用独立包名 `com.example.c001apk.compose.miuix`；后续覆盖更新需保留同一签名密钥。发布包启用 R8 和资源压缩。未配置发布密钥时，本地构建使用本机调试密钥；CI Release 强制要求发布密钥。签名配置支持环境变量及 local.properties；公开分发需保管固定发布密钥。
 
-版本名取当前 Git 提交，附加 `-miuix`；建议从包含 Git 历史的仓库或 bundle 构建。网络环境需要代理时，Gradle/JVM 应配置对应代理属性。
+版本名使用 `1.3.5-miuix+<Git 提交>`，支持 `-PappVersion=x.y.z`；建议从包含 Git 历史的仓库或 bundle 构建。网络环境需要代理时，Gradle/JVM 应配置对应代理属性。
 
 ## 验证范围
 
-保留原有应用和媒体单元测试，新增设置开关只保存一次、单选弹窗即时应用，以及横竖屏发帖布局与 Editable 输入的仪器测试。安装包的实际构建、签名和设备验证结果见交付目录内的验证记录。未登录情况下不测试发帖、点赞、私信等会写入远程账号的操作。
+保留原有应用和媒体单元测试，新增设置开关只保存一次、单选弹窗即时应用，以及横竖屏发帖布局与 Editable 输入的仪器测试。测试范围见 [验证记录](VERIFICATION.md)，最终安装包的版本、签名与摘要见交付目录内的 APK 校验 JSON。未登录情况下不测试发帖、点赞、私信等会写入远程账号的操作。
 
 ## 数盟 ID
 
@@ -64,3 +64,15 @@ adb shell am instrument -w -e smidNetwork true \
   -e class com.example.c001apk.compose.ui.DigitalUnionNetworkTest \
   com.example.c001apk.compose.miuix.test/androidx.test.runner.AndroidJUnitRunner
 ```
+
+## 分发校验
+
+`python3 tools/verify_apk.py <APK> --sdk <Android SDK> --certificate-sha256 <预期证书摘要>` 核对独立包名、版本、Android 13 下限、ARM64 原生数盟库、压缩、v2 签名和 16 KiB zipalign。证书解析兼容不同 Build Tools 输出前缀，不允许用 Source Stamp 代替实际签名者。
+
+CI 手动构建，不自动发布。Release 要求 `KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD` 和 `SIGNING_CERT_SHA256`，缺失或签名不符即失败；Debug 使用调试密钥。Gradle 支持同名 `C001APK_` 环境变量及既有 `local.properties`，密钥不打包进源码或产物。
+
+## 本轮上游功能移植
+
+完整范围和 33 条 TG-Twilight 提交对应关系见 [移植跟踪](TWILIGHT_PORT.md)。默认分享使用 `www.coolapk1s.com`，官方链接仍能打开；数盟继续使用 native SDK。公告小助手和独立 announcements 分支按用户要求排除。
+
+应用自更新只读取本版本的发布仓库。当前不预置他人的发布仓库；可在设置填写 `owner/repo`，或构建时传入 `-PupdateRepository=owner/repo`。CI 默认使用当前 GitHub 仓库。未配置时手动检查会说明原因，不会引导安装 Flutter 版 APK。
