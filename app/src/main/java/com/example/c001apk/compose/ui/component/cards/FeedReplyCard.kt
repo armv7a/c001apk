@@ -57,6 +57,10 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 val LocalDetailComments = staticCompositionLocalOf { false }
 
+data class ReplyThreadCorners(val first: Boolean, val last: Boolean)
+
+val LocalReplyThreadCorners = staticCompositionLocalOf<ReplyThreadCorners?> { null }
+
 /** Created by bggRGjQaUbCoE on 2024/6/6 */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -83,16 +87,20 @@ fun FeedReplyCard(
     val isFeedReply by lazy { data.fetchType == "feed_reply" }
     val isLikeReply by lazy { data.likeUserInfo != null }
     val detailComments = LocalDetailComments.current
+    val threadCorners = LocalReplyThreadCorners.current
     val horizontal by lazy { if (isFeedReply) 16.dp else 10.dp }
-    val vertical by lazy { if (isFeedReply) 12.dp else 10.dp }
+    val vertical = if (threadCorners != null) 16.dp else if (isFeedReply) 12.dp else 10.dp
+    val defaultCorner = if (detailComments) 20.dp else if (isFeedReply) 0.dp else 16.dp
+    val topCorner = threadCorners?.let { if (it.first) 20.dp else 0.dp } ?: defaultCorner
+    val bottomCorner = threadCorners?.let { if (it.last) 20.dp else 0.dp } ?: defaultCorner
 
     ConstraintLayout(
         modifier =
             modifier
                 .padding(horizontal = if (detailComments || isFeedReply) 0.dp else 10.dp)
-                .padding(bottom = if (detailComments) 10.dp else 0.dp)
+                .padding(bottom = if (detailComments && threadCorners == null) 10.dp else 0.dp)
                 .fillMaxWidth()
-                .squircleClip(if (detailComments) 20.dp else if (isFeedReply) 0.dp else 16.dp)
+                .squircleClip(topCorner, topCorner, bottomCorner, bottomCorner)
                 .background(
                     if (detailComments) MiuixTheme.colorScheme.surfaceContainer
                     else if ((isTotalReply && !isTopReply) || !isFeedReply) cardBg()
@@ -142,8 +150,11 @@ fun FeedReplyCard(
             url = data.likeUserInfo?.userAvatar ?: data.userAvatar,
             modifier =
                 Modifier.padding(top = vertical)
-                    .size(30.dp)
-                    .clip(CircleShape)
+                    .size(if (threadCorners != null) 36.dp else 30.dp)
+                    .then(
+                        if (threadCorners != null) Modifier.squircleClip(12.dp)
+                        else Modifier.clip(CircleShape),
+                    )
                     .constrainAs(avatar) {
                         start.linkTo(parent.start)
                         top.linkTo(parent.top)

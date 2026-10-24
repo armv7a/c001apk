@@ -309,6 +309,9 @@ constructor(
     private var replyPage = 1
     private var replyLastItem: String? = null
     var isEndReply = false
+    var replyRootId by mutableStateOf<String?>(null)
+        private set
+
     private var isLoadMoreReply = false
     var replyLoadingState by
         mutableStateOf<LoadingState<List<HomeFeedResponse.Data>>>(LoadingState.Loading)
@@ -343,6 +346,7 @@ constructor(
                         else {
                             replyLoadingState =
                                 getReplyTop()?.let {
+                                    replyRootId = it.id
                                     LoadingState.Success(listOf(it))
                                 } ?: state
                             replyFooterState = FooterState.End
@@ -376,6 +380,7 @@ constructor(
                         }
                         if (replyPage == 2) {
                             getReplyTop()?.let {
+                                replyRootId = it.id
                                 response = listOf(it) + response
                             }
                         }
@@ -418,6 +423,7 @@ constructor(
     }
 
     fun resetReplyState() {
+        replyRootId = null
         replyPage = 1
         isLoadMoreReply = false
         isEndReply = false

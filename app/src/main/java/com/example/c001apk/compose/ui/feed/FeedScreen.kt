@@ -50,6 +50,7 @@ import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.base.LikeType
 import com.example.c001apk.compose.ui.component.ArticleItem
 import com.example.c001apk.compose.ui.component.BackButton
+import com.example.c001apk.compose.ui.component.FeedListEntry
 import com.example.c001apk.compose.ui.component.FooterCard
 import com.example.c001apk.compose.ui.component.ItemCard
 import com.example.c001apk.compose.ui.component.LocalMarkdownRaw
@@ -575,13 +576,18 @@ fun FeedScreen(
                     },
                     modifier = Modifier.padding(top = topInset),
                 ) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        ItemCard(
-                            loadingState = viewModel.replyLoadingState,
-                            loadMore = viewModel::loadMoreReply,
-                            isEnd = viewModel.isEndReply,
+                    ReplyThreadContent(
+                        state = viewModel.replyLoadingState,
+                        rootId = viewModel.replyRootId,
+                        threadKey = viewModel.replyId,
+                        footerState = viewModel.replyFooterState,
+                        isEnd = viewModel.isEndReply,
+                        onLoadMore = viewModel::loadMoreReply,
+                        onDismiss = ::resetBottomSheet,
+                    ) { reply, index ->
+                        FeedListEntry(
+                            item = reply,
+                            index = index,
                             onViewUser = { uid ->
                                 resetBottomSheet()
                                 onViewUser(uid)
@@ -613,10 +619,10 @@ fun FeedScreen(
                             },
                             isReply2Reply = !viewModel.frid.isNullOrEmpty(),
                             onShowTotalReply = { id, uid, frid ->
+                                viewModel.resetReplyState()
                                 viewModel.replyId = id
                                 viewModel.replyUid = uid
                                 viewModel.frid = frid
-                                viewModel.resetReplyState()
                                 viewModel.fetchTotalReply()
                             },
                             onReply = { rid, uid, username, _ ->
@@ -628,12 +634,6 @@ fun FeedScreen(
                                 viewModel.replyType = "reply"
                                 launchReply()
                             },
-                        )
-
-                        FooterCard(
-                            footerState = viewModel.replyFooterState,
-                            loadMore = viewModel::loadMoreReply,
-                            isFeed = true,
                         )
                     }
                 }
