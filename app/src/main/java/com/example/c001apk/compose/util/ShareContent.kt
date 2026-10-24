@@ -33,6 +33,6 @@ object ShareContent {
                         ShareType.PRODUCT -> "数码"
                     }
                 }
-        return "$heading\n${link(type, id)}\n${link(type, id, mirror = false)}\n分享自c001apk"
+        return "$heading\n${link(type, id)}\n分享自c001apk"
     }
 }

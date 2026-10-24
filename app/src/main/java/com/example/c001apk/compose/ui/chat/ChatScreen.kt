@@ -416,7 +416,14 @@ fun ChatScreen(
             onDismiss = { showFeedPicker = false },
             onSelected = { feedId ->
                 showFeedPicker = false
-                viewModel.onSendMessage(uid, "https://www.coolapk.com/feed/$feedId", "")
+                viewModel.onSendMessage(
+                    uid,
+                    com.example.c001apk.compose.util.ShareContent.link(
+                        com.example.c001apk.compose.util.ShareType.FEED,
+                        feedId,
+                    ),
+                    "",
+                )
             },
         )
     retryDelivery?.let { delivery ->

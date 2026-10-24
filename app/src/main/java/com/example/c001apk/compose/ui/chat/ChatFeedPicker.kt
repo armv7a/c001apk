@@ -25,16 +25,11 @@ object ChatFeedLink {
     fun parse(input: String): String? {
         val value = input.trim()
         if (Regex("^[0-9]+$").matches(value)) return value
-        val uri = runCatching { java.net.URI(value) }.getOrNull() ?: return null
-        val path =
-            when {
-                uri.scheme in listOf("https", "http") &&
-                    uri.host in listOf("coolapk.com", "www.coolapk.com") -> uri.path
-                uri.scheme == "coolmarket" && uri.host == "feed" -> "/feed${uri.path}"
-                uri.scheme == "coolmarket" && uri.host == "www.coolapk.com" -> uri.path
-                else -> return null
-            }
-        return Regex("^/feed/([0-9]+)/?$").matchEntire(path)?.groupValues?.get(1)
+        val parts =
+            com.example.c001apk.compose.util.CoolapkLink.parse(value)?.segments ?: return null
+        return parts.getOrNull(1)?.takeIf {
+            parts.size == 2 && parts[0] == "feed" && Regex("[0-9]+").matches(it)
+        }
     }
 }
 
@@ -177,7 +172,14 @@ fun ChatFeedPicker(onDismiss: () -> Unit, onSelected: (String) -> Unit) {
         MiuixAlertDialog(
             onDismissRequest = { chosen = null },
             title = { Text("发送这条动态？") },
-            text = { Text("https://www.coolapk.com/feed/$id") },
+            text = {
+                Text(
+                    com.example.c001apk.compose.util.ShareContent.link(
+                        com.example.c001apk.compose.util.ShareType.FEED,
+                        id,
+                    ),
+                )
+            },
             confirmButton = {
                 MiuixDialogButton(
                     onClick = {

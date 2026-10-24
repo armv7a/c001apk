@@ -18,9 +18,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.constant.Constants.PREFIX_HTTP
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
+import com.example.c001apk.compose.ui.component.ChatMessageText
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.component.ImageView
-import com.example.c001apk.compose.ui.component.LinkText
 import com.example.c001apk.compose.ui.theme.cardBg
 import com.example.c001apk.compose.util.ImageShowUtil
 import com.example.c001apk.compose.util.longClick
@@ -63,7 +63,7 @@ fun ChatLeftCard(
             )
 
             if (!data.message.isNullOrEmpty()) {
-                LinkText(
+                ChatMessageText(
                     text = data.message,
                     onOpenLink = onOpenLink,
                     modifier =

@@ -2,6 +2,8 @@
 
 用户范围：只移植 TG-Twilight 在其提交中新增、补全和修复的 Android 相关功能。当前原生 Compose + miuix 实现、独立包名、数盟 SDK 和用户指定的 UI 调整继续保留。
 
+用户追加要求：默认分享使用 `www.coolapk1s.com`，不附加官方域名的第二条链接；继续识别 `coolapk1s.com`、`www.coolapk1s.com` 与酷安官方域名。
+
 用户明确排除：独立 announcements 分支及「c001apk 小助手」公告功能，不创建公告分支或接入公告请求。应用更新检查和酷安小秘书仍在范围内。
 
 上游冻结点：`fb3e06cac5c65e9f86c902f1b4304aeee055f3e2`（main，1.3.5）。审阅完整历史 81 条；TG-Twilight GitHub 身份有 33 条，其中 2 条使用 Simon Twilight 显示名且仅修改文档。不会因上游继续提交而悄悄扩大本轮范围。

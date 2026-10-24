@@ -61,12 +61,13 @@ class CoolapkLinkTest {
     }
 
     @Test
-    fun shareContainsBothDomainsAndKeepsCopySingleLink() {
-        assertEquals(4, ShareContent.text(ShareType.TOPIC, "C++", "<b>标题</b>").lines().size)
+    fun shareDefaultsToCoolapk1sAndKeepsCopySingleLink() {
+        assertEquals(3, ShareContent.text(ShareType.TOPIC, "C++", "<b>标题</b>").lines().size)
         assertTrue(
             ShareContent.text(ShareType.TOPIC, "C++", "标题")
                 .contains("https://www.coolapk1s.com/t/C%2B%2B"),
         )
+        assertFalse(ShareContent.text(ShareType.FEED, "123").contains("www.coolapk.com"))
         assertEquals("https://www.coolapk1s.com/feed/123", ShareContent.link(ShareType.FEED, "123"))
     }
 }
