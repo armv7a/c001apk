@@ -31,6 +31,7 @@ fun MainScreen(
     resetBadge: () -> Unit,
     onSettingsClick: () -> Unit,
     onAccountsClick: () -> Unit,
+    onLocalFollowsClick: () -> Unit,
     onViewUser: (String) -> Unit,
     onViewFeed: (String, Boolean) -> Unit,
     onSearch: () -> Unit,
@@ -111,6 +112,7 @@ fun MainScreen(
 
                         1 ->
                             FollowScreen(
+                                onManage = onLocalFollowsClick,
                                 bottomPadding = mainPadding.calculateBottomPadding(),
                                 refreshState = followRefreshState,
                                 resetRefreshState = { followRefreshState = false },

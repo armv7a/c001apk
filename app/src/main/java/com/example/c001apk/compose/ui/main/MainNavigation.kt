@@ -172,6 +172,7 @@ fun MainNavigation(
                     widthSizeClass = widthSizeClass,
                     onSettingsClick = { navController.navigate(Router.SETTINGS.name) },
                     onAccountsClick = { navController.navigate(Router.ACCOUNTS.name) },
+                    onLocalFollowsClick = { navController.navigate(Router.LOCAL_FOLLOWS.name) },
                     onViewUser = navController::navigateToUser,
                     onViewFeed = ::onViewFeed,
                     onSearch = {
@@ -202,10 +203,18 @@ fun MainNavigation(
                 SettingsScreen(
                     onBackClick = { navController.popBackStack() },
                     onAccountsClick = { navController.navigate(Router.ACCOUNTS.name) },
+                    onLocalFollowsClick = { navController.navigate(Router.LOCAL_FOLLOWS.name) },
                     onHomeTabsClick = { navController.navigate(Router.TAB.name) },
                     onParamsClick = { navController.navigate(Router.PARAMS.name) },
                     onAboutClick = { navController.navigate(Router.ABOUT.name) },
                     onViewBlackList = navController::navigateToBlackList,
+                )
+            }
+
+            composable(route = Router.LOCAL_FOLLOWS.name) {
+                com.example.c001apk.compose.ui.follow.LocalFollowListScreen(
+                    onBack = { navController.popBackStack() },
+                    onUser = navController::navigateToUser,
                 )
             }
 

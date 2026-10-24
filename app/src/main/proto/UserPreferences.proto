@@ -52,6 +52,10 @@ message UserPreferences {
   int32 accountsVersion = 46;
   repeated SavedAccountRecord savedAccounts = 47;
   int64 accountRevision = 48;
+  repeated LocalFollowRecord localFollows = 49;
+  bool quietFollow = 50;
+  int32 followSelection = 51;
+  bool followSelectionConfigured = 52;
 }
 
 enum ThemeType{
@@ -100,4 +104,10 @@ message SavedAccountRecord {
   string level = 5;
   string experience = 6;
   string nextLevelExperience = 7;
+}
+
+message LocalFollowRecord {
+  string uid = 1;
+  string name = 2;
+  string avatar = 3;
 }

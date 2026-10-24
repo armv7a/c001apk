@@ -223,6 +223,7 @@ fun UserScreen(
                             UserInfoCard(
                                 data = (viewModel.userState as LoadingState.Success).response,
                                 onFollow = viewModel::onFollowUser,
+                                onLocalFollow = viewModel::toggleLocalFollow,
                                 onPMUser = onPMUser,
                                 onViewFFFList = onViewFFFList,
                             )

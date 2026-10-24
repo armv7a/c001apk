@@ -1,7 +1,10 @@
 package com.example.c001apk.compose.ui.component.cards
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -11,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -26,7 +30,6 @@ import com.example.c001apk.compose.util.DateUtils.fromToday
 import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.noRippleClickable
-import top.yukonga.miuix.kmp.basic.Button as FilledTonalButton
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton as OutlinedIconButton
 import top.yukonga.miuix.kmp.basic.Text
@@ -40,12 +43,14 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 fun UserInfoCard(
     data: HomeFeedResponse.Data,
     onFollow: (String, Int) -> Unit,
+    onLocalFollow: () -> Unit,
     onPMUser: (String, String) -> Unit,
     onViewFFFList: (String, String) -> Unit,
 ) {
 
     val context = LocalContext.current
-    //  val userPreferences = LocalUserPreferences.current
+    val prefs = com.example.c001apk.compose.logic.providable.LocalUserPreferences.current
+    val locallyFollowed = prefs.localFollows.any { it.uid == data.uid }
 
     ConstraintLayout {
         val (cover, avatar, username, uidLevel, bio, lff, active, pm, followBtn) = createRefs()
@@ -258,17 +263,36 @@ fun UserInfoCard(
                 },
         )
 
-        FilledTonalButton(
-            onClick = {
-                onFollow(data.uid.orEmpty(), data.isFollow ?: 0)
-            },
+        Box(
             modifier =
-                Modifier.padding(top = 10.dp, end = 20.dp).constrainAs(followBtn) {
-                    end.linkTo(parent.end)
-                    top.linkTo(cover.bottom)
-                },
+                Modifier.padding(top = 10.dp, end = 20.dp)
+                    .constrainAs(followBtn) {
+                        end.linkTo(parent.end)
+                        top.linkTo(cover.bottom)
+                    }
+                    .squircleClip(16.dp)
+                    .background(MiuixTheme.colorScheme.secondaryContainer)
+                    .combinedClickable(
+                        role = Role.Button,
+                        onClick = {
+                            if (!prefs.isLogin) onLocalFollow()
+                            else onFollow(data.uid.orEmpty(), data.isFollow ?: 0)
+                        },
+                        onLongClickLabel =
+                            if (prefs.isLogin && prefs.quietFollow) "切换悄悄关注" else null,
+                        onLongClick =
+                            if (prefs.isLogin && prefs.quietFollow) onLocalFollow else null,
+                    )
+                    .defaultMinSize(minWidth = 80.dp, minHeight = 44.dp)
+                    .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            Text(text = if (data.isFollow == 1) "取消关注" else "关注")
+            Text(
+                text =
+                    if (!prefs.isLogin) {
+                        if (locallyFollowed) "取消本地关注" else "本地关注"
+                    } else if (data.isFollow == 1) "取消关注" else "关注",
+            )
         }
 
         OutlinedIconButton(

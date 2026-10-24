@@ -40,7 +40,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.content.res.ResourcesCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.BuildConfig
-import com.example.c001apk.compose.FollowType
 import com.example.c001apk.compose.R
 import com.example.c001apk.compose.ThemeMode
 import com.example.c001apk.compose.ThemeType
@@ -82,7 +81,6 @@ import top.yukonga.miuix.kmp.basic.SmallTopAppBar as TopAppBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextField as OutlinedTextField
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.AddCircle
 import top.yukonga.miuix.kmp.icon.extended.All
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.Blocklist
@@ -108,6 +106,7 @@ fun SettingsScreen(
     onBackClick: () -> Unit,
     onHomeTabsClick: () -> Unit,
     onAccountsClick: () -> Unit,
+    onLocalFollowsClick: () -> Unit,
     onParamsClick: () -> Unit,
     onAboutClick: () -> Unit,
     onViewBlackList: (String) -> Unit,
@@ -119,7 +118,6 @@ fun SettingsScreen(
 
     val imageQualityList by lazy { listOf("网络自适应", "原图", "普清") }
     val themeList by lazy { listOf("跟随系统", "总是开启", "总是关闭") }
-    val followList by lazy { listOf("全部", "好友", "话题", "数码", "应用") }
     val hapticStrengthList by lazy { HapticStrength.options.map { it.label } }
 
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
@@ -380,23 +378,14 @@ fun SettingsScreen(
                     }
                 }
             }
-            item(key = "settings_14") {
-                CompositionLocalProvider(
-                    LocalPreferencePosition provides PreferencePosition.Middle,
-                ) {
-                    DropdownListItem(
-                        leadingImageVector = MiuixIcons.AddCircle,
-                        headlineText = "关注分组",
-                        value = prefs.followType.name,
-                        selections =
-                            followList.mapIndexed { index, label ->
-                                SelectionItem(label, FollowType.entries[index].name)
-                            },
-                        onValueChanged = { index, _ ->
-                            viewModel.setFollowType(FollowType.forNumber(index))
-                        },
-                    )
-                }
+            item(key = "local_follow") {
+                BasicListItem(
+                    headlineText = "本地 / 悄悄关注",
+                    supportingText = "管理本机名单与长按关注行为",
+                    leadingImageVector =
+                        com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons.Favorite,
+                    onClick = onLocalFollowsClick,
+                )
             }
             item(key = "settings_15") {
                 CompositionLocalProvider(

@@ -136,9 +136,10 @@ constructor(
         apiService.getUserSpace(uid).await()
     }
 
-    suspend fun getUserFeed(uid: String, page: Int, lastItem: String?) = flowList {
-        apiService.getUserFeed(uid, page, lastItem).await()
-    }
+    suspend fun getUserFeed(uid: String, page: Int, lastItem: String?, includeTop: Boolean = true) =
+        flowList {
+            apiService.getUserFeed(uid, page, lastItem, if (includeTop) 1 else 0).await()
+        }
 
     suspend fun getAppInfo(id: String) = flowData {
         apiService.getAppInfo(id).await()

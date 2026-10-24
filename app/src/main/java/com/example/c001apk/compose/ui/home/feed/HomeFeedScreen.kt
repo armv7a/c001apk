@@ -1,7 +1,6 @@
 package com.example.c001apk.compose.ui.home.feed
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.FollowType
@@ -26,14 +25,17 @@ fun HomeFeedScreen(
     onCopyText: (String?) -> Unit,
     onReport: (String, ReportType) -> Unit,
     isScrollingUp: ((Boolean) -> Unit)? = null,
+    followType: FollowType? = null,
 ) {
 
     val context = LocalContext.current
     val prefs = LocalUserPreferences.current
 
+    val selectedFollowType = followType ?: prefs.followType
+
     val dataListUrl: String? =
         if (type == TabType.FOLLOW)
-            when (prefs.followType) {
+            when (selectedFollowType) {
                 FollowType.ALL -> "/page?url=V9_HOME_TAB_FOLLOW"
                 FollowType.USER -> "/page?url=V9_HOME_TAB_FOLLOW&type=circle"
                 FollowType.TOPIC -> "/page?url=V9_HOME_TAB_FOLLOW&type=topic"
@@ -45,7 +47,7 @@ fun HomeFeedScreen(
 
     val dataListTitle: String? =
         if (type == TabType.FOLLOW)
-            when (prefs.followType) {
+            when (selectedFollowType) {
                 FollowType.ALL -> "全部关注"
                 FollowType.USER -> "好友关注"
                 FollowType.TOPIC -> "话题关注"
@@ -56,8 +58,9 @@ fun HomeFeedScreen(
         else null
 
     val viewModel =
-        hiltViewModel<HomeFeedViewModel, HomeFeedViewModel.ViewModelFactory>(key = type.name) {
-            factory ->
+        hiltViewModel<HomeFeedViewModel, HomeFeedViewModel.ViewModelFactory>(
+            key = type.name + if (type == TabType.FOLLOW) selectedFollowType.name else "",
+        ) { factory ->
             factory.create(
                 type = type,
                 dataListUrl =
@@ -77,13 +80,6 @@ fun HomeFeedScreen(
                 installTime = prefs.installTime,
             )
         }
-
-    LaunchedEffect(prefs.followType) {
-        if (type == TabType.FOLLOW) {
-            viewModel.dataListUrl = dataListUrl ?: EMPTY_STRING
-            viewModel.dataListTitle = dataListTitle ?: EMPTY_STRING
-        }
-    }
 
     CommonScreen(
         paddingValues = paddingValues,

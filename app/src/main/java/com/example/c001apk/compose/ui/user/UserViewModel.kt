@@ -17,14 +17,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/4
- */
+/** Created by bggRGjQaUbCoE on 2024/6/4 */
 @HiltViewModel(assistedFactory = UserViewModel.ViewModelFactory::class)
-class UserViewModel @AssistedInject constructor(
+class UserViewModel
+@AssistedInject
+constructor(
     @Assisted var uid: String,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
+    private val localFollows: com.example.c001apk.compose.logic.follow.LocalFollowStore,
 ) : BaseViewModel(networkRepo, blackListRepo) {
 
     @AssistedFactory
@@ -44,21 +45,18 @@ class UserViewModel @AssistedInject constructor(
 
     private fun fetchUserProfile() {
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.getUserSpace(uid)
-                .collect { state ->
-                    userState = state
-                    if (state is LoadingState.Success) {
-                        val response = state.response
-                        uid = response.uid.orEmpty()
-                        username = response.username.orEmpty()
-                        isBlocked = blackListRepo.checkUid(uid)
-                        if (isBlocked)
-                            loadingState = LoadingState.Error("$username 已被拉黑")
-                        else
-                            fetchData()
-                    }
-                    isRefreshing = false
+            networkRepo.getUserSpace(uid).collect { state ->
+                userState = state
+                if (state is LoadingState.Success) {
+                    val response = state.response
+                    uid = response.uid.orEmpty()
+                    username = response.username.orEmpty()
+                    isBlocked = blackListRepo.checkUid(uid)
+                    if (isBlocked) loadingState = LoadingState.Error("$username 已被拉黑")
+                    else fetchData()
                 }
+                isRefreshing = false
+            }
         }
     }
 
@@ -74,6 +72,7 @@ class UserViewModel @AssistedInject constructor(
     }
 
     var isPull = false
+
     override fun refresh() {
         if (!isRefreshing && !isLoadMore) {
             if (userState is LoadingState.Success) {
@@ -111,25 +110,42 @@ class UserViewModel @AssistedInject constructor(
         }
     }
 
+    fun toggleLocalFollow() {
+        val user = (userState as? LoadingState.Success)?.response ?: return
+        viewModelScope.launch {
+            try {
+                localFollows.toggle(
+                    com.example.c001apk.compose.logic.follow.LocalFollowUser(
+                        uid,
+                        user.username.orEmpty(),
+                        user.userAvatar.orEmpty(),
+                    ),
+                )
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                toastText = "本地关注保存失败，请重试"
+            }
+        }
+    }
+
     override fun handleFollowResponse(follow: Int): Boolean {
         val response = (userState as LoadingState.Success).response.copy(isFollow = follow)
         userState = LoadingState.Success(response)
         return true
     }
 
-    override fun handleResponse(response: List<HomeFeedResponse.Data>): List<HomeFeedResponse.Data>? {
+    override fun handleResponse(
+        response: List<HomeFeedResponse.Data>,
+    ): List<HomeFeedResponse.Data>? {
         isEnd = response.lastOrNull()?.entityTemplate == "noMoreDataCard"
         return null
     }
 
     override fun onBlockUser(uid: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            if (isBlocked)
-                blackListRepo.deleteUid(uid)
-            else
-                blackListRepo.saveUid(uid)
+            if (isBlocked) blackListRepo.deleteUid(uid) else blackListRepo.saveUid(uid)
             isBlocked = !isBlocked
         }
     }
-
 }

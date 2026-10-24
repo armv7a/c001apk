@@ -62,6 +62,9 @@ data class UserPreferencesCompat(
     val accountsVersion: Int = 0,
     val savedAccounts: List<SavedAccount> = emptyList(),
     val accountRevision: Long = 0,
+    val localFollows: List<com.example.c001apk.compose.logic.follow.LocalFollowUser> = emptyList(),
+    val quietFollow: Boolean = false,
+    val followSelection: Int = 1,
 ) {
     constructor(
         original: UserPreferences,
@@ -114,6 +117,14 @@ data class UserPreferencesCompat(
         accountsVersion = original.accountsVersion,
         savedAccounts = original.savedAccountsList.map(SavedAccount::fromProto),
         accountRevision = original.accountRevision,
+        localFollows =
+            original.localFollowsList.map {
+                com.example.c001apk.compose.logic.follow.LocalFollowUser(it.uid, it.name, it.avatar)
+            },
+        quietFollow = original.quietFollow,
+        followSelection =
+            if (original.followSelectionConfigured) original.followSelection.coerceIn(0, 5)
+            else original.followTypeValue.takeIf { it in 1..4 } ?: 1,
     )
 
     override fun toString() = "UserPreferencesCompat(credentials=redacted)"
@@ -176,6 +187,18 @@ data class UserPreferencesCompat(
             .setAccountsVersion(accountsVersion)
             .addAllSavedAccounts(savedAccounts.map(SavedAccount::toProto))
             .setAccountRevision(accountRevision)
+            .addAllLocalFollows(
+                localFollows.map {
+                    com.example.c001apk.compose.LocalFollowRecord.newBuilder()
+                        .setUid(it.uid)
+                        .setName(it.name)
+                        .setAvatar(it.avatar)
+                        .build()
+                },
+            )
+            .setQuietFollow(quietFollow)
+            .setFollowSelection(followSelection)
+            .setFollowSelectionConfigured(true)
             .build()
 
     companion object {

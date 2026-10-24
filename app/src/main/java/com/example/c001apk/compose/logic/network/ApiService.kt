@@ -7,10 +7,10 @@ import com.example.c001apk.compose.logic.model.CreateFeedResponse
 import com.example.c001apk.compose.logic.model.EventDetailResponse
 import com.example.c001apk.compose.logic.model.FeedContentResponse
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
-import com.example.c001apk.compose.logic.model.ProductConfigResponse
 import com.example.c001apk.compose.logic.model.LikeResponse
 import com.example.c001apk.compose.logic.model.LoadUrlResponse
 import com.example.c001apk.compose.logic.model.OSSUploadPrepareResponse
+import com.example.c001apk.compose.logic.model.ProductConfigResponse
 import com.example.c001apk.compose.logic.model.TotalReplyResponse
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
@@ -24,9 +24,7 @@ import retrofit2.http.Part
 import retrofit2.http.Query
 import retrofit2.http.Url
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/3
- */
+/** Created by bggRGjQaUbCoE on 2024/6/3 */
 interface ApiService {
 
     @GET("/v6/main/indexV8")
@@ -54,7 +52,7 @@ interface ApiService {
         @Query("discussMode") discussMode: Int,
         @Query("feedType") feedType: String,
         @Query("blockStatus") blockStatus: Int,
-        @Query("fromFeedAuthor") fromFeedAuthor: Int
+        @Query("fromFeedAuthor") fromFeedAuthor: Int,
     ): Call<HomeFeedResponse>
 
     @GET("/v6/search")
@@ -67,14 +65,16 @@ interface ApiService {
         @Query("pageParam") pageParam: String?,
         @Query("page") page: Int,
         @Query("lastItem") lastItem: String?,
-        @Query("showAnonymous") showAnonymous: Int = -1
+        @Query("showAnonymous") showAnonymous: Int = -1,
     ): Call<HomeFeedResponse>
 
-    @GET("/v6/feed/replyList?listType=&discussMode=0&feedType=feed_reply&blockStatus=0&fromFeedAuthor=0")
+    @GET(
+        "/v6/feed/replyList?listType=&discussMode=0&feedType=feed_reply&blockStatus=0&fromFeedAuthor=0",
+    )
     fun getReply2Reply(
         @Query("id") id: String,
         @Query("page") page: Int,
-        @Query("lastItem") lastItem: String?
+        @Query("lastItem") lastItem: String?,
     ): Call<HomeFeedResponse>
 
     @GET("/v6/user/space")
@@ -82,11 +82,12 @@ interface ApiService {
         @Query("uid") uid: String,
     ): Call<FeedContentResponse>
 
-    @GET("/v6/user/feedList?showAnonymous=0&isIncludeTop=1&showDoing=0")
+    @GET("/v6/user/feedList?showAnonymous=0&showDoing=0")
     fun getUserFeed(
         @Query("uid") uid: String,
         @Query("page") page: Int,
-        @Query("lastItem") lastItem: String?
+        @Query("lastItem") lastItem: String?,
+        @Query("isIncludeTop") includeTop: Int = 1,
     ): Call<HomeFeedResponse>
 
     @GET("/v6/apk/detail")
@@ -105,29 +106,29 @@ interface ApiService {
     @Multipart
     @POST("/v6/apk/checkUpdate?coolmarket_beta=0")
     fun getAppsUpdate(
-        @Part pkgs: MultipartBody.Part
+        @Part pkgs: MultipartBody.Part,
     ): Call<ResponseBody>
 
-    @GET //("/v6/topic/newTagDetail")
+    @GET // ("/v6/topic/newTagDetail")
     fun getTopicLayout(
         @Url url: String,
         @Query("tag") tag: String?, // topic
-        @Query("id") id: String? // product
+        @Query("id") id: String?, // product
     ): Call<FeedContentResponse>
 
     @GET("/v6/product/detail")
     fun getProductLayout(
-        @Query("id") id: String
+        @Query("id") id: String,
     ): Call<FeedContentResponse>
 
     @GET("https://m.coolapk.com/mp/product/configInfo")
     fun getProductConfig(
-        @Query("id") id: String
+        @Query("id") id: String,
     ): Call<ProductConfigResponse>
 
     @GET("/v6/user/profile")
     fun getProfile(
-        @Query("uid") uid: String
+        @Query("uid") uid: String,
     ): Call<FeedContentResponse>
 
     @GET
@@ -137,40 +138,36 @@ interface ApiService {
         @Query("id") id: String?,
         @Query("showDefault") showDefault: Int?,
         @Query("page") page: Int,
-        @Query("lastItem") lastItem: String?
+        @Query("lastItem") lastItem: String?,
     ): Call<HomeFeedResponse>
 
     @POST
     fun postLike(
         @Url url: String,
-        @Query("id") id: String
+        @Query("id") id: String,
     ): Call<LikeResponse>
 
-    @GET("/v6/account/checkLoginInfo")
-    fun checkLoginInfo(
-    ): Call<CheckResponse>
+    @GET("/v6/account/checkLoginInfo") fun checkLoginInfo(): Call<CheckResponse>
 
     @GET
     fun getLoginParam(
-        @Url url: String
+        @Url url: String,
     ): Call<ResponseBody>
 
     @POST("/auth/loginByCoolApk")
     @FormUrlEncoded
     fun tryLogin(@FieldMap data: HashMap<String, String?>): Call<ResponseBody>
 
-    @GET
-    fun getCaptcha(@Url url: String): Call<ResponseBody>
+    @GET fun getCaptcha(@Url url: String): Call<ResponseBody>
 
-    @GET
-    fun getValidateCaptcha(@Url url: String): Call<ResponseBody>
+    @GET fun getValidateCaptcha(@Url url: String): Call<ResponseBody>
 
     @POST("v6/feed/reply")
     @FormUrlEncoded
     fun postReply(
         @FieldMap data: HashMap<String, String>,
         @Query("id") id: String,
-        @Query("type") type: String
+        @Query("type") type: String,
     ): Call<FeedContentResponse>
 
     @GET("/v6/page/dataList")
@@ -179,18 +176,17 @@ interface ApiService {
         @Query("title") title: String,
         @Query("subTitle") subTitle: String?,
         @Query("lastItem") lastItem: String?,
-        @Query("page") page: Int
+        @Query("page") page: Int,
     ): Call<HomeFeedResponse>
 
-    @GET("/v6/event/detail")
-    fun getEventDetail(@Query("id") id: String): Call<EventDetailResponse>
+    @GET("/v6/event/detail") fun getEventDetail(@Query("id") id: String): Call<EventDetailResponse>
 
     @GET("/v6/dyhArticle/list")
     fun getDyhDetail(
         @Query("dyhId") dyhId: String,
         @Query("type") type: String,
         @Query("page") page: Int,
-        @Query("lastItem") lastItem: String?
+        @Query("lastItem") lastItem: String?,
     ): Call<HomeFeedResponse>
 
     @GET("/v6/picture/list")
@@ -198,9 +194,8 @@ interface ApiService {
         @Query("tag") tag: String,
         @Query("type") type: String,
         @Query("page") page: Int,
-        @Query("lastItem") lastItem: String?
+        @Query("lastItem") lastItem: String?,
     ): Call<HomeFeedResponse>
-
 
     @GET("/auth/login")
     fun getSmsLoginParam(
@@ -211,32 +206,32 @@ interface ApiService {
     @FormUrlEncoded
     fun getSmsToken(
         @Query("type") type: String = "mobile",
-        @FieldMap data: HashMap<String, String?>
+        @FieldMap data: HashMap<String, String?>,
     ): Call<ResponseBody>
 
     @GET
     fun getMessage(
         @Url url: String,
         @Query("page") page: Int,
-        @Query("lastItem") lastItem: String?
+        @Query("lastItem") lastItem: String?,
     ): Call<HomeFeedResponse>
 
     @POST
     fun postFollowUnFollow(
         @Url url: String,
-        @Query("uid") uid: String
+        @Query("uid") uid: String,
     ): Call<LikeResponse>
 
     @POST("/v6/feed/createFeed")
     @FormUrlEncoded
     fun postCreateFeed(
-        @FieldMap data: HashMap<String, String>
+        @FieldMap data: HashMap<String, String>,
     ): Call<CreateFeedResponse>
 
     @POST("/v6/account/requestValidate")
     @FormUrlEncoded
     fun postRequestValidate(
-        @FieldMap data: HashMap<String, String?>
+        @FieldMap data: HashMap<String, String?>,
     ): Call<LikeResponse>
 
     @GET("/v6/vote/commentList")
@@ -259,7 +254,7 @@ interface ApiService {
 
     @GET
     fun getProductList(
-        @Url url: String
+        @Url url: String,
     ): Call<HomeFeedResponse>
 
     @GET
@@ -269,7 +264,7 @@ interface ApiService {
         @Query("id") id: String?,
         @Query("showDefault") showDefault: Int,
         @Query("page") page: Int,
-        @Query("lastItem") lastItem: String?
+        @Query("lastItem") lastItem: String?,
     ): Call<HomeFeedResponse>
 
     @POST
@@ -281,7 +276,7 @@ interface ApiService {
     @POST("/v6/product/changeFollowStatus")
     @FormUrlEncoded
     fun postFollow(
-        @FieldMap data: HashMap<String, String>
+        @FieldMap data: HashMap<String, String>,
     ): Call<LikeResponse>
 
     @GET
@@ -294,7 +289,7 @@ interface ApiService {
     @POST("/v6/upload/ossUploadPrepare")
     @FormUrlEncoded
     fun postOSSUploadPrepare(
-        @FieldMap data: HashMap<String, String>
+        @FieldMap data: HashMap<String, String>,
     ): Call<OSSUploadPrepareResponse>
 
     @GET("/v6/feed/searchTag")
@@ -327,7 +322,7 @@ interface ApiService {
     fun sendMessage(
         @Query("uid") uid: String,
         @Part message: MultipartBody.Part,
-        @Part pic: MultipartBody.Part
+        @Part pic: MultipartBody.Part,
     ): Call<HomeFeedResponse>
 
     @GET
@@ -343,13 +338,12 @@ interface ApiService {
         @Query("type") type: String = "s",
     ): Call<Any>
 
-    @GET("/v6/notification/checkCount")
-    fun checkCount(): Call<CheckCountResponse>
+    @GET("/v6/notification/checkCount") fun checkCount(): Call<CheckCountResponse>
 
     @POST
     @FormUrlEncoded
     fun postDelete(
         @Url url: String,
-        @FieldMap data: Map<String, String>?
+        @FieldMap data: Map<String, String>?,
     ): Call<LikeResponse>
 }
