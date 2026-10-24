@@ -60,3 +60,5 @@
 ## 标签发布 CI
 
 `release.yml` 仅由 `vMAJOR.MINOR.PATCH` 标签触发，复用 `android.yml` 完成验证和固定签名构建，再发布 APK、校验报告、SHA256SUMS 与对应 CHANGELOG 条目。仓库 Secrets 已配置专用签名材料；两个工作流通过 Actionlint、YAML 与内嵌 Shell 语法检查。本轮不主动打标签，不将本地成功构建等同于远端工作流运行成功。
+
+专用签名构建经 apksigner 验证为有效 APK v3 签名。校验器接受 Android 13 支持的 v2 或 v3（含 v3.1），仍要求 apksigner 整体验证成功、唯一且匹配的签名证书；Source Stamp 不作为应用签名。校验报告分别记录实际 v2/v3 结果。

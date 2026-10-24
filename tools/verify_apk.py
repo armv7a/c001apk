@@ -29,8 +29,10 @@ def verify(apk, sdk, expected_certificate=None):
     digest = certificate_digest(signature)
     if expected_certificate and digest != expected_certificate.replace(":", "").strip().lower():
         raise ValueError("APK signing certificate does not match the expected certificate")
-    if not re.search(r"Verified using v2 scheme.*:\s*true", signature):
-        raise ValueError("APK has no verified v2 signature")
+    verified_v2 = bool(re.search(r"Verified using v2 scheme.*:\s*true", signature))
+    verified_v3 = bool(re.search(r"Verified using v3(?:\.1)? scheme.*:\s*true", signature))
+    if not (verified_v2 or verified_v3):
+        raise ValueError("APK has no verified v2 or v3 signature")
     run("zipalign", "-c", "-P", "16", "-v", "4", apk)
     badging = run("aapt2", "dump", "badging", apk)
     package = re.search(r"package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'", badging)
@@ -52,7 +54,7 @@ def verify(apk, sdk, expected_certificate=None):
     return {"apk": str(apk), "package": package[1], "versionCode": int(package[2]), "versionName": package[3],
             "minSdk": 33, "abi": "arm64-v8a", "certificateSha256": digest,
             "sha256": hashlib.sha256(apk.read_bytes()).hexdigest(), "bytes": apk.stat().st_size,
-            "verifiedV2": True, "zipalign16KiB": True, "compressedNativeLibraries": True}
+            "verifiedV2": verified_v2, "verifiedV3": verified_v3, "zipalign16KiB": True, "compressedNativeLibraries": True}
 
 
 if __name__ == "__main__":

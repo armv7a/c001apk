@@ -139,7 +139,7 @@ python3 tools/verify_apk.py /path/to/app.apk \
   --certificate-sha256 '预期证书的SHA256摘要'
 ```
 
-校验工具检查包名、最低 Android 版本、ARM64、运行必需资源、原生库压缩、签名证书、v2 签名与 ZIP 对齐。设备测试和显式启用网络测试的方式见 [改造与构建说明](docs/MIUIX_MIGRATION.md)。历史验证结果见 [验证记录](docs/VERIFICATION.md)，不代表每次提交都已执行全部检查。
+校验工具检查包名、最低 Android 版本、ARM64、运行必需资源、原生库压缩、签名证书、v2/v3 签名与 ZIP 对齐。设备测试和显式启用网络测试的方式见 [改造与构建说明](docs/MIUIX_MIGRATION.md)。历史验证结果见 [验证记录](docs/VERIFICATION.md)，不代表每次提交都已执行全部检查。
 
 ### 发布版本
 
