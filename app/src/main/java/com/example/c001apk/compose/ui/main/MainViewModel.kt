@@ -70,6 +70,7 @@ constructor(
                             CookieUtil.feedlike = login.notifyCount.feedlike
                             CookieUtil.contacts_follow = login.notifyCount.contactsFollow
                             CookieUtil.message = login.notifyCount.message
+                            CookieUtil.notification = login.notifyCount.notification
                             accounts.refreshProfile(
                                 revision,
                                 username = login.username.encode,
@@ -80,6 +81,23 @@ constructor(
                             accounts.expire(revision)
                     }
                 }
+        }
+    }
+
+    suspend fun refreshNotificationCounts() {
+        val session = CookieUtil.accountSession
+        if (!session.isLogin) return
+        networkRepo.checkCount().collect { result ->
+            if (session.revision != CookieUtil.accountSession.revision) return@collect
+            result.getOrNull()?.data?.let {
+                badge = it.badge
+                CookieUtil.atme = it.atme
+                CookieUtil.atcommentme = it.atcommentme
+                CookieUtil.feedlike = it.feedlike
+                CookieUtil.contacts_follow = it.contactsFollow
+                CookieUtil.message = it.message
+                CookieUtil.notification = it.notification
+            }
         }
     }
 

@@ -38,50 +38,60 @@ constructor(
     var isTop = 0
     lateinit var ukey: String
 
+    private val busy = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
     fun onHandleMessage(actionType: ActionType) {
+        val targetKey = ukey
+        val wasTop = isTop
+        if (!busy.add(targetKey)) return
         val url =
             when (actionType) {
-                ActionType.TOP -> "/v6/message/${if (isTop == 1) "removeTop" else "addTop"}"
+                ActionType.TOP -> "/v6/message/${if (wasTop == 1) "removeTop" else "addTop"}"
                 ActionType.DELETE -> "/v6/message/deleteChat"
                 ActionType.DELETE_ALL -> EMPTY_STRING
             }
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.deleteMessage(url, ukey, null).collect { result ->
-                val data = result.getOrNull()
-                if (data != null) {
-                    if (!data.message.isNullOrEmpty()) {
-                        toastText = data.message
-                    } else if (data.data?.count?.contains("成功") == true) {
-                        var response = (loadingState as LoadingState.Success).response
-                        response =
-                            when (actionType) {
-                                ActionType.TOP -> {
-                                    if (isTop == 0) {
-                                        val actionItem = response.find { it.ukey == ukey }
-                                        response.toMutableList().also {
-                                            it.remove(actionItem)
-                                            actionItem?.let { item ->
-                                                item.isTop = 1
-                                                it.add(0, item)
+            try {
+                networkRepo.deleteMessage(url, targetKey, null).collect { result ->
+                    val data = result.getOrNull()
+                    if (data != null) {
+                        if (!data.message.isNullOrEmpty()) {
+                            toastText = data.message
+                        } else if (!data.data?.count.isNullOrBlank()) {
+                            var response =
+                                (loadingState as? LoadingState.Success)?.response.orEmpty()
+                            response =
+                                when (actionType) {
+                                    ActionType.TOP -> {
+                                        if (wasTop == 0) {
+                                            val actionItem = response.find { it.ukey == targetKey }
+                                            response.toMutableList().also {
+                                                it.remove(actionItem)
+                                                actionItem?.let { item ->
+                                                    item.isTop = 1
+                                                    it.add(0, item)
+                                                }
+                                            }
+                                        } else {
+                                            response.map {
+                                                if (it.ukey == targetKey) it.copy(isTop = 0) else it
                                             }
                                         }
-                                    } else {
-                                        response.map {
-                                            if (it.ukey == ukey) it.copy(isTop = 0) else it
-                                        }
                                     }
-                                }
 
-                                ActionType.DELETE -> response.filterNot { it.ukey == ukey }
-                                ActionType.DELETE_ALL -> response
-                            }
-                        loadingState = LoadingState.Success(response)
-                        toastText = data.data.count
+                                    ActionType.DELETE -> response.filterNot { it.ukey == targetKey }
+                                    ActionType.DELETE_ALL -> response
+                                }
+                            loadingState = LoadingState.Success(response)
+                            toastText = data.data.count
+                        }
+                    } else {
+                        toastText = result.exceptionOrNull()?.message ?: "response is null"
+                        result.exceptionOrNull()?.printStackTrace()
                     }
-                } else {
-                    toastText = result.exceptionOrNull()?.message ?: "response is null"
-                    result.exceptionOrNull()?.printStackTrace()
                 }
+            } finally {
+                busy.remove(targetKey)
             }
         }
     }

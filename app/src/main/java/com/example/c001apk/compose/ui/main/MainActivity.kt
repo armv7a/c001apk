@@ -18,6 +18,7 @@ import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
@@ -52,7 +53,9 @@ import com.example.c001apk.compose.util.CookieUtil.versionName
 import com.example.c001apk.compose.util.CookieUtil.xAppDevice
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -127,6 +130,20 @@ class MainActivity : ComponentActivity() {
                     checkNotNull(userPreferences)
                 }
 
+            LaunchedEffect(
+                preferences.accountRevision,
+                preferences.checkCount,
+                preferences.checkCountPeriod,
+            ) {
+                if (preferences.checkCount && preferences.isLogin) {
+                    lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
+                        while (isActive) {
+                            viewModel.refreshNotificationCounts()
+                            delay(preferences.checkCountPeriod.coerceIn(1, 60) * 60_000L)
+                        }
+                    }
+                }
+            }
             CompositionLocalProvider(
                 LocalUserPreferences provides preferences,
             ) {

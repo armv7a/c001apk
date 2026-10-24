@@ -3,7 +3,6 @@ package com.example.c001apk.compose.util
 import android.content.Context
 import android.net.Uri
 import android.util.Base64
-import android.util.Log
 import com.alibaba.sdk.android.oss.ClientConfiguration
 import com.alibaba.sdk.android.oss.ClientException
 import com.alibaba.sdk.android.oss.OSSClient
@@ -15,13 +14,10 @@ import com.alibaba.sdk.android.oss.model.ObjectMetadata
 import com.alibaba.sdk.android.oss.model.PutObjectRequest
 import com.alibaba.sdk.android.oss.model.PutObjectResult
 import com.example.c001apk.compose.logic.model.OSSUploadPrepareResponse
-import com.example.c001apk.compose.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/**
- * Created by bggRGjQaUbCoE on 2024/5/7
- */
+/** Created by bggRGjQaUbCoE on 2024/5/7 */
 object OssUploadUtil {
     suspend fun ossUpload(
         context: Context,
@@ -47,56 +43,58 @@ object OssUploadUtil {
             conf.socketTimeout = 5 * 60 * 1000
             conf.maxConcurrentRequest = 5
             conf.maxErrorRetry = 2
-            if (BuildConfig.DEBUG) {
-                OSSLog.enableLog()
-            }
-            val credentialProvider = OSSStsTokenCredentialProvider(
-                accessKeyId,
-                accessKeySecret,
-                securityToken
-            )
+            OSSLog.disableLog()
+            val credentialProvider =
+                OSSStsTokenCredentialProvider(
+                    accessKeyId,
+                    accessKeySecret,
+                    securityToken,
+                )
             val oss = OSSClient(context, endPoint, credentialProvider, conf)
 
             uriList.forEachIndexed { index, uri ->
-                val put = PutObjectRequest(
-                    bucket,
-                    responseData.fileInfo[index].uploadFileName,
-                    uri
-                )
+                val put =
+                    PutObjectRequest(
+                        bucket,
+                        responseData.fileInfo[index].uploadFileName,
+                        uri,
+                    )
                 val metadata = ObjectMetadata()
                 metadata.contentType = typeList[index]
                 metadata.contentMD5 = Base64.encodeToString(md5List[index], Base64.DEFAULT).trim()
                 metadata.setHeader(
                     "x-oss-callback",
-                    "eyJjYWxsYmFja0JvZHlUeXBlIjoiYXBwbGljYXRpb25cL2pzb24iLCJjYWxsYmFja0hvc3QiOiJhcGkuY29vbGFway5jb20iLCJjYWxsYmFja1VybCI6Imh0dHBzOlwvXC9hcGkuY29vbGFway5jb21cL3Y2XC9jYWxsYmFja1wvbW9iaWxlT3NzVXBsb2FkU3VjY2Vzc0NhbGxiYWNrP2NoZWNrQXJ0aWNsZUNvdmVyUmVzb2x1dGlvbj0wJnZlcnNpb25Db2RlPTIxMDIwMzEiLCJjYWxsYmFja0JvZHkiOiJ7XCJidWNrZXRcIjoke2J1Y2tldH0sXCJvYmplY3RcIjoke29iamVjdH0sXCJoYXNQcm9jZXNzXCI6JHt4OnZhcjF9fSJ9"
+                    "eyJjYWxsYmFja0JvZHlUeXBlIjoiYXBwbGljYXRpb25cL2pzb24iLCJjYWxsYmFja0hvc3QiOiJhcGkuY29vbGFway5jb20iLCJjYWxsYmFja1VybCI6Imh0dHBzOlwvXC9hcGkuY29vbGFway5jb21cL3Y2XC9jYWxsYmFja1wvbW9iaWxlT3NzVXBsb2FkU3VjY2Vzc0NhbGxiYWNrP2NoZWNrQXJ0aWNsZUNvdmVyUmVzb2x1dGlvbj0wJnZlcnNpb25Db2RlPTIxMDIwMzEiLCJjYWxsYmFja0JvZHkiOiJ7XCJidWNrZXRcIjoke2J1Y2tldH0sXCJvYmplY3RcIjoke29iamVjdH0sXCJoYXNQcm9jZXNzXCI6JHt4OnZhcjF9fSJ9",
                 )
                 metadata.setHeader("x-oss-callback-var", "eyJ4OnZhcjEiOiJmYWxzZSJ9")
                 put.metadata = metadata
-                put.callbackParam = object : HashMap<String, String>() {
-                    init {
-                        put("callbackUrl", callbackUrl)
-                        put("callbackHost", Uri.parse(callbackUrl).host ?: "developer.coolapk.com")
-                        put("callbackBodyType", "application/json")
-                        put("callbackBody", "filename=${responseData.fileInfo[index].name}")
+                put.callbackParam =
+                    object : HashMap<String, String>() {
+                        init {
+                            put("callbackUrl", callbackUrl)
+                            put(
+                                "callbackHost",
+                                Uri.parse(callbackUrl).host ?: "developer.coolapk.com",
+                            )
+                            put("callbackBodyType", "application/json")
+                            put("callbackBody", "filename=${responseData.fileInfo[index].name}")
+                        }
                     }
-                }
-                oss.asyncPutObject(put, OSSCallBack(
-                    iOnSuccess = {
-                        iOnSuccess(index)
-                    },
-                    iOnFailure = {
-                        iOnFailure()
-                    }
-                ))
+                oss.asyncPutObject(
+                    put,
+                    OSSCallBack(
+                        iOnSuccess = {
+                            iOnSuccess(index)
+                        },
+                        iOnFailure = {
+                            iOnFailure()
+                        },
+                    ),
+                )
             }
         } catch (e: Exception) {
             closeDialog()
-            e.message?.let {
-                withContext(Dispatchers.Main) {
-                    context.makeToast(it)
-                }
-            }
-            e.printStackTrace()
+            withContext(Dispatchers.Main) { context.makeToast("图片上传失败，请检查网络后重试") }
         }
     }
 
@@ -106,7 +104,7 @@ object OssUploadUtil {
     ) : OSSCompletedCallback<PutObjectRequest?, PutObjectResult?> {
         override fun onSuccess(
             request: PutObjectRequest?,
-            result: PutObjectResult?
+            result: PutObjectResult?,
         ) {
             iOnSuccess()
         }
@@ -114,27 +112,9 @@ object OssUploadUtil {
         override fun onFailure(
             request: PutObjectRequest?,
             clientException: ClientException?,
-            serviceException: ServiceException?
+            serviceException: ServiceException?,
         ) {
             iOnFailure()
-            // Request exception
-            if (clientException != null) {
-                // Local exception, such as a network exception
-                if (BuildConfig.DEBUG) {
-                    Log.i("OSSUpload", "uploadFailed: clientException: ${clientException.message}")
-                    clientException.printStackTrace()
-                }
-            }
-            if (serviceException != null) {
-                // Service exception
-                if (BuildConfig.DEBUG) {
-                    Log.i("OSSUpload", "OSSUpload: serviceException: ${serviceException.message}")
-                    Log.i("OSSUpload", "ErrorCode=" + serviceException.errorCode)
-                    Log.i("OSSUpload", "RequestId=" + serviceException.requestId)
-                    Log.i("OSSUpload", "HostId=" + serviceException.hostId)
-                    Log.i("OSSUpload", "RawMessage=" + serviceException.rawMessage)
-                }
-            }
         }
     }
 }

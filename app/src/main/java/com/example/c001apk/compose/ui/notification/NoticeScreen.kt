@@ -72,6 +72,10 @@ fun NoticeScreen(
             )
         }
 
+    androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+        if (viewModel.loadingState !is com.example.c001apk.compose.logic.state.LoadingState.Loading)
+            viewModel.refresh()
+    }
     val context = LocalContext.current
     val layoutDirection = LocalLayoutDirection.current
     viewModel.toastText?.let {
@@ -99,7 +103,7 @@ fun NoticeScreen(
                                 NoticeType.LIKE.name -> "我收到的赞"
                                 NoticeType.FOLLOW.name -> "好友关注"
                                 NoticeType.MESSAGE.name -> "私信"
-                                NoticeType.NOTIFICATION.name -> "通知"
+                                NoticeType.NOTIFICATION.name -> "酷安小秘书"
                                 else -> throw IllegalArgumentException("invalid type: $type")
                             },
                         maxLines = 1,

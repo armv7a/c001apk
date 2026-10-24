@@ -55,6 +55,9 @@ fun MessageScreen(
         hiltViewModel<MessageViewModel, MessageViewModel.ViewModelFactory> { factory ->
             factory.create(url = "/v6/notification/list")
         }
+    androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+        if (prefs.isLogin) viewModel.refresh()
+    }
     var showInboxDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(prefs.isLogin) {
@@ -179,9 +182,14 @@ fun MessageScreen(
                             },
                         )
                         BasicComponent(
-                            title = "通知",
+                            title = "酷安小秘书",
+                            summary =
+                                if (com.example.c001apk.compose.util.CookieUtil.notification > 0)
+                                    "${com.example.c001apk.compose.util.CookieUtil.notification} 条系统通知"
+                                else "系统通知与信息",
                             onClick = {
                                 showInboxDialog = false
+                                com.example.c001apk.compose.util.CookieUtil.notification = 0
                                 onViewNotice(NoticeType.NOTIFICATION.name)
                             },
                         )

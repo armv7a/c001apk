@@ -2,9 +2,7 @@ package com.example.c001apk.compose.util
 
 import com.example.c001apk.compose.R
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/4
- */
+/** Created by bggRGjQaUbCoE on 2024/6/4 */
 object EmojiUtils {
 
     val emojiMap: LinkedHashMap<String, Int> = LinkedHashMap()
@@ -126,6 +124,38 @@ object EmojiUtils {
         emojiMap["[下次一定]"] = R.drawable.coolapk_emotion_1029
         emojiMap["[酷安土豆]"] = R.drawable.coolapk_emotion_1030
         emojiMap["[头条通知书]"] = R.drawable.coolapk_emotion_1031
+        emojiMap["[牛牛阿巴]"] = R.drawable.niuniu_emotion_babble
+        emojiMap["[牛牛财奴]"] = R.drawable.niuniu_emotion_money_grubber
+        emojiMap["[牛牛呲牙笑]"] = R.drawable.niuniu_emotion_grin
+        emojiMap["[牛牛大喊]"] = R.drawable.niuniu_emotion_shout
+        emojiMap["[牛牛戴耳机]"] = R.drawable.niuniu_emotion_headphones
+        emojiMap["[牛牛点赞]"] = R.drawable.niuniu_emotion_thumbs_up
+        emojiMap["[牛牛恶心]"] = R.drawable.niuniu_emotion_nauseous
+        emojiMap["[牛牛尴尬]"] = R.drawable.niuniu_emotion_awkward
+        emojiMap["[牛牛鬼脸]"] = R.drawable.niuniu_emotion_silly_face
+        emojiMap["[牛牛害怕]"] = R.drawable.niuniu_emotion_scared
+        emojiMap["[牛牛害羞]"] = R.drawable.niuniu_emotion_shy
+        emojiMap["[牛牛挥手]"] = R.drawable.niuniu_emotion_wave
+        emojiMap["[牛牛娇羞]"] = R.drawable.niuniu_emotion_coy
+        emojiMap["[牛牛惊讶]"] = R.drawable.niuniu_emotion_surprised
+        emojiMap["[牛牛冷汗]"] = R.drawable.niuniu_emotion_cold_sweat
+        emojiMap["[牛牛墨镜]"] = R.drawable.niuniu_emotion_sunglasses
+        emojiMap["[牛牛疲惫]"] = R.drawable.niuniu_emotion_tired
+        emojiMap["[牛牛求饶]"] = R.drawable.niuniu_emotion_pleading
+        emojiMap["[牛牛认真脸]"] = R.drawable.niuniu_emotion_serious
+        emojiMap["[牛牛伤心]"] = R.drawable.niuniu_emotion_sad
+        emojiMap["[牛牛生病]"] = R.drawable.niuniu_emotion_sick
+        emojiMap["[牛牛生气]"] = R.drawable.niuniu_emotion_angry
+        emojiMap["[牛牛思考]"] = R.drawable.niuniu_emotion_thinking
+        emojiMap["[牛牛微笑]"] = R.drawable.niuniu_emotion_smile
+        emojiMap["[牛牛委屈]"] = R.drawable.niuniu_emotion_aggrieved
+        emojiMap["[牛牛问号脸]"] = R.drawable.niuniu_emotion_question_face
+        emojiMap["[牛牛喜欢]"] = R.drawable.niuniu_emotion_love
+        emojiMap["[牛牛星星眼]"] = R.drawable.niuniu_emotion_star_eyes
+        emojiMap["[牛牛疑惑]"] = R.drawable.niuniu_emotion_puzzled
+        emojiMap["[牛牛眨眼]"] = R.drawable.niuniu_emotion_wink
+        emojiMap["[牛牛真香]"] = R.drawable.niuniu_emotion_delicious
+        emojiMap["[牛牛爆赞]"] = R.drawable.niuniu_emotion_super_praise
         emojiMap["[酷币]"] = R.drawable.c_coolb
         emojiMap["[酷币1分]"] = R.drawable.c_onef
         emojiMap["[酷币2分]"] = R.drawable.c_twof
@@ -170,11 +200,8 @@ object EmojiUtils {
         emojiMap["[新酷币2€]"] = R.drawable.coolapk_emotion_79
         emojiMap["[新酷币5€]"] = R.drawable.coolapk_emotion_80
 
-        for (i in 0..3) {
-            emojiList.add(dataList.subList(i * 27 + 4, (i + 1) * 27 + 4))
-        }
-        coolBList.add(dataList.subList(112, 139))
-        coolBList.add(dataList.subList(139, 155))
+        val coins = dataList.indexOfFirst { it.first == "[酷币]" }
+        emojiList.addAll(dataList.subList(4, coins).chunked(27))
+        coolBList.addAll(dataList.drop(coins).chunked(27))
     }
-
 }

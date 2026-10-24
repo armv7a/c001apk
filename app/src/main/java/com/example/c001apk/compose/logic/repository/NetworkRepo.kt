@@ -366,7 +366,11 @@ constructor(
 
     suspend fun sendMessage(uid: String, message: MultipartBody.Part, pic: MultipartBody.Part) =
         fire {
-            Result.success(apiService.sendMessage(uid, message, pic).await())
+            val body = apiService.sendMessage(uid, message, pic).await().use { it.string() }
+            val root = com.google.gson.JsonParser.parseString(body).asJsonObject
+            if (root.get("data")?.isJsonObject == true)
+                root.add("data", com.google.gson.JsonArray().apply { add(root.get("data")) })
+            Result.success(Gson().fromJson(root, HomeFeedResponse::class.java))
         }
 
     suspend fun deleteMessage(url: String, ukey: String, id: String?) = fire {
@@ -375,7 +379,12 @@ constructor(
 
     suspend fun getImageUrl(id: String) = fire {
         val response = apiServiceNoRedirect.getImageUrl(id).response()
-        Result.success(response.headers()["Location"])
+        val location = response.headers()["Location"]
+        Result.success(
+            location?.takeIf {
+                runCatching { it.toHttpUrl().scheme in listOf("http", "https") }.getOrDefault(false)
+            },
+        )
     }
 
     suspend fun checkCount() = fire {

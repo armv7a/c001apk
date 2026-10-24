@@ -89,7 +89,7 @@ fun ChatLeftCard(
                 val imageLp by lazy {
                     ImageShowUtil.getImageLp(
                         if (data.messagePic.startsWith(PREFIX_HTTP))
-                            data.messagePic.substring(0, data.messagePic.indexOfFirst { it == '?' })
+                            data.messagePic.substringBefore('?')
                         else data.messagePic,
                     )
                 }

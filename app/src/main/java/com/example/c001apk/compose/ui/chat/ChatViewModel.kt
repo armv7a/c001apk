@@ -2,42 +2,47 @@ package com.example.c001apk.compose.ui.chat
 
 import android.net.Uri
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
-import com.example.c001apk.compose.logic.model.OSSUploadPrepareModel
-import com.example.c001apk.compose.logic.model.OSSUploadPrepareResponse
 import com.example.c001apk.compose.logic.model.StringEntity
 import com.example.c001apk.compose.logic.repository.BlackListRepo
 import com.example.c001apk.compose.logic.repository.NetworkRepo
 import com.example.c001apk.compose.logic.repository.RecentEmojiRepo
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.base.BaseViewModel
-import com.google.gson.Gson
+import com.example.c001apk.compose.util.CookieUtil
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/19
- */
+/** Created by bggRGjQaUbCoE on 2024/6/19 */
 @HiltViewModel(assistedFactory = ChatViewModel.ViewModelFactory::class)
-class ChatViewModel @AssistedInject constructor(
+class ChatViewModel
+@AssistedInject
+constructor(
     @Assisted val ukey: String,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
-    private val recentEmojiRepo: RecentEmojiRepo
+    private val recentEmojiRepo: RecentEmojiRepo,
+    private val imageUploader: ChatImageUploader,
 ) : BaseViewModel(networkRepo, blackListRepo) {
 
     @AssistedFactory
     interface ViewModelFactory {
         fun create(ukey: String): ChatViewModel
     }
+
+    private val accountRevision = CookieUtil.accountSession.revision
+    private val imageRequests = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
     init {
         fetchData()
@@ -52,50 +57,50 @@ class ChatViewModel @AssistedInject constructor(
         }
     }
 
-    override fun handleResponse(response: List<HomeFeedResponse.Data>): List<HomeFeedResponse.Data> {
+    override fun handleResponse(
+        response: List<HomeFeedResponse.Data>,
+    ): List<HomeFeedResponse.Data> {
         return response.reversed()
     }
 
     fun onGetImageUrl(id: String) {
+        if (!imageRequests.add(id) || accountRevision != CookieUtil.accountSession.revision) return
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.getImageUrl(id)
-                .collect { result ->
-                    val imageUrl = result.getOrNull()
-                    if (!imageUrl.isNullOrEmpty()) {
-                        var response = (loadingState as LoadingState.Success).response
-                        response = response.map { item ->
-                            if (item.id == id)
-                                item.copy(messagePic = imageUrl)
-                            else item
-                        }
-                        loadingState = LoadingState.Success(response)
-                    } else {
-                        toastText = result.exceptionOrNull()?.message ?: "response is null"
-                        result.exceptionOrNull()?.printStackTrace()
+            networkRepo.getImageUrl(id).collect { result ->
+                val imageUrl = result.getOrNull()
+                if (!imageUrl.isNullOrEmpty()) {
+                    var response = (loadingState as? LoadingState.Success)?.response.orEmpty()
+                    response = response.map { item ->
+                        if (item.id == id) item.copy(messagePic = imageUrl) else item
                     }
+                    loadingState = LoadingState.Success(response)
+                } else {
+                    toastText = result.exceptionOrNull()?.message ?: "response is null"
+                    result.exceptionOrNull()?.printStackTrace()
                 }
+            }
         }
     }
 
     fun onDeleteMsg() {
+        val targetId = deleteId
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.deleteMessage("/v6/message/delete", ukey, deleteId)
-                .collect { result ->
-                    val data = result.getOrNull()
-                    if (data != null) {
-                        if (!data.message.isNullOrEmpty()) {
-                            toastText = data.message
-                        } else if (data.data?.count != null) {
-                            var response = (loadingState as LoadingState.Success).response
-                            response = response.filterNot { it.id == deleteId }
-                            loadingState = LoadingState.Success(response)
-                            toastText = data.data.count
-                        }
-                    } else {
-                        toastText = result.exceptionOrNull()?.message ?: "response is null"
-                        result.exceptionOrNull()?.printStackTrace()
+            networkRepo.deleteMessage("/v6/message/delete", ukey, targetId).collect { result ->
+                val data = result.getOrNull()
+                if (data != null) {
+                    if (!data.message.isNullOrEmpty()) {
+                        toastText = data.message
+                    } else if (data.data?.count != null) {
+                        var response = (loadingState as? LoadingState.Success)?.response.orEmpty()
+                        response = response.filterNot { it.id == targetId }
+                        loadingState = LoadingState.Success(response)
+                        toastText = data.data.count
                     }
+                } else {
+                    toastText = result.exceptionOrNull()?.message ?: "response is null"
+                    result.exceptionOrNull()?.printStackTrace()
                 }
+            }
         }
     }
 
@@ -109,72 +114,111 @@ class ChatViewModel @AssistedInject constructor(
         scroll = false
     }
 
-    fun onSendMessage(uid: String, text: String, url: String) {
-        showUploadDialog = true
-        val message = MultipartBody.Part.createFormData("message", text)
-        val pic = MultipartBody.Part.createFormData("message_pic", url)
-        viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.sendMessage(uid, message, pic)
-                .collect { result ->
-                    val data = result.getOrNull()
-                    if (data != null) {
-                        if (!data.message.isNullOrEmpty()) {
-                            toastText = data.message
-                        } else if (data.data != null) {
-                            val response =
-                                (loadingState as LoadingState.Success).response.toMutableList()
-                                    .also {
-                                        it.addAll(0, data.data)
-                                    }
-                            loadingState = LoadingState.Success(response)
-                            scroll = true
-                        }
-                    } else {
-                        toastText = result.exceptionOrNull()?.message ?: "failed to send message"
-                    }
-                    showUploadDialog = false
-                }
-        }
+    class Delivery(
+        val id: String = java.util.UUID.randomUUID().toString(),
+        val uid: String,
+        val text: String,
+        var picture: String,
+        val preview: Uri? = null,
+    ) {
+        var sending by mutableStateOf(true)
+        var error by mutableStateOf<String?>(null)
+        var unconfirmed by mutableStateOf(false)
     }
 
-    var uploadImage by mutableStateOf<OSSUploadPrepareResponse.Data?>(null)
-        private set
+    val deliveries = mutableStateListOf<Delivery>()
 
-    fun resetUploadImage() {
-        uploadImage = null
-    }
-
-    lateinit var uriList: List<Uri>
-    lateinit var typeList: List<String>
-    lateinit var md5List: List<ByteArray?>
-    var showUploadDialog by mutableStateOf(false)
-
-    fun onPostOSSUploadPrepare(uid: String, imageList: List<OSSUploadPrepareModel>) {
-        showUploadDialog = true
-        val ossUploadPrepareData = hashMapOf(
-            "uploadBucket" to "message",
-            "uploadDir" to "message",
-            "is_anonymous" to "0",
-            "uploadFileList" to Gson().toJson(imageList),
-            "toUid" to uid,
+    fun onSendMessage(uid: String, text: String, url: String, preview: Uri? = null) {
+        if (
+            accountRevision != CookieUtil.accountSession.revision ||
+                (text.isBlank() && url.isBlank())
         )
-        viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.postOSSUploadPrepare(ossUploadPrepareData)
-                .collect { result ->
-                    val data = result.getOrNull()
-                    if (data != null) {
-                        if (!data.message.isNullOrEmpty()) {
-                            toastText = data.message
-                            showUploadDialog = false
-                        } else if (data.data != null) {
-                            uploadImage = data.data
+            return
+        val delivery = Delivery(uid = uid, text = text, picture = url, preview = preview)
+        deliveries.add(0, delivery)
+        scroll = true
+        send(delivery)
+    }
+
+    fun onSendImage(uid: String, uri: Uri) {
+        if (accountRevision != CookieUtil.accountSession.revision) return
+        val delivery = Delivery(uid = uid, text = "", picture = "", preview = uri)
+        deliveries.add(0, delivery)
+        scroll = true
+        send(delivery)
+    }
+
+    fun retry(delivery: Delivery) {
+        if (!delivery.sending) send(delivery)
+    }
+
+    fun discard(delivery: Delivery) {
+        if (!delivery.sending) deliveries.remove(delivery)
+    }
+
+    fun retryImage(id: String) {
+        imageRequests.remove(id)
+        onGetImageUrl(id)
+    }
+
+    private fun send(delivery: Delivery) {
+        if (accountRevision != CookieUtil.accountSession.revision) return
+        delivery.sending = true
+        delivery.error = null
+        viewModelScope.launch {
+            var requestStarted = false
+            try {
+                if (delivery.preview != null && delivery.picture.isEmpty()) {
+                    delivery.picture =
+                        imageUploader.upload(delivery.preview, delivery.uid) {
+                            accountRevision == CookieUtil.accountSession.revision
                         }
-                    } else {
-                        showUploadDialog = false
-                        toastText = result.exceptionOrNull()?.message ?: "upload prepare failed"
-                    }
                 }
+                requestStarted = true
+                val result =
+                    networkRepo
+                        .sendMessage(
+                            delivery.uid,
+                            MultipartBody.Part.createFormData("message", delivery.text),
+                            MultipartBody.Part.createFormData("message_pic", delivery.picture),
+                        )
+                        .first()
+                val data = result.getOrThrow()
+                val rows =
+                    data.data.orEmpty().filter {
+                        it.entityType == "message" && !it.id.isNullOrBlank()
+                    }
+                if (rows.isEmpty()) throw java.io.IOException("消息结果未确认")
+                if (accountRevision != CookieUtil.accountSession.revision) return@launch
+                val previous = (loadingState as? LoadingState.Success)?.response.orEmpty()
+                loadingState =
+                    LoadingState.Success(
+                        (rows + previous).distinctBy { it.entityType to (it.id ?: it.entityId) },
+                    )
+                deliveries.remove(delivery)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                delivery.unconfirmed =
+                    requestStarted &&
+                        (e !is com.example.c001apk.compose.logic.network.ApiFailure ||
+                            e.kind in
+                                listOf(
+                                    com.example.c001apk.compose.logic.network.ApiFailureKind.HTTP,
+                                    com.example.c001apk.compose.logic.network.ApiFailureKind
+                                        .INVALID_RESPONSE,
+                                ))
+                delivery.error =
+                    if (delivery.unconfirmed) "发送结果未确认，重试前请查看是否已送达"
+                    else com.example.c001apk.compose.logic.network.ApiFailures.safeMessage(e)
+            } finally {
+                delivery.sending = false
+            }
         }
+    }
+
+    override fun handleLoadMore(response: List<HomeFeedResponse.Data>) = response.distinctBy {
+        it.entityType to (it.id ?: it.entityId)
     }
 
     val recentEmojiData = recentEmojiRepo.loadAllListFlow()
@@ -188,10 +232,8 @@ class ChatViewModel @AssistedInject constructor(
                     last?.let {
                         recentEmojiRepo.updateEmoji(it, data)
                     }
-                else
-                    recentEmojiRepo.insertEmoji(StringEntity(data))
+                else recentEmojiRepo.insertEmoji(StringEntity(data))
             }
         }
     }
-
 }

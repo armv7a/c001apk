@@ -325,7 +325,7 @@ interface ApiService {
         @Query("uid") uid: String,
         @Part message: MultipartBody.Part,
         @Part pic: MultipartBody.Part,
-    ): Call<HomeFeedResponse>
+    ): Call<ResponseBody>
 
     @GET
     fun deleteMessage(

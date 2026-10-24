@@ -87,13 +87,14 @@ constructor(
         viewModelScope.launch(Dispatchers.IO) {
             networkRepo.checkCount().collect { result ->
                 result.getOrNull()?.data?.let {
+                    com.example.c001apk.compose.util.CookieUtil.notification = it.notification
                     badgeList =
                         listOf(
                             it.atme,
                             it.atcommentme,
                             it.feedlike,
                             it.contactsFollow,
-                            it.message,
+                            it.message + it.notification,
                         )
                 }
             }

@@ -58,7 +58,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.c001apk.compose.R
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
-import com.example.c001apk.compose.logic.model.OSSUploadPrepareModel
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.ChatEditText
@@ -80,18 +79,12 @@ import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.EmojiUtils
 import com.example.c001apk.compose.util.EmojiUtils.coolBList
 import com.example.c001apk.compose.util.EmojiUtils.emojiList
-import com.example.c001apk.compose.util.OSSUtil.getImageDimensionsAndMD5
-import com.example.c001apk.compose.util.OSSUtil.toHex
-import com.example.c001apk.compose.util.OssUploadUtil.ossUpload
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.makeToast
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import java.util.UUID
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.Card as ElevatedCard
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
@@ -125,6 +118,8 @@ fun ChatScreen(
     val context = LocalContext.current
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
+    var showFeedPicker by remember { mutableStateOf(false) }
+    var retryDelivery by remember { mutableStateOf<ChatViewModel.Delivery?>(null) }
     val lazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     var clearText by remember { mutableStateOf(false) }
@@ -132,35 +127,7 @@ fun ChatScreen(
     val windowInsets = WindowInsets.navigationBars
 
     fun handlePickedImage(uri: android.net.Uri) {
-        try {
-            val result = getImageDimensionsAndMD5(context.contentResolver, uri)
-            val md5Byte = result.second
-            val md5 = md5Byte?.toHex() ?: ""
-            val width = result.first?.first ?: 0
-            val height = result.first?.second ?: 0
-            val type = result.first?.third ?: ""
-
-            viewModel.uriList = listOf(uri)
-            viewModel.md5List = listOf(md5Byte)
-            viewModel.typeList = listOf(type)
-            val list =
-                listOf(
-                    OSSUploadPrepareModel(
-                        name =
-                            "${
-                        UUID.randomUUID().toString().replace("-", "")
-                    }.${if (type.startsWith("image/")) type.substring(6) else type}",
-                        resolution = "${width}x${height}",
-                        md5 = md5,
-                    ),
-                )
-            viewModel.onPostOSSUploadPrepare(uid, list)
-        } catch (e: Exception) {
-            e.message?.let {
-                context.makeToast(it)
-            }
-            e.printStackTrace()
-        }
+        viewModel.onSendImage(uid, uri)
     }
 
     LaunchedEffect(key1 = viewModel.scroll) {
@@ -204,6 +171,14 @@ fun ChatScreen(
                 },
                 title = username,
                 actions = {
+                    com.example.c001apk.compose.ui.component.MiuixActionButton(
+                        onClick = {
+                            onClearFocus()
+                            showFeedPicker = true
+                        },
+                    ) {
+                        Text("发动态")
+                    }
                     Box {
                         MoreMenuButton { dropdownMenuExpanded = true }
                         DropdownMenu(
@@ -260,6 +235,43 @@ fun ChatScreen(
                 reverseLayout = true,
                 state = lazyListState,
             ) {
+                itemsIndexed(viewModel.deliveries, key = { _, item -> "pending-${item.id}" }) {
+                    _,
+                    delivery ->
+                    Column(
+                        Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalAlignment = Alignment.End,
+                    ) {
+                        if (delivery.preview != null)
+                            coil.compose.AsyncImage(
+                                model = delivery.preview,
+                                contentDescription = "待发送图片",
+                                modifier = Modifier.size(120.dp),
+                            )
+                        else if (delivery.picture.isNotEmpty()) Text("[图片]")
+                        if (delivery.text.isNotBlank()) Text(delivery.text)
+                        Text(
+                            if (delivery.sending) "发送中…" else delivery.error.orEmpty(),
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        )
+                        if (!delivery.sending)
+                            Row {
+                                com.example.c001apk.compose.ui.component.MiuixActionButton(
+                                    onClick = {
+                                        if (delivery.unconfirmed) retryDelivery = delivery
+                                        else viewModel.retry(delivery)
+                                    },
+                                ) {
+                                    Text("重试")
+                                }
+                                com.example.c001apk.compose.ui.component.MiuixActionButton(
+                                    onClick = { viewModel.discard(delivery) },
+                                ) {
+                                    Text("移除")
+                                }
+                            }
+                    }
+                }
                 when (viewModel.loadingState) {
                     LoadingState.Loading,
                     LoadingState.Empty,
@@ -399,11 +411,40 @@ fun ChatScreen(
         }
     }
 
-    when {
-        viewModel.showUploadDialog -> {
-            LoadingDialog()
-        }
+    if (showFeedPicker)
+        ChatFeedPicker(
+            onDismiss = { showFeedPicker = false },
+            onSelected = { feedId ->
+                showFeedPicker = false
+                viewModel.onSendMessage(uid, "https://www.coolapk.com/feed/$feedId", "")
+            },
+        )
+    retryDelivery?.let { delivery ->
+        com.example.c001apk.compose.ui.component.MiuixAlertDialog(
+            onDismissRequest = { retryDelivery = null },
+            title = { Text("再次发送这条消息？") },
+            text = { Text("上次发送结果未确认，重试可能重复发送。请先查看聊天记录。") },
+            confirmButton = {
+                com.example.c001apk.compose.ui.component.MiuixDialogButton(
+                    onClick = {
+                        retryDelivery = null
+                        viewModel.retry(delivery)
+                    },
+                ) {
+                    Text("再次发送")
+                }
+            },
+            dismissButton = {
+                com.example.c001apk.compose.ui.component.MiuixDialogButton(
+                    onClick = { retryDelivery = null },
+                ) {
+                    Text("取消")
+                }
+            },
+        )
+    }
 
+    when {
         showDialog -> {
             Dialog(onDismissRequest = { showDialog = false }) {
                 ElevatedCard(
@@ -427,6 +468,15 @@ fun ChatScreen(
                                     .padding(horizontal = 24.dp, vertical = 14.dp),
                             style = MiuixTheme.textStyles.headline2,
                         )
+                        if (viewModel.pic.isNotEmpty()) {
+                            top.yukonga.miuix.kmp.basic.BasicComponent(
+                                title = "重新加载图片",
+                                onClick = {
+                                    showDialog = false
+                                    viewModel.retryImage(viewModel.deleteId)
+                                },
+                            )
+                        }
                         if (viewModel.pic.isEmpty()) {
                             Text(
                                 text = "复制",
@@ -449,35 +499,6 @@ fun ChatScreen(
     viewModel.toastText?.let {
         context.makeToast(it)
         viewModel.resetToastText()
-    }
-
-    viewModel.uploadImage?.let { responseData ->
-        LaunchedEffect(responseData) {
-            withContext(Dispatchers.IO) {
-                ossUpload(
-                    context = context,
-                    responseData = responseData,
-                    uriList = viewModel.uriList,
-                    typeList = viewModel.typeList,
-                    md5List = viewModel.md5List,
-                    iOnSuccess = {
-                        viewModel.onSendMessage(
-                            uid,
-                            EMPTY_STRING,
-                            "/${responseData.fileInfo.getOrNull(0)?.uploadFileName}",
-                        )
-                    },
-                    iOnFailure = {
-                        viewModel.showUploadDialog = false
-                        context.makeToast("图片上传失败")
-                    },
-                    closeDialog = {
-                        viewModel.showUploadDialog = false
-                    },
-                )
-            }
-            viewModel.resetUploadImage()
-        }
     }
 }
 
