@@ -30,6 +30,8 @@
             android:theme="@style/AppThemeTranslucent"
             tools:replace="android:theme" />
 
+        <activity android:name=".ui.captcha.CaptchaActivity" android:exported="false" />
+
         <activity
             android:name=".ui.feed.reply.ReplyActivity"
             android:exported="false"

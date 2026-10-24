@@ -40,6 +40,8 @@ interface ApiService {
     @GET
     fun getFeedContent(
         @Url url: String,
+        @retrofit2.http.Tag
+        skipCaptcha: com.example.c001apk.compose.logic.network.SkipCaptcha? = null,
     ): Call<FeedContentResponse>
 
     @GET("/v6/feed/replyList")

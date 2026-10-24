@@ -10,5 +10,5 @@ data class FeedContentResponse(
     val message: String?,
     val messageStatus: String?,
     val data: HomeFeedResponse.Data?,
+    @Transient val isPublic: Boolean = false,
 ) : Parcelable
-

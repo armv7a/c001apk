@@ -107,6 +107,11 @@ object NetworkModule {
     @Provides
     fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
+            .addInterceptor(
+                com.example.c001apk.compose.logic.network.session.RequestSession.capture,
+            )
+            .addInterceptor(com.example.c001apk.compose.logic.network.ApiFailureInterceptor())
+            .addInterceptor(com.example.c001apk.compose.logic.network.CaptchaInterceptor())
             .addNetworkInterceptor(AddCookiesInterceptor)
             .followRedirects(true)
             .build()
@@ -117,6 +122,11 @@ object NetworkModule {
     @Provides
     fun provideNoOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
+            .addInterceptor(
+                com.example.c001apk.compose.logic.network.session.RequestSession.capture,
+            )
+            .addInterceptor(com.example.c001apk.compose.logic.network.ApiFailureInterceptor())
+            .addInterceptor(com.example.c001apk.compose.logic.network.CaptchaInterceptor())
             .addNetworkInterceptor(AddCookiesInterceptor)
             .followRedirects(false)
             .build()

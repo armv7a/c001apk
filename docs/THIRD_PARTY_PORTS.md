@@ -1,0 +1,7 @@
+# 功能移植与协议来源
+
+本工程保留根目录 AGPL-3.0 LICENSE 和原作者声明。Kotlin 功能移植参考 TG-Twilight/c001apk，冻结提交与逐项对应关系见 [TWILIGHT_PORT.md](TWILIGHT_PORT.md)。账号存储、本地关注、设备标识、会话和验证等移植文件沿用 AGPL-3.0。
+
+Token V3 算法、协议查找表、公开分享页 JSON 与网易验证码配置，参考 TG-Twilight 的对应实现，原始协议兼容来源为 [daimiaopeng/coolapk-desktop](https://github.com/daimiaopeng/coolapk-desktop/tree/3ef2ad4da6d171e118d2b29b0f18d7ffa6da9086) 的 `auth.rs`、`auth_blob.b64`、`client.rs`、`neteaseCaptcha.ts`。MIT 完整版权和许可随应用收录在 [coolapk-desktop-MIT.txt](../app/src/main/assets/licenses/coolapk-desktop-MIT.txt)。查找表用于协议兼容，其第三方权利不由该 MIT 许可担保；酷安名称、商标及服务内容归相应权利人。
+
+签名测试向量沿用参考工程的合成设备与固定时间数据，不包含真实账号或设备标识。人机验证由用户在网易官方 Web SDK 中完成，不分发验证码 SDK 源码。

@@ -55,6 +55,11 @@ constructor(
                     val revision = prefs.accountRevision
                     networkRepo.checkLoginInfo().collect { result ->
                         if (CookieUtil.accountSession.revision != revision) return@collect
+                        val failure =
+                            result.exceptionOrNull()
+                                as? com.example.c001apk.compose.logic.network.ApiFailure
+                        if (prefs.isLogin && failure?.expiredSession == true)
+                            accounts.expire(revision)
                         val response = result.getOrNull() ?: return@collect
                         val login = response.body()?.data
                         // Anonymous or partial responses never create/replace a saved account.

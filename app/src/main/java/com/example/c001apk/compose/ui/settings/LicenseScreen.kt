@@ -57,6 +57,12 @@ fun LicenseScreen(
 private val licenseList =
     listOf(
         LicenseItem(
+            "daimiaopeng",
+            "coolapk-desktop protocol compatibility",
+            "https://github.com/daimiaopeng/coolapk-desktop",
+            LicenseType.MIT,
+        ),
+        LicenseItem(
             "Google LLC",
             "Flutter profile icon glyphs (local vectors)",
             "https://creativecommons.org/licenses/by/4.0/",

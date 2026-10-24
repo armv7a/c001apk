@@ -65,6 +65,7 @@ object CookieUtil {
             )
         if (changed) {
             SESSID = ""
+            com.example.c001apk.compose.logic.network.session.ApiSessions.clear()
             atme = null
             atcommentme = null
             feedlike = null

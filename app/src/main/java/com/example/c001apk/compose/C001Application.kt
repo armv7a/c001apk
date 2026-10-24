@@ -23,6 +23,10 @@ class C001Application : Application() {
         super.onCreate()
 
         c001Application = this
+        registerActivityLifecycleCallbacks(
+            com.example.c001apk.compose.logic.network.CaptchaCoordinator,
+        )
+        com.example.c001apk.compose.logic.network.session.ApiSessions.initialize(this)
 
         Coil.setImageLoader(
             ImageLoader.Builder(this)

@@ -27,11 +27,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/6
- */
+/** Created by bggRGjQaUbCoE on 2024/6/6 */
 @HiltViewModel(assistedFactory = FeedViewModel.ViewModelFactory::class)
-class FeedViewModel @AssistedInject constructor(
+class FeedViewModel
+@AssistedInject
+constructor(
     @Assisted var id: String,
     @Assisted var isViewReply: Boolean,
     networkRepo: NetworkRepo,
@@ -75,106 +75,111 @@ class FeedViewModel @AssistedInject constructor(
         device: String,
         message: String,
         pubDate: String,
-        type: HistoryType = HistoryType.HISTORY
+        type: HistoryType = HistoryType.HISTORY,
     ) {
         when (type) {
-            HistoryType.FAV -> historyFavoriteRepo.insertFavorite(
-                FeedEntity(id, feedUid, username, avatar, device, message, pubDate)
-            )
+            HistoryType.FAV ->
+                historyFavoriteRepo.insertFavorite(
+                    FeedEntity(id, feedUid, username, avatar, device, message, pubDate),
+                )
 
-            HistoryType.HISTORY -> historyFavoriteRepo.insertHistory(
-                FeedEntity(id, feedUid, username, avatar, device, message, pubDate)
-            )
+            HistoryType.HISTORY ->
+                historyFavoriteRepo.insertHistory(
+                    FeedEntity(id, feedUid, username, avatar, device, message, pubDate),
+                )
         }
-
     }
 
-    private fun fetchFeedData() {
+    private fun fetchFeedData(verifyCaptcha: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.getFeedContent("/v6/feed/detail?id=$id")
-                .collect { state ->
-                    if (state is LoadingState.Success) {
-                        val response = state.response
+            networkRepo.getFeedContent("/v6/feed/detail?id=$id", verifyCaptcha).collect { state ->
+                if (state is LoadingState.Success) {
+                    val response = state.response
 
-                        feedUid = response.uid.orEmpty()
-                        feedUsername = response.username.orEmpty()
-                        replyCount = response.replynum.orEmpty()
-                        feedTypeName = response.feedTypeName.orEmpty()
-                        feedType = response.feedType.orEmpty()
+                    feedUid = response.uid.orEmpty()
+                    feedUsername = response.username.orEmpty()
+                    replyCount = response.replynum.orEmpty()
+                    feedTypeName = response.feedTypeName.orEmpty()
+                    feedType = response.feedType.orEmpty()
 
-                        if (response.messageRawOutput != "null") {
-                            val listType =
-                                object : TypeToken<List<FeedArticleContentBean?>?>() {}.type
-                            val message: List<FeedArticleContentBean> =
-                                Gson().fromJson(response.messageRawOutput, listType)
+                    if (response.messageRawOutput != "null") {
+                        val listType = object : TypeToken<List<FeedArticleContentBean?>?>() {}.type
+                        val message: List<FeedArticleContentBean> =
+                            Gson().fromJson(response.messageRawOutput, listType)
 
-                            articleList = message.filter {
-                                it.type in listOf("text", "image", "shareUrl")
-                            }
-
-                            if (!response.messageCover.isNullOrEmpty()) itemSize++
-                            if (!response.title.isNullOrEmpty()) itemSize++
-                            if (response.targetRow != null || !response.relationRows.isNullOrEmpty())
-                                itemSize++
-                            itemSize += articleList?.size ?: 0
+                        articleList = message.filter {
+                            it.type in listOf("text", "image", "shareUrl")
                         }
 
-                        if (!response.topReplyRows.isNullOrEmpty()) {
-                            response.topReplyRows?.getOrNull(0)?.let { reply ->
-                                topId = reply.id
-                                val unameTag = when (reply.uid) {
+                        if (!response.messageCover.isNullOrEmpty()) itemSize++
+                        if (!response.title.isNullOrEmpty()) itemSize++
+                        if (response.targetRow != null || !response.relationRows.isNullOrEmpty())
+                            itemSize++
+                        itemSize += articleList?.size ?: 0
+                    }
+
+                    if (!response.topReplyRows.isNullOrEmpty()) {
+                        response.topReplyRows?.getOrNull(0)?.let { reply ->
+                            topId = reply.id
+                            val unameTag =
+                                when (reply.uid) {
                                     feedUid -> " [楼主]"
                                     else -> EMPTY_STRING
                                 }
-                                reply.username = "${reply.username}$unameTag [置顶]"
-                                if (!reply.replyRows.isNullOrEmpty()) {
-                                    reply.replyRows = reply.replyRows?.map {
+                            reply.username = "${reply.username}$unameTag [置顶]"
+                            if (!reply.replyRows.isNullOrEmpty()) {
+                                reply.replyRows =
+                                    reply.replyRows?.map {
                                         it.copy(
-                                            message = generateMess(
-                                                it,
-                                                feedUid,
-                                                reply.uid
-                                            )
+                                            message =
+                                                generateMess(
+                                                    it,
+                                                    feedUid,
+                                                    reply.uid,
+                                                ),
                                         )
                                     }
-                                }
                             }
                         }
-                        if (!response.replyMeRows.isNullOrEmpty()) {
-                            response.replyMeRows?.getOrNull(0)?.let { reply ->
-                                meId = reply.id
-                                if (!reply.replyRows.isNullOrEmpty()) {
-                                    reply.replyRows = reply.replyRows?.map {
+                    }
+                    if (!response.replyMeRows.isNullOrEmpty()) {
+                        response.replyMeRows?.getOrNull(0)?.let { reply ->
+                            meId = reply.id
+                            if (!reply.replyRows.isNullOrEmpty()) {
+                                reply.replyRows =
+                                    reply.replyRows?.map {
                                         it.copy(
-                                            message = generateMess(
-                                                it,
-                                                feedUid,
-                                                reply.uid
-                                            )
+                                            message =
+                                                generateMess(
+                                                    it,
+                                                    feedUid,
+                                                    reply.uid,
+                                                ),
                                         )
                                     }
-                                }
                             }
                         }
-                        fetchData()
+                    }
+                    fetchData()
 
-                        if (CookieUtil.recordHistory && !historyFavoriteRepo.checkHistory(id)) {
-                            recordHistory(
-                                username = response.username.orEmpty(),
-                                avatar = response.userAvatar.orEmpty(),
-                                device = response.deviceTitle.orEmpty(),
-                                message = with(response.message.orEmpty()) {
+                    if (CookieUtil.recordHistory && !historyFavoriteRepo.checkHistory(id)) {
+                        recordHistory(
+                            username = response.username.orEmpty(),
+                            avatar = response.userAvatar.orEmpty(),
+                            device = response.deviceTitle.orEmpty(),
+                            message =
+                                with(response.message.orEmpty()) {
                                     if (this.length > 150) this.substring(0, 150) else this
                                 },
-                                pubDate = response.dateline.toString()
-                            )
-                        }
-                        isFav = historyFavoriteRepo.checkFavorite(id)
-                        isBlocked = blackListRepo.checkUid(feedUid)
+                            pubDate = response.dateline.toString(),
+                        )
                     }
-                    feedState = state
-                    isRefreshing = false
+                    isFav = historyFavoriteRepo.checkFavorite(id)
+                    isBlocked = blackListRepo.checkUid(feedUid)
                 }
+                feedState = state
+                isRefreshing = false
+            }
         }
     }
 
@@ -184,36 +189,46 @@ class FeedViewModel @AssistedInject constructor(
 
     override suspend fun customFetchData() =
         networkRepo.getFeedContentReply(
-            id, listType, page, firstItem, lastItem, discussMode,
-            feedType, blockStatus, fromFeedAuthor
+            id,
+            listType,
+            page,
+            firstItem,
+            lastItem,
+            discussMode,
+            feedType,
+            blockStatus,
+            fromFeedAuthor,
         )
 
-    override fun handleResponse(response: List<HomeFeedResponse.Data>): List<HomeFeedResponse.Data> {
+    override fun handleResponse(
+        response: List<HomeFeedResponse.Data>,
+    ): List<HomeFeedResponse.Data> {
         response.forEach { item ->
-            item.username =
-                "${item.username}${if (item.uid == feedUid) " [楼主]" else EMPTY_STRING}"
+            item.username = "${item.username}${if (item.uid == feedUid) " [楼主]" else EMPTY_STRING}"
             if (!item.replyRows.isNullOrEmpty()) {
-                item.replyRows = item.replyRows?.map {
-                    it.copy(
-                        message = generateMess(
-                            it,
-                            feedUid,
-                            item.uid
+                item.replyRows =
+                    item.replyRows?.map {
+                        it.copy(
+                            message =
+                                generateMess(
+                                    it,
+                                    feedUid,
+                                    item.uid,
+                                ),
                         )
-                    )
-                }
+                    }
             }
         }
 
-        return response.distinctBy { it.entityId }
+        return response
+            .distinctBy { it.entityId }
             .filterNot {
-                if (listType == "lastupdate_desc")
-                    it.id in listOf(topId, meId)
-                else false
+                if (listType == "lastupdate_desc") it.id in listOf(topId, meId) else false
             }
     }
 
     var isPull = false
+
     override fun refresh() {
         if (!isRefreshing && !isLoadMore) {
             if (feedState is LoadingState.Success) {
@@ -230,7 +245,7 @@ class FeedViewModel @AssistedInject constructor(
                     }
                 }
                 feedState = LoadingState.Loading
-                fetchFeedData()
+                fetchFeedData(verifyCaptcha = true)
             }
         }
     }
@@ -238,7 +253,7 @@ class FeedViewModel @AssistedInject constructor(
     private fun generateMess(
         reply: HomeFeedResponse.Data,
         feedUid: String?,
-        uid: String?
+        uid: String?,
     ): String = run {
         val replyTag =
             when (reply.uid) {
@@ -257,17 +272,18 @@ class FeedViewModel @AssistedInject constructor(
         val rReplyUser =
             when (reply.ruid) {
                 uid -> EMPTY_STRING
-                else -> """<a class="feed-link-uname" href="/u/${reply.ruid}">${reply.rusername}${rReplyTag}</a>"""
+                else ->
+                    """<a class="feed-link-uname" href="/u/${reply.ruid}">${reply.rusername}${rReplyTag}</a>"""
             }
 
         val replyPic =
             when (reply.pic) {
                 EMPTY_STRING -> EMPTY_STRING
-                else -> """ <a class=\"feed-forward-pic\" href=${reply.pic}>查看图片(${reply.picArr?.size})</a>"""
+                else ->
+                    """ <a class=\"feed-forward-pic\" href=${reply.pic}>查看图片(${reply.picArr?.size})</a>"""
             }
 
         """<a class="feed-link-uname" href="/u/${reply.uid}">${reply.username}${replyTag}</a>回复${rReplyUser}: ${reply.message}${replyPic}"""
-
     }
 
     var isSheet: Boolean = false
@@ -279,91 +295,89 @@ class FeedViewModel @AssistedInject constructor(
     private var replyLastItem: String? = null
     var isEndReply = false
     private var isLoadMoreReply = false
-    var replyLoadingState by mutableStateOf<LoadingState<List<HomeFeedResponse.Data>>>(LoadingState.Loading)
+    var replyLoadingState by
+        mutableStateOf<LoadingState<List<HomeFeedResponse.Data>>>(LoadingState.Loading)
         private set
+
     var replyFooterState by mutableStateOf<FooterState>(FooterState.Success)
         private set
 
     private fun getReplyTop(): HomeFeedResponse.Data? {
         val replyTop =
             when (frid ?: replyId) {
-                topId ->
-                    (feedState as LoadingState.Success).response.topReplyRows?.getOrNull(0)
+                topId -> (feedState as LoadingState.Success).response.topReplyRows?.getOrNull(0)
 
-                meId ->
-                    (feedState as LoadingState.Success).response.replyMeRows?.getOrNull(0)
+                meId -> (feedState as LoadingState.Success).response.replyMeRows?.getOrNull(0)
 
                 else ->
                     (loadingState as LoadingState.Success).response.find {
                         it.id == (frid ?: replyId)
                     }
             }
-        return if (!frid.isNullOrEmpty())
-            replyTop?.replyRows?.find { it.id == replyId }
+        return if (!frid.isNullOrEmpty()) replyTop?.replyRows?.find { it.id == replyId }
         else replyTop
     }
 
     fun fetchTotalReply() {
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.getReply2Reply(replyId, replyPage, replyLastItem)
-                .collect { state ->
-                    when (state) {
-                        LoadingState.Empty -> {
-                            if (replyLoadingState is LoadingState.Success && !isRefreshing)
-                                replyFooterState = FooterState.End
-                            else {
-                                replyLoadingState = getReplyTop()?.let {
+            networkRepo.getReply2Reply(replyId, replyPage, replyLastItem).collect { state ->
+                when (state) {
+                    LoadingState.Empty -> {
+                        if (replyLoadingState is LoadingState.Success && !isRefreshing)
+                            replyFooterState = FooterState.End
+                        else {
+                            replyLoadingState =
+                                getReplyTop()?.let {
                                     LoadingState.Success(listOf(it))
                                 } ?: state
-                                replyFooterState = FooterState.End
-                            }
-                            isEndReply = true
+                            replyFooterState = FooterState.End
                         }
+                        isEndReply = true
+                    }
 
-                        is LoadingState.Error -> {
-                            if (replyLoadingState is LoadingState.Success)
-                                replyFooterState = FooterState.Error(state.errMsg)
-                            else
-                                replyLoadingState = state
-                            isEndReply = true
-                        }
+                    is LoadingState.Error -> {
+                        if (replyLoadingState is LoadingState.Success)
+                            replyFooterState = FooterState.Error(state.errMsg)
+                        else replyLoadingState = state
+                        isEndReply = true
+                    }
 
-                        LoadingState.Loading -> {
-                            if (replyLoadingState is LoadingState.Success)
-                                replyFooterState = FooterState.Loading
-                            else
-                                replyLoadingState = state
-                        }
+                    LoadingState.Loading -> {
+                        if (replyLoadingState is LoadingState.Success)
+                            replyFooterState = FooterState.Loading
+                        else replyLoadingState = state
+                    }
 
-                        is LoadingState.Success -> {
-                            replyPage++
-                            var response = state.response.filter {
+                    is LoadingState.Success -> {
+                        replyPage++
+                        var response =
+                            state.response.filter {
                                 it.entityType == "feed_reply"
                             }
-                            response = response.map { reply ->
-                                reply.copy(
-                                    username = generateName(reply, replyUid)
-                                )
-                            }
-                            if (replyPage == 2) {
-                                getReplyTop()?.let {
-                                    response = listOf(it) + response
-                                }
-                            }
-                            replyLastItem = response.lastOrNull()?.id
-                            replyLoadingState =
-                                if (isLoadMoreReply)
-                                    LoadingState.Success(
-                                        (((replyLoadingState as? LoadingState.Success)?.response
-                                            ?: emptyList()) + response).distinctBy { it.entityId }
-                                    )
-                                else
-                                    LoadingState.Success(response)
-                            replyFooterState = FooterState.Success
+                        response = response.map { reply ->
+                            reply.copy(
+                                username = generateName(reply, replyUid),
+                            )
                         }
+                        if (replyPage == 2) {
+                            getReplyTop()?.let {
+                                response = listOf(it) + response
+                            }
+                        }
+                        replyLastItem = response.lastOrNull()?.id
+                        replyLoadingState =
+                            if (isLoadMoreReply)
+                                LoadingState.Success(
+                                    (((replyLoadingState as? LoadingState.Success)?.response
+                                            ?: emptyList()) + response)
+                                        .distinctBy { it.entityId },
+                                )
+                            else LoadingState.Success(response)
+                        replyFooterState = FooterState.Success
                     }
-                    isLoadMoreReply = false
                 }
+                isLoadMoreReply = false
+            }
         }
     }
 
@@ -417,38 +431,41 @@ class FeedViewModel @AssistedInject constructor(
             val isLike = if (like == 1) 0 else 1
             when (id) {
                 this.id -> {
-                    response = response.copy(
-                        likenum = count,
-                        userAction = HomeFeedResponse.UserAction(isLike)
-                    )
+                    response =
+                        response.copy(
+                            likenum = count,
+                            userAction = HomeFeedResponse.UserAction(isLike),
+                        )
                 }
 
                 topId -> {
                     response.topReplyRows?.getOrNull(0)?.let {
-                        response = response.copy(
-                            topReplyRows = listOf(
-                                it.copy(
-                                    likenum = count,
-                                    userAction = HomeFeedResponse.UserAction(isLike)
-                                )
+                        response =
+                            response.copy(
+                                topReplyRows =
+                                    listOf(
+                                        it.copy(
+                                            likenum = count,
+                                            userAction = HomeFeedResponse.UserAction(isLike),
+                                        ),
+                                    ),
                             )
-                        )
                     }
-
                 }
 
                 meId -> {
                     response.replyMeRows?.getOrNull(0)?.let {
-                        response = response.copy(
-                            replyMeRows = listOf(
-                                it.copy(
-                                    likenum = count,
-                                    userAction = HomeFeedResponse.UserAction(isLike)
-                                )
+                        response =
+                            response.copy(
+                                replyMeRows =
+                                    listOf(
+                                        it.copy(
+                                            likenum = count,
+                                            userAction = HomeFeedResponse.UserAction(isLike),
+                                        ),
+                                    ),
                             )
-                        )
                     }
-
                 }
             }
             feedState = LoadingState.Success(response)
@@ -458,10 +475,7 @@ class FeedViewModel @AssistedInject constructor(
 
     fun blockUser() {
         viewModelScope.launch(Dispatchers.IO) {
-            if (isBlocked)
-                blackListRepo.deleteUid(feedUid)
-            else
-                blackListRepo.saveUid(feedUid)
+            if (isBlocked) blackListRepo.deleteUid(feedUid) else blackListRepo.saveUid(feedUid)
             isBlocked = !isBlocked
         }
     }
@@ -476,57 +490,63 @@ class FeedViewModel @AssistedInject constructor(
                     username = response.username.orEmpty(),
                     avatar = response.userAvatar.orEmpty(),
                     device = response.deviceTitle.orEmpty(),
-                    message = with(response.message.orEmpty()) {
-                        if (this.length > 150) this.substring(0, 150) else this
-                    },
+                    message =
+                        with(response.message.orEmpty()) {
+                            if (this.length > 150) this.substring(0, 150) else this
+                        },
                     pubDate = response.dateline.toString(),
-                    type = HistoryType.FAV
+                    type = HistoryType.FAV,
                 )
             }
             isFav = !isFav
         }
     }
 
-    override fun handleLoadMore(response: List<HomeFeedResponse.Data>): List<HomeFeedResponse.Data> {
+    override fun handleLoadMore(
+        response: List<HomeFeedResponse.Data>,
+    ): List<HomeFeedResponse.Data> {
         return response.distinctBy { it.entityId }
     }
 
     override fun handleBlockUser(
         uid: String,
-        response: List<HomeFeedResponse.Data>
+        response: List<HomeFeedResponse.Data>,
     ): List<HomeFeedResponse.Data>? {
         var feedResponse = (feedState as LoadingState.Success).response
         feedResponse.topReplyRows?.getOrNull(0)?.let { reply ->
-            feedResponse = if (reply.uid == uid)
-                feedResponse.copy(topReplyRows = null)
-            else
-                feedResponse.copy(
-                    topReplyRows = listOf(
-                        reply.copy(
-                            replyRows = reply.replyRows?.filterNot { it.uid == uid }
-                        )
+            feedResponse =
+                if (reply.uid == uid) feedResponse.copy(topReplyRows = null)
+                else
+                    feedResponse.copy(
+                        topReplyRows =
+                            listOf(
+                                reply.copy(
+                                    replyRows = reply.replyRows?.filterNot { it.uid == uid },
+                                ),
+                            ),
                     )
-                )
         }
         feedResponse.replyMeRows?.getOrNull(0)?.let { reply ->
-            feedResponse = if (reply.uid == uid)
-                feedResponse.copy(replyMeRows = null)
-            else
-                feedResponse.copy(
-                    replyMeRows = listOf(
-                        reply.copy(
-                            replyRows = reply.replyRows?.filterNot { it.uid == uid }
-                        )
+            feedResponse =
+                if (reply.uid == uid) feedResponse.copy(replyMeRows = null)
+                else
+                    feedResponse.copy(
+                        replyMeRows =
+                            listOf(
+                                reply.copy(
+                                    replyRows = reply.replyRows?.filterNot { it.uid == uid },
+                                ),
+                            ),
                     )
-                )
         }
         feedState = LoadingState.Success(feedResponse)
         return if (frid.isNullOrEmpty()) null
-        else response.map { item ->
-            if (item.id == frid) {
-                item.copy(replyRows = item.replyRows?.filterNot { it.uid == uid })
-            } else item
-        }
+        else
+            response.map { item ->
+                if (item.id == frid) {
+                    item.copy(replyRows = item.replyRows?.filterNot { it.uid == uid })
+                } else item
+            }
     }
 
     fun onBlockReplyUser(uid: String) {
@@ -542,61 +562,62 @@ class FeedViewModel @AssistedInject constructor(
     }
 
     fun onDeleteRely(id: String, deleteType: LikeType) {
-        val url = if (deleteType == LikeType.FEED) "/v6/feed/deleteFeed"
-        else "/v6/feed/deleteReply"
+        val url = if (deleteType == LikeType.FEED) "/v6/feed/deleteFeed" else "/v6/feed/deleteReply"
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.postDelete(url, id)
-                .collect { result ->
-                    val response = result.getOrNull()
-                    if (response != null) {
-                        if (!response.message.isNullOrEmpty()) {
-                            toastText = response.message
-                        } else if (response.data?.count == "删除成功") {
-                            toastText = response.data.count
-                            val dataList =
-                                (replyLoadingState as LoadingState.Success).response.filterNot { it.id == id }
-                            replyLoadingState = LoadingState.Success(dataList)
-                        }
-                    } else {
-                        toastText = result.exceptionOrNull()?.message ?: "response is null"
-                        result.exceptionOrNull()?.printStackTrace()
+            networkRepo.postDelete(url, id).collect { result ->
+                val response = result.getOrNull()
+                if (response != null) {
+                    if (!response.message.isNullOrEmpty()) {
+                        toastText = response.message
+                    } else if (response.data?.count == "删除成功") {
+                        toastText = response.data.count
+                        val dataList =
+                            (replyLoadingState as LoadingState.Success).response.filterNot {
+                                it.id == id
+                            }
+                        replyLoadingState = LoadingState.Success(dataList)
                     }
+                } else {
+                    toastText = result.exceptionOrNull()?.message ?: "response is null"
+                    result.exceptionOrNull()?.printStackTrace()
                 }
+            }
         }
     }
 
     fun onLikeReply(id: String, like: Int, likeType: LikeType) {
-        val isLike = when (likeType) {
-            LikeType.FEED -> if (like == 1) "unlike" else "like"
-            LikeType.REPLY -> if (like == 1) "unLikeReply" else "likeReply"
-        }
+        val isLike =
+            when (likeType) {
+                LikeType.FEED -> if (like == 1) "unlike" else "like"
+                LikeType.REPLY -> if (like == 1) "unLikeReply" else "likeReply"
+            }
         val likeUrl = "/v6/feed/$isLike"
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.postLike(likeUrl, id)
-                .collect { result ->
-                    val response = result.getOrNull()
-                    if (response != null) {
-                        if (response.data != null) {
-                            if (!response.message.isNullOrEmpty()) {
-                                toastText = response.message
-                            } else if (handleLikeResponse(id, like, response.data.count) == null) {
-                                val dataList =
-                                    (replyLoadingState as LoadingState.Success).response.map {
-                                        if (it.id == id) {
-                                            it.copy(
-                                                likenum = response.data.count,
-                                                userAction = it.userAction?.copy(like = if (like == 1) 0 else 1)
-                                            )
-                                        } else it
-                                    }
-                                replyLoadingState = LoadingState.Success(dataList)
-                            }
+            networkRepo.postLike(likeUrl, id).collect { result ->
+                val response = result.getOrNull()
+                if (response != null) {
+                    if (response.data != null) {
+                        if (!response.message.isNullOrEmpty()) {
+                            toastText = response.message
+                        } else if (handleLikeResponse(id, like, response.data.count) == null) {
+                            val dataList =
+                                (replyLoadingState as LoadingState.Success).response.map {
+                                    if (it.id == id) {
+                                        it.copy(
+                                            likenum = response.data.count,
+                                            userAction =
+                                                it.userAction?.copy(like = if (like == 1) 0 else 1),
+                                        )
+                                    } else it
+                                }
+                            replyLoadingState = LoadingState.Success(dataList)
                         }
-                    } else {
-                        toastText = result.exceptionOrNull()?.message ?: "response is null"
-                        result.exceptionOrNull()?.printStackTrace()
                     }
+                } else {
+                    toastText = result.exceptionOrNull()?.message ?: "response is null"
+                    result.exceptionOrNull()?.printStackTrace()
                 }
+            }
         }
     }
 
@@ -607,9 +628,10 @@ class FeedViewModel @AssistedInject constructor(
                 val reply = data.copy(username = generateName(data, replyUid))
                 var response = (replyLoadingState as? LoadingState.Success)?.response ?: emptyList()
                 val position = response.map { it.id }.indexOf(replyId)
-                response = response.toMutableList().also {
-                    it.add(position + 1, reply)
-                }
+                response =
+                    response.toMutableList().also {
+                        it.add(position + 1, reply)
+                    }
                 replyLoadingState = LoadingState.Success(response)
             } else {
                 val reply = data.copy(message = generateMess(data, feedUid, replyUid))
@@ -617,38 +639,45 @@ class FeedViewModel @AssistedInject constructor(
                     var feedResponse = (feedState as LoadingState.Success).response
                     if ((frid ?: replyId) == topId)
                         feedResponse.topReplyRows?.getOrNull(0)?.let {
-                            feedResponse = feedResponse.copy(
-                                topReplyRows = listOf(
-                                    it.copy(
-                                        replyRows = (it.replyRows ?: emptyList()) + listOf(reply)
-                                    )
+                            feedResponse =
+                                feedResponse.copy(
+                                    topReplyRows =
+                                        listOf(
+                                            it.copy(
+                                                replyRows =
+                                                    (it.replyRows ?: emptyList()) + listOf(reply),
+                                            ),
+                                        ),
                                 )
-                            )
                         }
                     else
                         feedResponse.replyMeRows?.getOrNull(0)?.let {
-                            feedResponse = feedResponse.copy(
-                                replyMeRows = listOf(
-                                    it.copy(
-                                        replyRows = (it.replyRows ?: emptyList()) + listOf(reply)
-                                    )
+                            feedResponse =
+                                feedResponse.copy(
+                                    replyMeRows =
+                                        listOf(
+                                            it.copy(
+                                                replyRows =
+                                                    (it.replyRows ?: emptyList()) + listOf(reply),
+                                            ),
+                                        ),
                                 )
-                            )
                         }
                     feedState = LoadingState.Success(feedResponse)
                 } else {
                     var response = (loadingState as? LoadingState.Success)?.response ?: emptyList()
-                    response = if (replyType == "feed") {
-                        listOf(data) + response
-                    } else {
-                        response.map { item ->
-                            if (item.id == (frid ?: replyId)) {
-                                item.copy(
-                                    replyRows = (item.replyRows ?: emptyList()) + listOf(reply)
-                                )
-                            } else item
+                    response =
+                        if (replyType == "feed") {
+                            listOf(data) + response
+                        } else {
+                            response.map { item ->
+                                if (item.id == (frid ?: replyId)) {
+                                    item.copy(
+                                        replyRows = (item.replyRows ?: emptyList()) + listOf(reply),
+                                    )
+                                } else item
+                            }
                         }
-                    }
                     loadingState = LoadingState.Success(response)
                 }
             }
@@ -657,27 +686,38 @@ class FeedViewModel @AssistedInject constructor(
 
     override fun handleDeleteResponse(
         id: String,
-        response: List<HomeFeedResponse.Data>
+        response: List<HomeFeedResponse.Data>,
     ): List<HomeFeedResponse.Data>? {
         return if (!frid.isNullOrEmpty()) {
             when (frid) {
-                topId, meId -> {
+                topId,
+                meId -> {
                     var feedResponse = (feedState as LoadingState.Success).response
                     if (frid == topId)
                         feedResponse.topReplyRows?.getOrNull(0)?.let { reply ->
-                            feedResponse = feedResponse.copy(
-                                topReplyRows = listOf(
-                                    reply.copy(replyRows = reply.replyRows?.filterNot { it.id == id })
+                            feedResponse =
+                                feedResponse.copy(
+                                    topReplyRows =
+                                        listOf(
+                                            reply.copy(
+                                                replyRows =
+                                                    reply.replyRows?.filterNot { it.id == id },
+                                            ),
+                                        ),
                                 )
-                            )
                         }
                     else
                         feedResponse.replyMeRows?.getOrNull(0)?.let { reply ->
-                            feedResponse = feedResponse.copy(
-                                replyMeRows = listOf(
-                                    reply.copy(replyRows = reply.replyRows?.filterNot { it.id == id })
+                            feedResponse =
+                                feedResponse.copy(
+                                    replyMeRows =
+                                        listOf(
+                                            reply.copy(
+                                                replyRows =
+                                                    reply.replyRows?.filterNot { it.id == id },
+                                            ),
+                                        ),
                                 )
-                            )
                         }
                     feedState = LoadingState.Success(feedResponse)
                     null
@@ -694,10 +734,9 @@ class FeedViewModel @AssistedInject constructor(
         } else {
             if (id in listOf(topId, meId)) {
                 var feedResponse = (feedState as LoadingState.Success).response
-                feedResponse = if (id == topId)
-                    feedResponse.copy(topReplyRows = null)
-                else
-                    feedResponse.copy(replyMeRows = null)
+                feedResponse =
+                    if (id == topId) feedResponse.copy(topReplyRows = null)
+                    else feedResponse.copy(replyMeRows = null)
                 feedState = LoadingState.Success(feedResponse)
                 null
             } else super.handleDeleteResponse(id, response)
@@ -728,5 +767,4 @@ class FeedViewModel @AssistedInject constructor(
         feedState = LoadingState.Loading
         loadingState = LoadingState.Loading
     }
-
 }

@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.suspendCancellableCoroutine
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MultipartBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -48,8 +49,40 @@ constructor(
         api2Service.getHomeFeed(page, firstLaunch, installTime, firstItem, lastItem).await()
     }
 
-    suspend fun getFeedContent(url: String) = flowData {
-        apiService.getFeedContent(url).await()
+    suspend fun getFeedContent(url: String, verifyCaptcha: Boolean = false) = flowData {
+        val id = ("https://api.coolapk.com" + url).toHttpUrl().queryParameter("id")
+        try {
+            apiService
+                .getFeedContent(
+                    url,
+                    if (verifyCaptcha) null
+                    else com.example.c001apk.compose.logic.network.SkipCaptcha(),
+                )
+                .await()
+        } catch (failure: com.example.c001apk.compose.logic.network.ApiFailure) {
+            if (
+                verifyCaptcha ||
+                    id?.matches(Regex("^[0-9]+$")) != true ||
+                    failure.kind !in
+                        listOf(
+                            com.example.c001apk.compose.logic.network.ApiFailureKind.CAPTCHA,
+                            com.example.c001apk.compose.logic.network.ApiFailureKind.AUTHENTICATION,
+                        )
+            )
+                throw failure
+            val public =
+                try {
+                    apiService.getFeedContent("https://www.coolapk.com/feed/$id").await()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    throw com.example.c001apk.compose.logic.network.ApiFailure(
+                        failure.kind,
+                        "公开分享页暂不提供正文，点击重试以完成验证，或检查登录与设备标识",
+                    )
+                }
+            public.copy(data = public.data?.copy(userAction = null), isPublic = true)
+        }
     }
 
     suspend fun getFeedContentReply(
@@ -486,7 +519,7 @@ constructor(
                 if (!response.message.isNullOrEmpty()) {
                     LoadingState.Error(mapServerMessage(response.message))
                 } else if (response.data != null) {
-                    LoadingState.Success(response.data)
+                    LoadingState.Success(response.data, isPublic = response.isPublic)
                 } else {
                     LoadingState.Error(LOADING_FAILED)
                 }
@@ -507,14 +540,6 @@ constructor(
         return normalized.ifEmpty { LOADING_FAILED }
     }
 
-    private fun mapErrorMessage(e: Exception): String {
-        if (e is java.net.SocketTimeoutException) {
-            return "超时"
-        }
-        val message = e.message?.trim().orEmpty()
-        if (message.contains("timeout", ignoreCase = true)) {
-            return "超时"
-        }
-        return message.ifEmpty { "unknown error" }
-    }
+    private fun mapErrorMessage(e: Exception): String =
+        com.example.c001apk.compose.logic.network.ApiFailures.safeMessage(e)
 }
