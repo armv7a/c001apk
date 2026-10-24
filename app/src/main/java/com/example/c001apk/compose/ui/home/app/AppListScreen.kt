@@ -3,6 +3,8 @@ package com.example.c001apk.compose.ui.home.app
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -68,9 +70,10 @@ fun AppListScreen(
             AdaptiveCardColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = lazyListState,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding =
                     androidx.compose.foundation.layout.PaddingValues(
-                        top = paddingValues.calculateTopPadding() + 12.dp,
+                        top = paddingValues.calculateTopPadding() + 8.dp,
                         bottom = paddingValues.calculateBottomPadding() + 24.dp,
                     ),
             ) {
@@ -79,13 +82,14 @@ fun AppListScreen(
                     key = { it.packageInfo.packageName },
                 ) {
                     top.yukonga.miuix.kmp.basic.Card(
-                        Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        Modifier.padding(horizontal = 12.dp),
                     ) {
                         top.yukonga.miuix.kmp.basic.BasicComponent(
                             title = it.label,
                             summary =
                                 "${it.packageInfo.packageName}\n${it.packageInfo.versionName}(${it.packageInfo.longVersionCodeCompat})",
                             onClick = { onViewApp(it.packageInfo.packageName) },
+                            insideMargin = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                             startAction = {
                                 AsyncImage(
                                     model =
