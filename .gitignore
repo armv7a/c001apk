@@ -16,3 +16,6 @@ local.properties
 *.log
 .idea
 .kotlin
+
+# Local verification bytecode
+__pycache__/

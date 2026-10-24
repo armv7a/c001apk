@@ -32,9 +32,14 @@ val gitCommitHash =
         .get()
 
 val appVersion = providers.gradleProperty("appVersion").orElse("1.3.5").get()
+
 require(Regex("[0-9]+\\.[0-9]+\\.[0-9]+").matches(appVersion))
+
 val updateRepository = providers.gradleProperty("updateRepository").orElse("").get()
-require(updateRepository.isEmpty() || Regex("[A-Za-z0-9-]+/[A-Za-z0-9_.-]+").matches(updateRepository))
+
+require(
+    updateRepository.isEmpty() || Regex("[A-Za-z0-9-]+/[A-Za-z0-9_.-]+").matches(updateRepository),
+)
 
 android {
     namespace = "com.example.c001apk.compose"
@@ -64,17 +69,24 @@ android {
             if (properties.exists()) it.load(properties.inputStream())
         }
 
+    fun signingValue(key: String): String? =
+        providers.environmentVariable("C001APK_$key").orNull ?: localProperties.getProperty(key)
     val config =
-        localProperties.getProperty("KEYSTORE_PATH")?.let {
+        signingValue("KEYSTORE_PATH")?.let {
             signingConfigs.create("release") {
                 storeFile = file(it)
-                storePassword = localProperties.getProperty("KEYSTORE_PASSWORD")
-                keyAlias = localProperties.getProperty("KEY_ALIAS")
-                keyPassword = localProperties.getProperty("KEY_PASSWORD")
+                storePassword = signingValue("KEYSTORE_PASSWORD")
+                keyAlias = signingValue("KEY_ALIAS")
+                keyPassword = signingValue("KEY_PASSWORD")
                 enableV2Signing = true
                 enableV3Signing = true
             }
         }
+
+    if (providers.gradleProperty("requireReleaseSigning").orNull == "true") {
+        require(config != null) { "A release signing key is required for distribution" }
+    }
+    packaging { jniLibs.useLegacyPackaging = true }
 
     val disableR8 = (project.findProperty("disableR8") as? String) == "true"
 
@@ -120,11 +132,7 @@ android {
     packagingOptions.resources.excludes +=
         setOf(
             "META-INF/**",
-            "okhttp3/**",
             "kotlin/**",
-            "org/**",
-            "**.properties",
-            "**.bin",
             "**/*.proto",
         )
 
@@ -134,7 +142,7 @@ android {
         outputs.configureEach {
             if (baseName == "release")
                 (this as? ApkVariantOutputImpl)?.outputFileName =
-                    "c001apk-compose_$versionName($versionCode).apk"
+                    "c001apk-miuix_$versionName($versionCode).apk"
         }
     }
 }
