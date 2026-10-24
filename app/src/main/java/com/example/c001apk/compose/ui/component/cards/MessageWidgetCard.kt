@@ -1,15 +1,14 @@
 package com.example.c001apk.compose.ui.component.cards
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons
 import com.example.c001apk.compose.ui.ffflist.FFFListType
-import com.example.c001apk.compose.ui.theme.cardBg
 import com.example.c001apk.compose.util.CookieUtil
-import top.yukonga.miuix.kmp.squircle.squircleSurface
+import top.yukonga.miuix.kmp.basic.Card
 
 /** Created by bggRGjQaUbCoE on 2024/6/10 */
 @Composable
@@ -18,8 +17,10 @@ fun MessageWidgetCard(
     onViewFFFList: (String?, String) -> Unit,
     onViewHistory: (String) -> Unit,
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth().squircleSurface(cardBg(), 16.dp),
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        cornerRadius = 20.dp,
+        insideMargin = PaddingValues(vertical = 8.dp, horizontal = 4.dp),
     ) {
         FFFCardRow(
             dataList =

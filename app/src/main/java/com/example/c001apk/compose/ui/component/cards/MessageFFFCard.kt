@@ -26,9 +26,9 @@ import com.example.c001apk.compose.ui.history.HistoryType
 import com.example.c001apk.compose.ui.theme.cardBg
 import com.example.c001apk.compose.util.CookieUtil
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.VerticalDivider
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.utils.SinkFeedback
 
 /** Created by bggRGjQaUbCoE on 2024/6/10 */
 data class FFFCardItem(
@@ -45,7 +45,7 @@ fun MessageFFFCard(
     onViewFFFList: (String, String) -> Unit,
 ) {
     FFFCardRow(
-        modifier = modifier.squircleSurface(cardBg(), 16.dp),
+        modifier = modifier.squircleSurface(cardBg(), 20.dp),
         dataList =
             listOf(
                 FFFCardItem(
@@ -84,7 +84,7 @@ fun FFFCardRow(
     Row(
         modifier = modifier.height(IntrinsicSize.Min).fillMaxWidth(),
     ) {
-        dataList.forEachIndexed { index, item ->
+        dataList.forEach { item ->
             FFFCardItem(
                 modifier = Modifier.weight(1f),
                 onViewFFFList = {
@@ -108,7 +108,6 @@ fun FFFCardRow(
                 value = item.value,
                 imageVector = item.imageVector,
             )
-            if (index != 2) VerticalDivider(modifier = Modifier.padding(vertical = 14.dp))
         }
     }
 }
@@ -124,13 +123,13 @@ fun FFFCardItem(
     Column(
         modifier =
             modifier
-                .clickable {
+                .clickable(interactionSource = null, indication = SinkFeedback()) {
                     onViewFFFList()
                 }
-                .heightIn(min = 68.dp)
-                .padding(vertical = 10.dp),
+                .heightIn(min = 80.dp)
+                .padding(vertical = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (imageVector == null) {
             Text(

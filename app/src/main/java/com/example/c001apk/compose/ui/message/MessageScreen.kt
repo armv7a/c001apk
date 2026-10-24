@@ -28,7 +28,6 @@ import com.example.c001apk.compose.ui.notification.NoticeType
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.makeToast
 import top.yukonga.miuix.kmp.basic.BasicComponent
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Text
 
 /** Created by bggRGjQaUbCoE on 2024/6/2 */
@@ -102,64 +101,80 @@ fun MessageScreen(
                     end = paddingValues.calculateRightPadding(layoutDirection),
                 ),
         ) {
-            MessageHeaderCard(
-                isLogin = prefs.isLogin,
-                userAvatar = prefs.userAvatar,
-                userName = prefs.username,
-                level = prefs.level,
-                experience = prefs.experience,
-                nextLevelExperience = prefs.nextLevelExperience,
-                onLogin = onLogin,
-                onViewUser = onViewUser,
-            )
-            HorizontalDivider()
             top.yukonga.miuix.kmp.basic.PullToRefresh(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxSize(),
                 isRefreshing = viewModel.isRefreshing,
                 onRefresh = viewModel::refresh,
                 contentPadding = PaddingValues(top = 12.dp),
                 refreshTexts = listOf("下拉刷新", "释放刷新", "正在刷新", "刷新完成"),
             ) {
-                LazyColumn(
-                    Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp),
-                ) {
-                    if (prefs.isLogin) {
-                        item(key = "fff") {
-                            MessageFFFCard(
+                BoxWithConstraints(Modifier.fillMaxSize()) {
+                    val sideInset = ((maxWidth - 800.dp) / 2).coerceAtLeast(0.dp)
+                    LazyColumn(
+                        Modifier.fillMaxSize(),
+                        contentPadding =
+                            PaddingValues(
+                                start = sideInset,
+                                end = sideInset,
+                                top = 12.dp,
+                                bottom = 24.dp,
+                            ),
+                    ) {
+                        item(key = "profile") {
+                            MessageHeaderCard(
                                 modifier =
                                     Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp),
-                                fffList = viewModel.fffList,
-                                onViewFFFList = onViewFFFList,
+                                isLogin = prefs.isLogin,
+                                userAvatar = prefs.userAvatar,
+                                userName = prefs.username,
+                                level = prefs.level,
+                                experience = prefs.experience,
+                                nextLevelExperience = prefs.nextLevelExperience,
+                                onLogin = onLogin,
+                                onViewUser = onViewUser,
                             )
                         }
-                    }
-                    item(key = "widget") {
-                        MessageWidgetCard(
-                            modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp),
-                            onViewFFFList = onViewFFFList,
-                            onViewHistory = onViewHistory,
-                        )
-                    }
-                    items(5) { index ->
-                        MessageListCard(
-                            modifier =
-                                Modifier.padding(horizontal = 12.dp)
-                                    .padding(bottom = if (index == 4) 12.dp else 2.dp),
-                            imageVector = iconList[index],
-                            title = titleList[index],
-                            count = viewModel.badgeList.getOrNull(index),
-                            first = index == 0,
-                            last = index == 4,
-                            onViewNotice = {
-                                if (!prefs.isLogin) onLogin()
-                                else if (index == 4) showInboxDialog = true
-                                else {
-                                    viewModel.clearBadge(index)
-                                    onViewNotice(NoticeType.entries[index].name)
-                                }
-                            },
-                        )
+                        if (prefs.isLogin) {
+                            item(key = "fff") {
+                                MessageFFFCard(
+                                    modifier =
+                                        Modifier.padding(horizontal = 12.dp)
+                                            .padding(bottom = 12.dp),
+                                    fffList = viewModel.fffList,
+                                    onViewFFFList = onViewFFFList,
+                                )
+                            }
+                        }
+                        item(key = "toolsTitle") { ProfileSectionTitle("常用功能") }
+                        item(key = "widget") {
+                            MessageWidgetCard(
+                                modifier =
+                                    Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp),
+                                onViewFFFList = onViewFFFList,
+                                onViewHistory = onViewHistory,
+                            )
+                        }
+                        item(key = "messagesTitle") { ProfileSectionTitle("消息") }
+                        items(5) { index ->
+                            MessageListCard(
+                                modifier =
+                                    Modifier.padding(horizontal = 12.dp)
+                                        .padding(bottom = if (index == 4) 12.dp else 0.dp),
+                                imageVector = iconList[index],
+                                title = titleList[index],
+                                count = viewModel.badgeList.getOrNull(index),
+                                first = index == 0,
+                                last = index == 4,
+                                onViewNotice = {
+                                    if (!prefs.isLogin) onLogin()
+                                    else if (index == 4) showInboxDialog = true
+                                    else {
+                                        viewModel.clearBadge(index)
+                                        onViewNotice(NoticeType.entries[index].name)
+                                    }
+                                },
+                            )
+                        }
                     }
                 }
             }
@@ -206,4 +221,14 @@ fun MessageScreen(
         context.makeToast(it)
         viewModel.resetToastText()
     }
+}
+
+@Composable
+private fun ProfileSectionTitle(title: String) {
+    Text(
+        title,
+        modifier = Modifier.padding(start = 28.dp, top = 6.dp, bottom = 10.dp),
+        style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.footnote1,
+        color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
+    )
 }

@@ -34,15 +34,15 @@ fun MessageListCard(
     last: Boolean,
     onViewNotice: () -> Unit,
 ) {
-    val top = if (first) 16.dp else 4.dp
-    val bottom = if (last) 16.dp else 4.dp
+    val top = if (first) 20.dp else 0.dp
+    val bottom = if (last) 20.dp else 0.dp
     BasicComponent(
         title = title,
         modifier =
             modifier
-                .heightIn(min = 64.dp)
+                .heightIn(min = 60.dp)
                 .squircleSurface(MiuixTheme.colorScheme.surfaceContainer, top, top, bottom, bottom),
-        insideMargin = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        insideMargin = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
         role = Role.Button,
         onClick = onViewNotice,
         startAction = {
@@ -61,7 +61,7 @@ fun MessageListCard(
             Icon(
                 FlutterProfileIcons.ChevronRight,
                 null,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(20.dp),
                 tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             )
         },
