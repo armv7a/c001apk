@@ -37,7 +37,7 @@ android {
     buildToolsVersion = "36.0.0"
 
     defaultConfig {
-        applicationId = "com.example.c001apk.compose.miuix"
+        applicationId = "com.example.c001apk.compose"
         minSdk = 33
         ndk { abiFilters += "arm64-v8a" }
         targetSdk = 35

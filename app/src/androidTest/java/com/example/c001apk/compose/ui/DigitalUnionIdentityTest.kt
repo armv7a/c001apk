@@ -24,7 +24,7 @@ class DigitalUnionIdentityTest {
         assertEquals("com.coolapk.market", info.packageName)
         assertEquals("16.1.3", info.versionName)
         assertEquals(2604022L, info.longVersionCode)
-        assertEquals("com.example.c001apk.compose.miuix", host.packageName)
+        assertEquals("com.example.c001apk.compose", host.packageName)
         val after = host.packageManager.getPackageInfo(host.packageName, 0)
         assertEquals(before.versionName, after.versionName)
         assertEquals(before.packageName, after.packageName)

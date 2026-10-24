@@ -34,7 +34,7 @@ def verify(apk, sdk, expected_certificate=None):
     run("zipalign", "-c", "-P", "16", "-v", "4", apk)
     badging = run("aapt2", "dump", "badging", apk)
     package = re.search(r"package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'", badging)
-    if not package or package[1] != "com.example.c001apk.compose.miuix":
+    if not package or package[1] != "com.example.c001apk.compose":
         raise ValueError("Unexpected application ID")
     if not re.search(r"(?m)^(?:minSdkVersion|sdkVersion):'33'$", badging):
         raise ValueError("Expected Android 13 minimum SDK")
