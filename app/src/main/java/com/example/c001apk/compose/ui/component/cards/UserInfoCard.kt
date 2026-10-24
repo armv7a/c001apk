@@ -38,10 +38,10 @@ fun UserInfoCard(
     val ownProfile = prefs.isLogin && prefs.uid == data.uid
     Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
         Card(cornerRadius = 24.dp) {
-            Box(Modifier.fillMaxWidth().height(148.dp)) {
+            Box(Modifier.fillMaxWidth().height(212.dp)) {
                 Box(
                     Modifier.fillMaxWidth()
-                        .height(116.dp)
+                        .height(180.dp)
                         .squircleBackground(MiuixTheme.colorScheme.secondaryContainer, 0.dp),
                 ) {
                     if (!data.cover.isNullOrBlank())
