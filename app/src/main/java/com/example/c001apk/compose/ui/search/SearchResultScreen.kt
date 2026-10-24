@@ -1,18 +1,14 @@
 package com.example.c001apk.compose.ui.search
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -23,27 +19,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.ui.component.BackButton
-import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
-import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
-import com.example.c001apk.compose.ui.component.MiuixTabScaffold
+import com.example.c001apk.compose.ui.component.MiuixTabRow
 import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
-import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.noRippleClickable
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.RadioButton
-import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Forward
-import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.icon.extended.More
+import top.yukonga.miuix.kmp.menu.WindowIconCascadingDropdownMenu
 
 /** Created by bggRGjQaUbCoE on 2024/6/9 */
 enum class SearchType {
@@ -128,9 +119,7 @@ fun SearchResultScreen(
     onReport: (String, ReportType) -> Unit,
 ) {
 
-    val layoutDirection = LocalLayoutDirection.current
     val tabList = SearchType.entries
-    var dropdownMenuExpanded by remember { mutableStateOf(false) }
     val pagerState =
         rememberPagerState(
             initialPage = initialPage,
@@ -138,158 +127,100 @@ fun SearchResultScreen(
         )
     var refreshState by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    var typeMenuExpanded by remember { mutableStateOf(false) }
-    var orderMenuExpanded by remember { mutableStateOf(false) }
     var feedType by rememberSaveable { mutableStateOf(SearchFeedType.ALL) }
     var orderType by rememberSaveable { mutableStateOf(SearchOrderType.DATELINE) }
+    val filterMenu =
+        remember(feedType, orderType) {
+            DropdownEntry(
+                items =
+                    listOf(
+                        DropdownItem(
+                            text = "类型",
+                            children =
+                                SearchFeedType.entries.map { feed ->
+                                    DropdownItem(
+                                        text = searchFeedTitle(feed),
+                                        selected = feedType == feed,
+                                        onClick = { feedType = feed },
+                                    )
+                                },
+                        ),
+                        DropdownItem(
+                            text = "排序",
+                            children =
+                                SearchOrderType.entries.map { order ->
+                                    DropdownItem(
+                                        text = searchOrderTitle(order),
+                                        selected = orderType == order,
+                                        onClick = { orderType = order },
+                                    )
+                                },
+                        ),
+                    ),
+            )
+        }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                windowInsets =
-                    WindowInsets.systemBars.only(WindowInsetsSides.Start + WindowInsetsSides.Top),
-                navigationIcon = {
-                    BackButton { onBackClick() }
-                },
-                title = keyword.decode,
-                subtitle = if (!title.isNullOrEmpty()) "${pageTypeTitle(pageType)}: $title" else "",
-                modifier = Modifier.noRippleClickable { onBackClick() },
-                actions = {
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = pagerState.currentPage == 0,
-                        enter = fadeIn(),
-                        exit = fadeOut(),
-                    ) {
-                        Box {
-                            MoreMenuButton { dropdownMenuExpanded = true }
-                            DropdownMenu(
-                                expanded = dropdownMenuExpanded,
-                                onDismissRequest = { dropdownMenuExpanded = false },
-                            ) {
-                                listOf("类型", "排序").forEachIndexed { index, menu ->
-                                    DropdownMenuItem(
-                                        text = { Text(menu) },
-                                        onClick = {
-                                            dropdownMenuExpanded = false
-                                            when (index) {
-                                                0 -> typeMenuExpanded = true
-                                                1 -> orderMenuExpanded = true
-                                            }
-                                        },
-                                        trailingIcon = {
-                                            Icon(
-                                                imageVector = MiuixIcons.Forward,
-                                                contentDescription = null,
-                                            )
-                                        },
-                                    )
-                                }
-                            }
-                            DropdownMenu(
-                                expanded = typeMenuExpanded,
-                                onDismissRequest = { typeMenuExpanded = false },
-                            ) {
-                                SearchFeedType.entries.forEach { feed ->
-                                    Row(
-                                        modifier =
-                                            Modifier.clickable {
-                                                typeMenuExpanded = false
-                                                feedType = feed
-                                            },
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        RadioButton(
-                                            selected = feedType == feed,
-                                            onClick = {
-                                                typeMenuExpanded = false
-                                                feedType = feed
-                                            },
-                                        )
-                                        Text(
-                                            text = searchFeedTitle(feed),
-                                            style = MiuixTheme.textStyles.body1,
-                                            modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
-                                        )
-                                    }
-                                }
-                            }
-                            DropdownMenu(
-                                expanded = orderMenuExpanded,
-                                onDismissRequest = { orderMenuExpanded = false },
-                            ) {
-                                SearchOrderType.entries.forEach { order ->
-                                    Row(
-                                        modifier =
-                                            Modifier.clickable {
-                                                orderMenuExpanded = false
-                                                orderType = order
-                                            },
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        RadioButton(
-                                            selected = orderType == order,
-                                            onClick = {
-                                                orderMenuExpanded = false
-                                                orderType = order
-                                            },
-                                        )
-                                        Text(
-                                            text = searchOrderTitle(order),
-                                            style = MiuixTheme.textStyles.body1,
-                                            modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
-                                        )
-                                    }
-                                }
+            Column {
+                TopAppBar(
+                    windowInsets =
+                        WindowInsets.systemBars.only(
+                            WindowInsetsSides.Start + WindowInsetsSides.Top,
+                        ),
+                    navigationIcon = { BackButton(onBackClick) },
+                    title = keyword.decode,
+                    subtitle =
+                        if (!title.isNullOrEmpty()) "${pageTypeTitle(pageType)}: $title" else "",
+                    modifier = Modifier.noRippleClickable(onClick = onBackClick),
+                    actions = {
+                        AnimatedVisibility(
+                            visible = pagerState.currentPage == 0,
+                            enter = fadeIn(),
+                            exit = fadeOut(),
+                        ) {
+                            WindowIconCascadingDropdownMenu(entry = filterMenu) {
+                                Icon(
+                                    imageVector = MiuixIcons.More,
+                                    contentDescription = "搜索筛选",
+                                    modifier = Modifier.size(21.dp),
+                                )
                             }
                         }
-                    }
-                },
-            )
-        },
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding()),
-        ) {
-            MiuixTabScaffold(
-                tabs = tabList.map(::searchTypeTitle),
-                selectedTabIndex = pagerState.currentPage,
-                onTabSelected = { index ->
-                    if (pagerState.currentPage == index) refreshState = true
-                    scope.launch { pagerState.animateScrollToPage(index) }
-                },
-                visible = pageType.isNullOrEmpty(),
-            ) {
-                HorizontalPager(
-                    state = pagerState,
-                ) { index ->
-                    SearchContentScreen(
-                        searchType = SearchType.valueOf(SearchType.entries[index].name),
-                        keyword = keyword.decode,
-                        pageType = pageType,
-                        pageParam = pageParam,
-                        refreshState = refreshState,
-                        resetRefreshState = {
-                            refreshState = false
+                    },
+                )
+                if (pageType.isNullOrEmpty()) {
+                    MiuixTabRow(
+                        tabs = tabList.map(::searchTypeTitle),
+                        selectedTabIndex = pagerState.currentPage,
+                        onTabSelected = { index ->
+                            if (pagerState.currentPage == index) refreshState = true
+                            scope.launch { pagerState.animateScrollToPage(index) }
                         },
-                        feedType = feedType,
-                        orderType = orderType,
-                        paddingValues =
-                            PaddingValues(
-                                start = paddingValues.calculateLeftPadding(layoutDirection),
-                                bottom = paddingValues.calculateBottomPadding(),
-                            ),
-                        onViewUser = onViewUser,
-                        onViewFeed = onViewFeed,
-                        onOpenLink = onOpenLink,
-                        onCopyText = onCopyText,
-                        updateInitPage = {
-                            updateInitPage(pagerState.currentPage)
-                        },
-                        onReport = onReport,
                     )
                 }
             }
+        },
+    ) { paddingValues ->
+        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { index ->
+            SearchContentScreen(
+                searchType = tabList[index],
+                keyword = keyword.decode,
+                pageType = pageType,
+                pageParam = pageParam,
+                refreshState = refreshState,
+                resetRefreshState = { refreshState = false },
+                feedType = feedType,
+                orderType = orderType,
+                paddingValues = paddingValues,
+                onViewUser = onViewUser,
+                onViewFeed = onViewFeed,
+                onOpenLink = onOpenLink,
+                onCopyText = onCopyText,
+                updateInitPage = { updateInitPage(pagerState.currentPage) },
+                onReport = onReport,
+            )
         }
     }
 }

@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -125,9 +127,7 @@ fun SearchScreen(
     ) { paddingValues ->
         Column(
             modifier =
-                Modifier.padding(
-                    top = paddingValues.calculateTopPadding(),
-                ),
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(paddingValues),
         ) {
             HorizontalDivider()
 
