@@ -13,11 +13,11 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/3
- */
+/** Created by bggRGjQaUbCoE on 2024/6/3 */
 @HiltViewModel(assistedFactory = HomeFeedViewModel.ViewModelFactory::class)
-class HomeFeedViewModel @AssistedInject constructor(
+class HomeFeedViewModel
+@AssistedInject
+constructor(
     @Assisted val type: TabType = TabType.FEED,
     @Assisted("dataListUrl") var dataListUrl: String,
     @Assisted("dataListTitle") var dataListTitle: String,
@@ -45,13 +45,29 @@ class HomeFeedViewModel @AssistedInject constructor(
         fetchData()
     }
 
-    override suspend fun customFetchData() = when (type) {
-        TabType.FOLLOW, TabType.HOT, TabType.COOLPIC ->
-            networkRepo.getDataList(dataListUrl, dataListTitle, null, lastItem, page)
+    override suspend fun customFetchData() =
+        when (type) {
+            TabType.FOLLOW,
+            TabType.HOT,
+            TabType.COOLPIC ->
+                networkRepo.getDataList(dataListUrl, dataListTitle, null, lastItem, page)
 
-        TabType.FEED -> networkRepo.getHomeFeed(page, firstLaunch, installTime, null, null)
+            TabType.FEED ->
+                networkRepo.getHomeFeed(page, firstLaunch, installTime, firstItem, lastItem)
 
-        else -> throw IllegalArgumentException("invalid type: ${type.name}")
+            else -> throw IllegalArgumentException("invalid type: ${type.name}")
+        }
+
+    override fun refresh() {
+        firstLaunch = 0
+        super.refresh()
+    }
+
+    override fun handleResponse(
+        response: List<HomeFeedResponse.Data>,
+    ): List<HomeFeedResponse.Data>? {
+        firstLaunch = 0
+        return null
     }
 
     private fun setInstallTime() {
@@ -60,8 +76,9 @@ class HomeFeedViewModel @AssistedInject constructor(
         }
     }
 
-    override fun handleLoadMore(response: List<HomeFeedResponse.Data>): List<HomeFeedResponse.Data> {
+    override fun handleLoadMore(
+        response: List<HomeFeedResponse.Data>,
+    ): List<HomeFeedResponse.Data> {
         return response.distinctBy { it.entityId }
     }
-
 }

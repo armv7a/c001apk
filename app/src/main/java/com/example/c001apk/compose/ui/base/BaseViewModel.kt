@@ -86,9 +86,10 @@ abstract class BaseViewModel(
                         }
 
                         is LoadingState.Error -> {
-                            if (loadingState is LoadingState.Success)
+                            if (loadingState is LoadingState.Success) {
                                 footerState = FooterState.Error(state.errMsg)
-                            else loadingState = state
+                                if (isRefreshing) toastText = state.errMsg
+                            } else loadingState = state
                             isEnd = true
                         }
 
@@ -124,7 +125,7 @@ abstract class BaseViewModel(
                                                 it.relationRows?.getOrNull(0)?.title,
                                         )
                                 }
-                            firstItem = response.firstOrNull()?.id
+                            if (firstItem == null) firstItem = response.firstOrNull()?.id
                             lastItem = response.lastOrNull()?.id
 
                             handleResponse(response)?.let {
@@ -168,7 +169,9 @@ abstract class BaseViewModel(
     }
 
     open fun refresh() {
-        if (!isRefreshing && !isLoadMore) {
+        if (!isRefreshing) {
+            // A user refresh takes precedence over an in-flight pagination request.
+            cancelFetch()
             page = 1
             isEnd = false
             isLoadMore = false

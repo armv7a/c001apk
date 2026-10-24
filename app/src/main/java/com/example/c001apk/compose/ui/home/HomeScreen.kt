@@ -279,7 +279,7 @@ fun HomeScreen(
                     TabType.COOLPIC ->
                         HomeFeedScreen(
                             paddingValues = pagePadding,
-                            refreshState = refreshState,
+                            refreshState = refreshState && index == pagerState.currentPage,
                             resetRefreshState = resetRefreshState,
                             type = type,
                             onViewUser = onViewUser,
@@ -295,7 +295,7 @@ fun HomeScreen(
                     TabType.APP ->
                         AppListScreen(
                             paddingValues = pagePadding,
-                            refreshState = refreshState,
+                            refreshState = refreshState && index == pagerState.currentPage,
                             resetRefreshState = resetRefreshState,
                             onViewApp = onViewApp,
                             onCheckUpdate = onCheckUpdate,
