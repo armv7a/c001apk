@@ -62,6 +62,7 @@ import com.example.c001apk.compose.ui.feed.FeedScreen
 import com.example.c001apk.compose.ui.ffflist.FFFListScreen
 import com.example.c001apk.compose.ui.ffflist.FFFListType
 import com.example.c001apk.compose.ui.history.HistoryScreen
+import com.example.c001apk.compose.ui.home.HomeTabEditorScreen
 import com.example.c001apk.compose.ui.login.LoginScreen
 import com.example.c001apk.compose.ui.notification.NoticeScreen
 import com.example.c001apk.compose.ui.others.CopyTextScreen
@@ -70,6 +71,7 @@ import com.example.c001apk.compose.ui.search.SearchScreen
 import com.example.c001apk.compose.ui.settings.AboutScreen
 import com.example.c001apk.compose.ui.settings.LicenseScreen
 import com.example.c001apk.compose.ui.settings.ParamsScreen
+import com.example.c001apk.compose.ui.settings.SettingsScreen
 import com.example.c001apk.compose.ui.topic.TopicScreen
 import com.example.c001apk.compose.ui.user.UserScreen
 import com.example.c001apk.compose.ui.webview.WebViewScreen
@@ -155,12 +157,7 @@ fun MainNavigation(
                     badge = badge,
                     resetBadge = resetBadge,
                     widthSizeClass = widthSizeClass,
-                    onParamsClick = {
-                        navController.navigate(Router.PARAMS.name)
-                    },
-                    onAboutClick = {
-                        navController.navigate(Router.ABOUT.name)
-                    },
+                    onSettingsClick = { navController.navigate(Router.SETTINGS.name) },
                     onViewUser = navController::navigateToUser,
                     onViewFeed = ::onViewFeed,
                     onSearch = {
@@ -183,9 +180,22 @@ fun MainNavigation(
                     },
                     onReport = ::onReport,
                     onViewNotice = navController::navigateToNotice,
-                    onViewBlackList = navController::navigateToBlackList,
                     onViewHistory = navController::navigateToHistory,
                 )
+            }
+
+            composable(route = Router.SETTINGS.name) {
+                SettingsScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onHomeTabsClick = { navController.navigate(Router.TAB.name) },
+                    onParamsClick = { navController.navigate(Router.PARAMS.name) },
+                    onAboutClick = { navController.navigate(Router.ABOUT.name) },
+                    onViewBlackList = navController::navigateToBlackList,
+                )
+            }
+
+            composable(route = Router.TAB.name) {
+                HomeTabEditorScreen(onBackClick = { navController.popBackStack() })
             }
 
             composable(route = Router.PARAMS.name) {

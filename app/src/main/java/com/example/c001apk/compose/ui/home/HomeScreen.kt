@@ -23,11 +23,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -50,15 +47,12 @@ import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.TabRow as MiuixTabRow
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Back
-import top.yukonga.miuix.kmp.icon.extended.Edit
 import top.yukonga.miuix.kmp.icon.extended.Search
 
 /** Created by bggRGjQaUbCoE on 2024/6/5 */
@@ -72,12 +66,14 @@ enum class TabType {
     COOLPIC,
 }
 
+val homeTabTypes = TabType.entries.filter { it != TabType.FOLLOW }
+
 private fun tabTitle(type: TabType): String {
     return when (type) {
         TabType.FOLLOW -> "关注"
         TabType.APP -> "应用"
         TabType.FEED -> "动态"
-        TabType.HOT -> "热榜"
+        TabType.HOT -> "热门"
         TabType.TOPIC -> "话题"
         TabType.PRODUCT -> "数码"
         TabType.COOLPIC -> "酷图"
@@ -85,55 +81,56 @@ private fun tabTitle(type: TabType): String {
 }
 
 @Composable
-private fun HomeTabEditorDialog(
-    enabledTabs: Set<TabType>,
-    onDismiss: () -> Unit,
-    onConfirm: (Set<TabType>) -> Unit,
+fun HomeTabEditorScreen(
+    onBackClick: () -> Unit,
+    viewModel: HomeViewModel = hiltViewModel(),
 ) {
-    var selectedTabs by remember(enabledTabs) { mutableStateOf(enabledTabs) }
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = "编辑首页板块",
-                        navigationIcon = {
-                            IconButton(onClick = onDismiss) {
-                                Icon(
-                                    imageVector = MiuixIcons.Back,
-                                    contentDescription = "返回",
-                                )
-                            }
-                        },
-                        actions = {
-                            TextButton(onClick = { onConfirm(selectedTabs) }) {
-                                Text("完成")
-                            }
-                        },
-                    )
-                },
-            ) { paddingValues ->
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(paddingValues),
-                ) {
-                    items(TabType.entries, key = TabType::name) { type ->
-                        val checked = type in selectedTabs
-                        val canToggle = !checked || selectedTabs.size > 1
-                        top.yukonga.miuix.kmp.preference.CheckboxPreference(
-                            title = tabTitle(type),
-                            checked = checked,
-                            enabled = canToggle,
-                            onCheckedChange = { selected ->
-                                selectedTabs =
-                                    if (selected) selectedTabs + type else selectedTabs - type
-                            },
-                        )
+    val storedMenus by viewModel.homeMenus.collectAsStateWithLifecycle(initialValue = emptyList())
+    val enabledTabs =
+        remember(storedMenus) {
+            if (storedMenus.isEmpty()) homeTabTypes.toSet()
+            else
+                storedMenus
+                    .filter(HomeMenu::isEnable)
+                    .mapNotNull { menu ->
+                        homeTabTypes.firstOrNull { it.name == menu.title }
                     }
-                }
+                    .toSet()
+                    .ifEmpty { setOf(TabType.FEED) }
+        }
+    var selectedTabs by remember(enabledTabs) { mutableStateOf(enabledTabs) }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = "首页板块",
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(MiuixIcons.Back, contentDescription = "返回")
+                    }
+                },
+                actions = {
+                    TextButton(
+                        onClick = {
+                            viewModel.setEnabledTabs(selectedTabs, onSaved = onBackClick)
+                        },
+                    ) {
+                        Text("完成")
+                    }
+                },
+            )
+        },
+    ) { paddingValues ->
+        LazyColumn(Modifier.fillMaxSize().padding(paddingValues)) {
+            items(homeTabTypes, key = TabType::name) { type ->
+                val checked = type in selectedTabs
+                top.yukonga.miuix.kmp.preference.CheckboxPreference(
+                    title = tabTitle(type),
+                    checked = checked,
+                    enabled = !checked || selectedTabs.size > 1,
+                    onCheckedChange = { selected ->
+                        selectedTabs = if (selected) selectedTabs + type else selectedTabs - type
+                    },
+                )
             }
         }
     }
@@ -162,14 +159,14 @@ fun HomeScreen(
     val tabList =
         remember(storedMenus) {
             if (storedMenus.isEmpty()) {
-                TabType.entries
+                homeTabTypes
             } else {
                 storedMenus
                     .asSequence()
                     .filter(HomeMenu::isEnable)
                     .sortedBy(HomeMenu::position)
                     .mapNotNull { menu ->
-                        runCatching { TabType.valueOf(menu.title) }.getOrNull()
+                        homeTabTypes.firstOrNull { it.name == menu.title }
                     }
                     .toList()
                     .ifEmpty { listOf(TabType.FEED) }
@@ -186,7 +183,6 @@ fun HomeScreen(
         )
     val context = LocalContext.current
     var isScrollingUp by remember { mutableStateOf(false) }
-    var showTabEditor by rememberSaveable { mutableStateOf(false) }
     val selectedTabIndex = pagerState.currentPage.coerceIn(tabList.indices)
 
     LaunchedEffect(tabList) {
@@ -208,17 +204,16 @@ fun HomeScreen(
             }
     }
 
-    val scrollBehavior = MiuixScrollBehavior()
-
     Scaffold(
-        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
-            MiuixTopAppBar(
+            SmallTopAppBar(
                 title = "主页",
                 color = com.example.c001apk.compose.ui.component.LocalBarColor.current,
                 bottomContent = {
                     MiuixTabRow(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        indication = androidx.compose.foundation.LocalIndication.current,
                         tabs = tabList.map(::tabTitle),
                         selectedTabIndex = selectedTabIndex,
                         onTabSelected = { index ->
@@ -228,11 +223,7 @@ fun HomeScreen(
                         },
                     )
                 },
-                scrollBehavior = scrollBehavior,
                 actions = {
-                    IconButton(onClick = { showTabEditor = true }) {
-                        Icon(MiuixIcons.Edit, contentDescription = "编辑首页板块")
-                    }
                     IconButton(onClick = onSearch) {
                         Icon(MiuixIcons.Search, contentDescription = "搜索")
                     }
@@ -324,16 +315,5 @@ fun HomeScreen(
                 }
             }
         }
-    }
-
-    if (showTabEditor) {
-        HomeTabEditorDialog(
-            enabledTabs = tabList.toSet(),
-            onDismiss = { showTabEditor = false },
-            onConfirm = { enabledTabs ->
-                viewModel.setEnabledTabs(enabledTabs)
-                showTabEditor = false
-            },
-        )
     }
 }

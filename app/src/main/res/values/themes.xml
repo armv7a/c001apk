@@ -5,6 +5,11 @@
         <item name="colorAccent">#3482FF</item>
         <item name="android:windowSplashScreenBackground">@color/color_surface</item>
     </style>
+    <style name="Theme.C001apkCompose.Starting" parent="Theme.C001apkCompose">
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_animated</item>
+        <item name="android:windowSplashScreenAnimationDuration">620</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+    </style>
     <style name="AppThemeTranslucent" parent="Theme.C001apkCompose">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>

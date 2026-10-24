@@ -3,7 +3,6 @@ package com.example.c001apk.compose.ui.component.cards
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,19 +24,15 @@ import com.example.c001apk.compose.R
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.component.LinkText
-import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
+import com.example.c001apk.compose.ui.component.MiuixMoreMenu
 import com.example.c001apk.compose.ui.theme.cardBg
 import com.example.c001apk.compose.util.DateUtils
 import com.example.c001apk.compose.util.ReportType
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -135,43 +130,25 @@ fun NotificationCard(
             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         )
 
-        Box(
+        MiuixMoreMenu(
+            expanded = dropdownMenuExpanded,
+            onExpandedChange = { dropdownMenuExpanded = it },
             modifier =
                 Modifier.constrainAs(expand) {
                     top.linkTo(parent.top)
                     end.linkTo(parent.end)
                 },
         ) {
-            IconButton(
-                onClick = {
-                    dropdownMenuExpanded = true
-                },
-            ) {
-                Icon(
-                    imageVector = MiuixIcons.More,
-                    contentDescription = "更多操作",
-                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            listOf("拉黑", stringResource(id = R.string.menu_report)).forEachIndexed { index, menu ->
+                DropdownMenuItem(
+                    text = { Text(menu) },
+                    onClick = {
+                        dropdownMenuExpanded = false
+                        when (index) {
+                            1 -> onReport?.let { it(data.fromuid.orEmpty(), ReportType.USER) }
+                        }
+                    },
                 )
-            }
-
-            DropdownMenu(
-                expanded = dropdownMenuExpanded,
-                onDismissRequest = {
-                    dropdownMenuExpanded = false
-                },
-            ) {
-                listOf("拉黑", stringResource(id = R.string.menu_report)).forEachIndexed { index, menu
-                    ->
-                    DropdownMenuItem(
-                        text = { Text(menu) },
-                        onClick = {
-                            dropdownMenuExpanded = false
-                            when (index) {
-                                1 -> onReport?.let { it(data.fromuid.orEmpty(), ReportType.USER) }
-                            }
-                        },
-                    )
-                }
             }
         }
     }

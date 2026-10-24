@@ -4,8 +4,9 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.c001apk.compose.R
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.ContactsCircle
+import top.yukonga.miuix.kmp.icon.extended.Favorites
 import top.yukonga.miuix.kmp.icon.extended.Home
-import top.yukonga.miuix.kmp.icon.extended.Messages
 import top.yukonga.miuix.kmp.icon.extended.Settings
 
 /** Created by bggRGjQaUbCoE on 2024/5/30 */
@@ -29,12 +30,20 @@ sealed class Router(
             selectedIcon = MiuixIcons.Home,
         )
 
-    data object MESSAGE :
+    data object FOLLOW :
         Router(
-            name = "MESSAGE",
-            stringId = R.string.message,
-            unselectedIcon = MiuixIcons.Messages,
-            selectedIcon = MiuixIcons.Messages,
+            name = "FOLLOW",
+            stringId = R.string.follow,
+            unselectedIcon = MiuixIcons.Favorites,
+            selectedIcon = MiuixIcons.Favorites,
+        )
+
+    data object PROFILE :
+        Router(
+            name = "PROFILE",
+            stringId = R.string.profile,
+            unselectedIcon = MiuixIcons.ContactsCircle,
+            selectedIcon = MiuixIcons.ContactsCircle,
         )
 
     data object SETTINGS :

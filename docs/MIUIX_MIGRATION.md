@@ -10,13 +10,16 @@
 ## 实现
 
 - 主题完全使用 `MiuixTheme` / `ThemeController`，新安装默认使用 miuix 蓝色，保留系统动态色、自定义色、深色、纯黑、字体和内容缩放设置。原有 `materialYou` 持久化字段继续表示“系统主题色”，避免破坏数据兼容性。
-- 主导航保留主页、消息、设置；宽屏切换为 NavigationRail。顶部页签使用 miuix TabRow，继续支持重选刷新和首页板块编辑。
+- 主导航参考 TG-Twilight/c001apk，采用“主页 / 关注 / 我的”；宽屏切换为 NavigationRail。主页保留独立标题，标题与搜索按钮同高；下方为应用、动态、热门、话题、数码、酷图页签，默认动态；关注独立成页；我的保留个人资料与消息，并提供设置入口。首页板块编辑移到设置，保存完成后才退出编辑页；保留重选刷新。
 - 页面骨架通过 `MiuixScaffold` 统一接入官方 `LayerBackdrop` / `textureBlur`，主页内外层独立采样。顶栏和底栏使用透明颜色呈现模糊内容。
 - 信息流、详情与各类消息卡片使用 miuix Card / squircle modifier。设置按独立 lazy item 分段绘制圆角卡片。
 - 输入框、按钮、图标按钮、单选/多选/开关、进度条、分隔线、通知条、菜单、底部弹层和下拉刷新使用原生 miuix。窗口弹窗限制内容高度，按钮独立于滚动区。
+- 动态、评论、历史与通知卡片的三点菜单统一使用 miuix IconButton / BasicComponent / WindowListPopup。按钮使用透明底色，展开后不保持灰色按压底；菜单以实际按钮为锚点右对齐，按压与开合动画由 miuix 实现。
 - 发帖编辑器保留 Android Editable、表情 span、选区和输入法处理；输入区使用 squircle 背景，勾选框和加载指示器通过 ComposeView 使用原生 miuix。View 页面上的确认、验证码和下载弹窗使用 miuix 内容。
 - 主要图标使用 MiuixIcons。点赞、表情、退格等少量社区动作保留独立 AOSP 矢量源码，附原始 Apache 2.0 许可头，不依赖 Material 图标库；Swatch 保留上游署名。机型名称使用本地绘制的现代手机轮廓，动态与评论操作菜单使用三点 More 图标。
 - 删除直接 Material 3、Material Components、Material 图标库及旧 MaterialKolor Compose 配色依赖。miuix 自身内部使用的颜色算法和窗口尺寸分类工具由 miuix 管理。折叠工具栏库未使用 Material API，已排除其发布时附带的 Material 和预览工具依赖。
+
+- 启动页采用 Android 原生 AnimatedVectorDrawable，无穷符号展开后回到原图标。参考 TG-Twilight/c001apk 的系统启动画面形式，沿用本项目现有图标路径，自行实现展开、回弹和淡入动画；数盟初始化期间保留系统启动画面，删除中间的“正在准备连接”页面。缓存 ID 的后续启动直接进入首页。
 
 ## 构建
 

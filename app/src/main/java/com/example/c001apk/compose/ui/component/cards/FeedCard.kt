@@ -41,8 +41,8 @@ import com.example.c001apk.compose.ui.base.LikeType
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.component.IconText
 import com.example.c001apk.compose.ui.component.LinkText
-import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
+import com.example.c001apk.compose.ui.component.MiuixMoreMenu
 import com.example.c001apk.compose.ui.component.NineImageView
 import com.example.c001apk.compose.ui.component.icons.Smartphone
 import com.example.c001apk.compose.ui.component.icons.ThumbUpAlt
@@ -57,13 +57,10 @@ import com.example.c001apk.compose.util.Utils.richToString
 import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.getShareText
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Link
 import top.yukonga.miuix.kmp.icon.extended.Messages
-import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.squircle.squircleClip
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -621,7 +618,9 @@ fun FeedHeader(
         )
 
         if (!isFeedContent) {
-            Box(
+            MiuixMoreMenu(
+                expanded = dropdownMenuExpanded,
+                onExpandedChange = { dropdownMenuExpanded = it },
                 modifier =
                     Modifier.aspectRatio(1f, false).constrainAs(expand) {
                         top.linkTo(parent.top)
@@ -630,58 +629,39 @@ fun FeedHeader(
                         height = Dimension.fillToConstraints
                     },
             ) {
-                IconButton(
-                    onClick = {
-                        dropdownMenuExpanded = true
-                    },
-                ) {
-                    Icon(
-                        imageVector = MiuixIcons.More,
-                        contentDescription = "更多操作",
-                        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                listOf("复制", "拉黑").forEachIndexed { index, menu ->
+                    DropdownMenuItem(
+                        text = { Text(menu) },
+                        onClick = {
+                            dropdownMenuExpanded = false
+                            when (index) {
+                                0 ->
+                                    context.copyText(
+                                        getShareText(ShareType.FEED, data.id.orEmpty()),
+                                    )
+
+                                1 -> onBlockUser?.let { it(data.uid.orEmpty()) }
+                            }
+                        },
                     )
                 }
-
-                DropdownMenu(
-                    expanded = dropdownMenuExpanded,
-                    onDismissRequest = {
-                        dropdownMenuExpanded = false
-                    },
-                ) {
-                    listOf("复制", "拉黑").forEachIndexed { index, menu ->
-                        DropdownMenuItem(
-                            text = { Text(menu) },
-                            onClick = {
-                                dropdownMenuExpanded = false
-                                when (index) {
-                                    0 ->
-                                        context.copyText(
-                                            getShareText(ShareType.FEED, data.id.orEmpty()),
-                                        )
-
-                                    1 -> onBlockUser?.let { it(data.uid.orEmpty()) }
-                                }
-                            },
-                        )
-                    }
-                    if (isLogin) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(id = R.string.menu_report)) },
-                            onClick = {
-                                dropdownMenuExpanded = false
-                                onReport?.let { it(data.id.orEmpty(), ReportType.FEED) }
-                            },
-                        )
-                    }
-                    if (data.uid == CookieUtil.uid) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(id = R.string.menu_delete)) },
-                            onClick = {
-                                dropdownMenuExpanded = false
-                                onDelete?.let { it(data.id.orEmpty(), LikeType.FEED, null) }
-                            },
-                        )
-                    }
+                if (isLogin) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(id = R.string.menu_report)) },
+                        onClick = {
+                            dropdownMenuExpanded = false
+                            onReport?.let { it(data.id.orEmpty(), ReportType.FEED) }
+                        },
+                    )
+                }
+                if (data.uid == CookieUtil.uid) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(id = R.string.menu_delete)) },
+                        onClick = {
+                            dropdownMenuExpanded = false
+                            onDelete?.let { it(data.id.orEmpty(), LikeType.FEED, null) }
+                        },
+                    )
                 }
             }
         }

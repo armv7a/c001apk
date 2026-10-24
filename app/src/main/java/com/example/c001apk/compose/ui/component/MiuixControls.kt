@@ -1,17 +1,23 @@
 package com.example.c001apk.compose.ui.component
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
+import top.yukonga.miuix.kmp.basic.PopupPositionProvider
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.theme.LocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowBottomSheet
@@ -75,14 +81,52 @@ fun MiuixMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
+    alignment: PopupPositionProvider.Align = PopupPositionProvider.Align.Start,
+    onDismissFinished: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     WindowListPopup(
         show = expanded,
         onDismissRequest = onDismissRequest,
         popupModifier = modifier,
+        alignment = alignment,
+        onDismissFinished = onDismissFinished,
     ) {
         ListPopupColumn(content)
+    }
+}
+
+/** Transparent overflow button with miuix press feedback and an anchored native popup. */
+@Composable
+fun MiuixMoreMenu(
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Box(modifier, contentAlignment = Alignment.Center) {
+        // The popup reads this parent's bounds, so its animation starts at the actual button.
+        Box(Modifier.padding(4.dp)) {
+            IconButton(
+                onClick = { onExpandedChange(true) },
+                minHeight = 35.dp,
+                minWidth = 35.dp,
+                backgroundColor = Color.Transparent,
+            ) {
+                Icon(
+                    imageVector = MiuixIcons.More,
+                    contentDescription = "更多操作",
+                    modifier = Modifier.size(20.dp),
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            }
+            MiuixMenu(
+                expanded = expanded,
+                onDismissRequest = { onExpandedChange(false) },
+                alignment = PopupPositionProvider.Align.End,
+                content = content,
+            )
+        }
     }
 }
 
@@ -100,18 +144,16 @@ fun MiuixMenuItem(
             if (enabled) MiuixTheme.colorScheme.onSurface
             else MiuixTheme.colorScheme.disabledOnSurface,
     ) {
-        Row(
-            modifier
-                .fillMaxWidth()
-                .clickable(enabled = enabled, onClick = onClick)
-                .heightIn(min = 52.dp)
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        BasicComponent(
+            modifier = modifier,
+            onClick = onClick,
+            enabled = enabled,
+            role = Role.Button,
+            startAction = leadingIcon,
+            endActions = trailingIcon?.let { icon -> { icon() } },
+            insideMargin = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
         ) {
-            leadingIcon?.invoke()
-            Box(Modifier.weight(1f)) { text() }
-            trailingIcon?.invoke()
+            text()
         }
     }
 }

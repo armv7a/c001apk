@@ -13,4 +13,5 @@
     <color name="color_surface">#FFFFFFFF</color>
     <color name="color_on_surface">#FF000000</color>
 <color name="color_container">#FFF5F5F5</color>
+    <color name="splash_icon">#3482FF</color>
 </resources>

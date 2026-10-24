@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -75,15 +74,17 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import java.util.Formatter
 import top.yukonga.miuix.kmp.basic.Card as ElevatedCard
 import top.yukonga.miuix.kmp.basic.CardDefaults
-import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.RadioButton
 import top.yukonga.miuix.kmp.basic.Slider
+import top.yukonga.miuix.kmp.basic.SmallTopAppBar as TopAppBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextField as OutlinedTextField
-import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.AddCircle
 import top.yukonga.miuix.kmp.icon.extended.All
+import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.Blocklist
 import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.icon.extended.Image
@@ -104,14 +105,14 @@ import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    onBackClick: () -> Unit,
+    onHomeTabsClick: () -> Unit,
     onParamsClick: () -> Unit,
     onAboutClick: () -> Unit,
     onViewBlackList: (String) -> Unit,
 ) {
 
     val prefs = LocalUserPreferences.current
-    val scrollBehavior = MiuixScrollBehavior()
     val layoutDirection = LocalLayoutDirection.current
     val context = LocalContext.current
 
@@ -135,12 +136,16 @@ fun SettingsScreen(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 color = com.example.c001apk.compose.ui.component.LocalBarColor.current,
                 title = "设置",
-                scrollBehavior = scrollBehavior,
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(MiuixIcons.Back, contentDescription = "返回")
+                    }
+                },
                 actions = {
                     Box(Modifier.wrapContentSize(Alignment.TopEnd)) {
                         MoreMenuButton { dropdownMenuExpanded = true }
@@ -180,7 +185,7 @@ fun SettingsScreen(
             contentPadding =
                 PaddingValues(
                     top = paddingValues.calculateTopPadding(),
-                    bottom = 24.dp + bottomPadding + paddingValues.calculateBottomPadding(),
+                    bottom = 24.dp + paddingValues.calculateBottomPadding(),
                     start = paddingValues.calculateLeftPadding(layoutDirection),
                     end = paddingValues.calculateRightPadding(layoutDirection),
                 ),
@@ -210,6 +215,14 @@ fun SettingsScreen(
                         onParamsClick()
                     }
                 }
+            }
+            item(key = "home_tabs") {
+                BasicListItem(
+                    leadingImageVector = MiuixIcons.All,
+                    headlineText = "首页板块",
+                    supportingText = "选择首页显示的内容 Tab",
+                    onClick = onHomeTabsClick,
+                )
             }
             item(key = "settings_3") {
                 BasicListItem(leadingText = "主题")

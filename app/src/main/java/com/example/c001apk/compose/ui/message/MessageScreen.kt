@@ -35,12 +35,14 @@ import com.example.c001apk.compose.ui.notification.NoticeType
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.makeToast
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.extended.Settings
 
 /** Created by bggRGjQaUbCoE on 2024/6/2 */
 @Composable
 fun MessageScreen(
     bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
     onLogin: () -> Unit,
+    onSettingsClick: () -> Unit,
     onViewUser: (String) -> Unit,
     onViewFeed: (String, Boolean) -> Unit,
     onOpenLink: (String, String?) -> Unit,
@@ -69,7 +71,19 @@ fun MessageScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { com.example.c001apk.compose.ui.component.MiuixTopBar(title = "消息") },
+        topBar = {
+            com.example.c001apk.compose.ui.component.MiuixTopBar(
+                title = "我的",
+                actions = {
+                    top.yukonga.miuix.kmp.basic.IconButton(onClick = onSettingsClick) {
+                        top.yukonga.miuix.kmp.basic.Icon(
+                            top.yukonga.miuix.kmp.icon.MiuixIcons.Settings,
+                            contentDescription = "设置",
+                        )
+                    }
+                },
+            )
+        },
     ) { paddingValues ->
         top.yukonga.miuix.kmp.basic.PullToRefresh(
             isRefreshing = viewModel.isRefreshing,
@@ -104,12 +118,14 @@ fun MessageScreen(
                         onViewUser = onViewUser,
                     )
                 }
-                item(key = "fff") {
-                    MessageFFFCard(
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        fffList = viewModel.fffList,
-                        onViewFFFList = onViewFFFList,
-                    )
+                if (viewModel.fffList.isNotEmpty()) {
+                    item(key = "fff") {
+                        MessageFFFCard(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            fffList = viewModel.fffList,
+                            onViewFFFList = onViewFFFList,
+                        )
+                    }
                 }
 
                 item(key = "widget") {

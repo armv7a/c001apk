@@ -37,6 +37,7 @@ import com.example.c001apk.compose.ui.component.IconText
 import com.example.c001apk.compose.ui.component.LinkText
 import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
+import com.example.c001apk.compose.ui.component.MiuixMoreMenu
 import com.example.c001apk.compose.ui.component.NineImageView
 import com.example.c001apk.compose.ui.component.icons.ThumbUpAlt
 import com.example.c001apk.compose.ui.component.icons.ThumbUpOffAlt
@@ -46,12 +47,9 @@ import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.CookieUtil.isLogin
 import com.example.c001apk.compose.util.DateUtils.fromToday
 import com.example.c001apk.compose.util.ReportType
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Messages
-import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.squircle.squircleClip
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -431,71 +429,54 @@ fun FeedReplyCard(
                 isLike = data.userAction?.like == 1,
             )
 
-            Box(
+            MiuixMoreMenu(
+                expanded = dropdownMenuExpanded,
+                onExpandedChange = { dropdownMenuExpanded = it },
                 modifier =
                     Modifier.constrainAs(expand) {
                         top.linkTo(parent.top)
                         end.linkTo(parent.end)
                     },
             ) {
-                IconButton(
-                    onClick = {
-                        dropdownMenuExpanded = true
-                    },
-                ) {
-                    Icon(
-                        imageVector = MiuixIcons.More,
-                        contentDescription = "更多操作",
-                        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                listOf("拉黑", "显示回复").forEachIndexed { index, menu ->
+                    DropdownMenuItem(
+                        text = { Text(menu) },
+                        onClick = {
+                            dropdownMenuExpanded = false
+                            when (index) {
+                                0 -> onBlockUser(data.uid.orEmpty(), null)
+
+                                1 ->
+                                    onShowTotalReply?.let {
+                                        it(
+                                            data.id.orEmpty(),
+                                            data.uid.orEmpty(),
+                                            null,
+                                        )
+                                    }
+                            }
+                        },
                     )
                 }
-
-                DropdownMenu(
-                    expanded = dropdownMenuExpanded,
-                    onDismissRequest = {
-                        dropdownMenuExpanded = false
-                    },
-                ) {
-                    listOf("拉黑", "显示回复").forEachIndexed { index, menu ->
-                        DropdownMenuItem(
-                            text = { Text(menu) },
-                            onClick = {
-                                dropdownMenuExpanded = false
-                                when (index) {
-                                    0 -> onBlockUser(data.uid.orEmpty(), null)
-
-                                    1 ->
-                                        onShowTotalReply?.let {
-                                            it(
-                                                data.id.orEmpty(),
-                                                data.uid.orEmpty(),
-                                                null,
-                                            )
-                                        }
-                                }
-                            },
-                        )
-                    }
-                    if (isLogin) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(id = R.string.menu_report)) },
-                            onClick = {
-                                dropdownMenuExpanded = false
-                                onReport?.let { it(data.id.orEmpty(), ReportType.REPLY) }
-                            },
-                        )
-                    }
-                    if (data.uid == CookieUtil.uid) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(id = R.string.menu_delete)) },
-                            onClick = {
-                                dropdownMenuExpanded = false
-                                onDelete?.let {
-                                    it(data.id.orEmpty(), LikeType.REPLY, null)
-                                }
-                            },
-                        )
-                    }
+                if (isLogin) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(id = R.string.menu_report)) },
+                        onClick = {
+                            dropdownMenuExpanded = false
+                            onReport?.let { it(data.id.orEmpty(), ReportType.REPLY) }
+                        },
+                    )
+                }
+                if (data.uid == CookieUtil.uid) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(id = R.string.menu_delete)) },
+                        onClick = {
+                            dropdownMenuExpanded = false
+                            onDelete?.let {
+                                it(data.id.orEmpty(), LikeType.REPLY, null)
+                            }
+                        },
+                    )
                 }
             }
 

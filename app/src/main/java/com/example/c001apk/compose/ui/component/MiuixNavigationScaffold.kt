@@ -33,7 +33,7 @@ fun MiuixNavigationScaffold(
                         onClick = { onSelect(index) },
                         icon = item.first,
                         label = item.second,
-                        badge = if (index == 1) badge else null,
+                        badge = if (index == 2) badge else null,
                     )
                 }
             }
@@ -49,7 +49,7 @@ fun MiuixNavigationScaffold(
                                 onClick = { onSelect(index) },
                                 icon = item.first,
                                 label = item.second,
-                                badge = if (index == 1) badge else null,
+                                badge = if (index == 2) badge else null,
                             )
                         }
                     }

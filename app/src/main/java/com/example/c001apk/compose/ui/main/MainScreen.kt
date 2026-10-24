@@ -17,9 +17,9 @@ import com.example.c001apk.compose.ui.component.MiuixNavigationScaffold
 import com.example.c001apk.compose.ui.component.SlideTransition
 import com.example.c001apk.compose.ui.component.WindowWidthSizeClass
 import com.example.c001apk.compose.ui.component.rememberHapticClick
+import com.example.c001apk.compose.ui.home.FollowScreen
 import com.example.c001apk.compose.ui.home.HomeScreen
 import com.example.c001apk.compose.ui.message.MessageScreen
-import com.example.c001apk.compose.ui.settings.SettingsScreen
 import com.example.c001apk.compose.util.ReportType
 
 /** Created by bggRGjQaUbCoE on 2024/5/30 */
@@ -29,8 +29,7 @@ fun MainScreen(
     setSelectIndex: (Int) -> Unit,
     badge: Int,
     resetBadge: () -> Unit,
-    onParamsClick: () -> Unit,
-    onAboutClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     onViewUser: (String) -> Unit,
     onViewFeed: (String, Boolean) -> Unit,
     onSearch: () -> Unit,
@@ -42,7 +41,6 @@ fun MainScreen(
     onViewFFFList: (String?, String) -> Unit,
     onReport: (String, ReportType) -> Unit,
     onViewNotice: (String) -> Unit,
-    onViewBlackList: (String) -> Unit,
     onViewHistory: (String) -> Unit,
     widthSizeClass: WindowWidthSizeClass,
 ) {
@@ -50,13 +48,14 @@ fun MainScreen(
     val screens =
         listOf(
             Router.HOME,
-            Router.MESSAGE,
-            Router.SETTINGS,
+            Router.FOLLOW,
+            Router.PROFILE,
         )
 
     val savableStateHolder = rememberSaveableStateHolder()
     val performHapticClick = rememberHapticClick {}
     var refreshState by remember { mutableStateOf(false) }
+    var followRefreshState by remember { mutableStateOf(false) }
 
     MiuixNavigationScaffold(
         items =
@@ -70,7 +69,8 @@ fun MainScreen(
         onSelect = { index ->
             performHapticClick()
             if (selectIndex == 0 && index == 0) refreshState = true
-            if (index == 1 && badge != 0) resetBadge()
+            if (selectIndex == 1 && index == 1) followRefreshState = true
+            if (index == 2 && badge != 0) resetBadge()
             setSelectIndex(index)
         },
     ) { mainPadding ->
@@ -109,7 +109,22 @@ fun MainScreen(
                             )
 
                         1 ->
+                            FollowScreen(
+                                bottomPadding = mainPadding.calculateBottomPadding(),
+                                refreshState = followRefreshState,
+                                resetRefreshState = { followRefreshState = false },
+                                onSearch = onSearch,
+                                onLogin = onLogin,
+                                onViewUser = onViewUser,
+                                onViewFeed = onViewFeed,
+                                onOpenLink = onOpenLink,
+                                onCopyText = onCopyText,
+                                onReport = onReport,
+                            )
+
+                        2 ->
                             MessageScreen(
+                                onSettingsClick = onSettingsClick,
                                 bottomPadding = mainPadding.calculateBottomPadding(),
                                 onLogin = onLogin,
                                 onViewUser = onViewUser,
@@ -120,14 +135,6 @@ fun MainScreen(
                                 onReport = onReport,
                                 onViewNotice = onViewNotice,
                                 onViewHistory = onViewHistory,
-                            )
-
-                        2 ->
-                            SettingsScreen(
-                                bottomPadding = mainPadding.calculateBottomPadding(),
-                                onParamsClick = onParamsClick,
-                                onAboutClick = onAboutClick,
-                                onViewBlackList = onViewBlackList,
                             )
                     }
                 },

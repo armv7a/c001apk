@@ -2,6 +2,8 @@ package com.example.c001apk.compose.ui.main
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
+import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -12,7 +14,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -95,6 +96,19 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setupStableStatusBarInsets()
 
+        // Keep Android's animated launch icon while the initial device identity is prepared.
+        // Subsequent launches reuse the cached identity; no extra Compose loading page is shown.
+        val contentView = findViewById<View>(android.R.id.content)
+        contentView.viewTreeObserver.addOnPreDrawListener(
+            object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    if (viewModel.preparingIdentity) return false
+                    contentView.viewTreeObserver.removeOnPreDrawListener(this)
+                    return true
+                }
+            },
+        )
+
         val initialPreferences = runBlocking {
             userPreferencesRepository.data.first()
         }
@@ -168,24 +182,7 @@ class MainActivity : ComponentActivity() {
                         modifier =
                             Modifier.fillMaxSize().background(MiuixTheme.colorScheme.background),
                     ) {
-                        if (viewModel.preparingIdentity) {
-                            androidx.compose.foundation.layout.Box(
-                                Modifier.fillMaxSize(),
-                                contentAlignment = androidx.compose.ui.Alignment.Center,
-                            ) {
-                                androidx.compose.foundation.layout.Column(
-                                    horizontalAlignment =
-                                        androidx.compose.ui.Alignment.CenterHorizontally,
-                                    verticalArrangement =
-                                        androidx.compose.foundation.layout.Arrangement.spacedBy(
-                                            16.dp,
-                                        ),
-                                ) {
-                                    top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator()
-                                    top.yukonga.miuix.kmp.basic.Text("正在准备连接…")
-                                }
-                            }
-                        } else {
+                        if (!viewModel.preparingIdentity) {
                             MainNavigation(
                                 navController = navController,
                                 badge = viewModel.badge,

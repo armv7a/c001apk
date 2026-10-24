@@ -3,7 +3,6 @@ package com.example.c001apk.compose.ui.component.cards
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,8 +28,8 @@ import com.example.c001apk.compose.logic.model.FeedEntity
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.component.IconText
 import com.example.c001apk.compose.ui.component.LinkText
-import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
+import com.example.c001apk.compose.ui.component.MiuixMoreMenu
 import com.example.c001apk.compose.ui.component.icons.Smartphone
 import com.example.c001apk.compose.ui.theme.cardBg
 import com.example.c001apk.compose.util.CookieUtil.isLogin
@@ -40,11 +39,8 @@ import com.example.c001apk.compose.util.ShareType
 import com.example.c001apk.compose.util.Utils.richToString
 import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.getShareText
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -171,7 +167,9 @@ fun HistoryHeader(
             textSize = 13f,
         )
 
-        Box(
+        MiuixMoreMenu(
+            expanded = dropdownMenuExpanded,
+            onExpandedChange = { dropdownMenuExpanded = it },
             modifier =
                 Modifier.aspectRatio(1f, false).constrainAs(expand) {
                     top.linkTo(parent.top)
@@ -180,54 +178,35 @@ fun HistoryHeader(
                     height = Dimension.fillToConstraints
                 },
         ) {
-            IconButton(
-                onClick = {
-                    dropdownMenuExpanded = true
-                },
-            ) {
-                Icon(
-                    imageVector = MiuixIcons.More,
-                    contentDescription = "更多操作",
-                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                )
-            }
-
-            DropdownMenu(
-                expanded = dropdownMenuExpanded,
-                onDismissRequest = {
-                    dropdownMenuExpanded = false
-                },
-            ) {
-                listOf("复制", "拉黑").forEachIndexed { index, menu ->
-                    DropdownMenuItem(
-                        text = { Text(menu) },
-                        onClick = {
-                            dropdownMenuExpanded = false
-                            when (index) {
-                                0 -> context.copyText(getShareText(ShareType.FEED, data.id))
-
-                                1 -> onBlockUser(data.uid)
-                            }
-                        },
-                    )
-                }
-                if (isLogin) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(id = R.string.menu_report)) },
-                        onClick = {
-                            dropdownMenuExpanded = false
-                            onReport(data.id, ReportType.FEED)
-                        },
-                    )
-                }
+            listOf("复制", "拉黑").forEachIndexed { index, menu ->
                 DropdownMenuItem(
-                    text = { Text(stringResource(id = R.string.menu_delete)) },
+                    text = { Text(menu) },
                     onClick = {
                         dropdownMenuExpanded = false
-                        onDelete(data.id)
+                        when (index) {
+                            0 -> context.copyText(getShareText(ShareType.FEED, data.id))
+
+                            1 -> onBlockUser(data.uid)
+                        }
                     },
                 )
             }
+            if (isLogin) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = R.string.menu_report)) },
+                    onClick = {
+                        dropdownMenuExpanded = false
+                        onReport(data.id, ReportType.FEED)
+                    },
+                )
+            }
+            DropdownMenuItem(
+                text = { Text(stringResource(id = R.string.menu_delete)) },
+                onClick = {
+                    dropdownMenuExpanded = false
+                    onDelete(data.id)
+                },
+            )
         }
     }
 }
