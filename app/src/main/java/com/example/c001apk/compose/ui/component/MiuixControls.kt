@@ -116,7 +116,7 @@ fun MiuixMoreMenu(
                 Icon(
                     imageVector = MiuixIcons.More,
                     contentDescription = "更多操作",
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(17.5.dp),
                     tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
             }

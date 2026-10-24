@@ -32,7 +32,11 @@ fun IconLinkGridCard(
     entities?.let {
         val pagerState = rememberPagerState { it.size / 5 }
         Column(
-            modifier = modifier.fillMaxWidth().squircleSurface(cardBg(), 16.dp),
+            modifier =
+                modifier
+                    .fillMaxWidth()
+                    .squircleSurface(cardBg(), 16.dp)
+                    .padding(top = 16.dp, bottom = 8.dp),
         ) {
             HorizontalPager(
                 modifier = Modifier.fillMaxWidth(),
@@ -83,7 +87,7 @@ fun IconLinkGridCardItem(
     ) {
         CoilLoader(
             url = pic,
-            modifier = Modifier.padding(top = 4.dp).size(30.dp),
+            modifier = Modifier.size(30.dp),
         )
 
         Text(
@@ -91,7 +95,7 @@ fun IconLinkGridCardItem(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             fontSize = 13.sp,
-            modifier = Modifier.padding(bottom = 2.dp),
+            modifier = Modifier.padding(top = 6.dp, bottom = 6.dp),
         )
     }
 }

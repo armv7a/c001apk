@@ -1,10 +1,13 @@
 package com.example.c001apk.compose.ui.component
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.logic.model.HapticStrength
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.util.performConfiguredHapticFeedback
@@ -53,7 +56,8 @@ fun MoreMenuButton(onClick: () -> Unit) {
     IconButton(onClick = rememberHapticClick(onClick = onClick)) {
         Icon(
             imageVector = MiuixIcons.More,
-            contentDescription = MiuixIcons.More.name,
+            contentDescription = "更多操作",
+            modifier = Modifier.size(21.dp),
         )
     }
 }
