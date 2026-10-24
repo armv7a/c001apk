@@ -30,6 +30,7 @@ fun MainScreen(
     badge: Int,
     resetBadge: () -> Unit,
     onSettingsClick: () -> Unit,
+    onAccountsClick: () -> Unit,
     onViewUser: (String) -> Unit,
     onViewFeed: (String, Boolean) -> Unit,
     onSearch: () -> Unit,
@@ -125,6 +126,7 @@ fun MainScreen(
                         2 ->
                             MessageScreen(
                                 onSettingsClick = onSettingsClick,
+                                onAccountsClick = onAccountsClick,
                                 bottomPadding = mainPadding.calculateBottomPadding(),
                                 onLogin = onLogin,
                                 onViewUser = onViewUser,

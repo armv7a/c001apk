@@ -54,6 +54,8 @@ sealed class Router(
             selectedIcon = MiuixIcons.Settings,
         )
 
+    data object ACCOUNTS : Router(name = "ACCOUNTS")
+
     data object PARAMS : Router(name = "PARAMS")
 
     data object ABOUT : Router(name = "ABOUT")

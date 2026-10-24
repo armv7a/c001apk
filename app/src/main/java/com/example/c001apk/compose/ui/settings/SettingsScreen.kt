@@ -107,6 +107,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onHomeTabsClick: () -> Unit,
+    onAccountsClick: () -> Unit,
     onParamsClick: () -> Unit,
     onAboutClick: () -> Unit,
     onViewBlackList: (String) -> Unit,
@@ -190,6 +191,15 @@ fun SettingsScreen(
                     end = paddingValues.calculateRightPadding(layoutDirection),
                 ),
         ) {
+            item(key = "accounts") {
+                BasicListItem(
+                    headlineText = "账号管理",
+                    supportingText = "切换账号、添加账号与游客模式",
+                    leadingImageVector =
+                        com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons.Account,
+                    onClick = onAccountsClick,
+                )
+            }
             item(key = "settings_0") {
                 BasicListItem(leadingText = stringResource(id = R.string.app_name))
             }

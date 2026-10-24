@@ -4,11 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import com.example.c001apk.compose.constant.Constants
 import com.example.c001apk.compose.logic.repository.BlackListRepo
 import com.example.c001apk.compose.logic.repository.NetworkRepo
-import com.example.c001apk.compose.logic.repository.UserPreferencesRepository
-import com.example.c001apk.compose.logic.state.FooterState
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.base.BaseViewModel
 import com.example.c001apk.compose.util.CookieUtil.atcommentme
@@ -35,7 +32,7 @@ constructor(
     @Assisted val url: String,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
-    private val userPreferencesRepository: UserPreferencesRepository,
+    private val accounts: com.example.c001apk.compose.logic.accounts.AccountStore,
 ) : BaseViewModel(networkRepo, blackListRepo) {
 
     var fffList by mutableStateOf<List<String>>(emptyList())
@@ -57,7 +54,13 @@ constructor(
 
     private fun fetchProfile() =
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.getProfile(uid).collect { result ->
+            val session = com.example.c001apk.compose.util.CookieUtil.accountSession
+            networkRepo.getProfile(session.uid).collect { result ->
+                if (
+                    session.revision !=
+                        com.example.c001apk.compose.util.CookieUtil.accountSession.revision
+                )
+                    return@collect
                 val data = result.getOrNull()
                 if (data?.data != null) {
                     fffList =
@@ -66,34 +69,19 @@ constructor(
                             data.data.follow ?: "0",
                             data.data.fans ?: "0",
                         )
-                    userPreferencesRepository.apply {
-                        setUserAvatar(data.data.userAvatar.orEmpty())
-                        setUsername(data.data.username.encode)
-                        setLevel(data.data.level ?: "0")
-                        setExperience(data.data.experience ?: "0")
-                        setNextLevelExperience(data.data.nextLevelExperience ?: "0")
-                    }
+                    accounts.refreshProfile(
+                        session.revision,
+                        avatar = data.data.userAvatar,
+                        username = data.data.username.encode,
+                        level = data.data.level,
+                        experience = data.data.experience,
+                        nextLevelExperience = data.data.nextLevelExperience,
+                    )
                 } else {
                     result.exceptionOrNull()?.printStackTrace()
                 }
             }
         }
-
-    fun onLogout() {
-        viewModelScope.launch {
-            userPreferencesRepository.apply {
-                setUid(Constants.EMPTY_STRING)
-                setUserAvatar(Constants.EMPTY_STRING)
-                setUsername(Constants.EMPTY_STRING)
-                setToken(Constants.EMPTY_STRING)
-                setIsLogin(false)
-            }
-            fffList = emptyList()
-            badgeList = listOf(null)
-            loadingState = LoadingState.Success(emptyList())
-            footerState = FooterState.Success
-        }
-    }
 
     private fun onCheckCount() =
         viewModelScope.launch(Dispatchers.IO) {

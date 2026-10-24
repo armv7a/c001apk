@@ -65,6 +65,7 @@ fun LoginScreen(
     val context = LocalContext.current
     val layoutDirection = LocalLayoutDirection.current
     val prefs = LocalUserPreferences.current
+    val initialAccountRevision = remember { prefs.accountRevision }
     var account by remember { mutableStateOf(EMPTY_STRING) }
     var password by remember { mutableStateOf(EMPTY_STRING) }
     var captcha by remember { mutableStateOf(EMPTY_STRING) }
@@ -238,7 +239,7 @@ fun LoginScreen(
         }
     }
 
-    if (prefs.isLogin) {
+    if (prefs.accountRevision != initialAccountRevision) {
         onBackClick()
     }
 

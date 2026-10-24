@@ -103,6 +103,19 @@ fun MainNavigation(
     val context = LocalContext.current
     var initialPage = 0
     var selectIndex by rememberSaveable { mutableIntStateOf(0) }
+    val accountRevision =
+        com.example.c001apk.compose.logic.providable.LocalUserPreferences.current.accountRevision
+    var displayedAccountRevision by remember { mutableStateOf(accountRevision) }
+    androidx.compose.runtime.LaunchedEffect(accountRevision) {
+        if (displayedAccountRevision != accountRevision) {
+            displayedAccountRevision = accountRevision
+            selectIndex = 2
+            navController.navigate(Router.MAIN.name) {
+                popUpTo(navController.graph.id) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
     val isCompat by lazy { widthSizeClass == WindowWidthSizeClass.Compact }
     var compatId by remember { mutableStateOf<String?>(null) }
     var compatReply by remember { mutableStateOf<Boolean?>(null) }
@@ -158,6 +171,7 @@ fun MainNavigation(
                     resetBadge = resetBadge,
                     widthSizeClass = widthSizeClass,
                     onSettingsClick = { navController.navigate(Router.SETTINGS.name) },
+                    onAccountsClick = { navController.navigate(Router.ACCOUNTS.name) },
                     onViewUser = navController::navigateToUser,
                     onViewFeed = ::onViewFeed,
                     onSearch = {
@@ -187,10 +201,18 @@ fun MainNavigation(
             composable(route = Router.SETTINGS.name) {
                 SettingsScreen(
                     onBackClick = { navController.popBackStack() },
+                    onAccountsClick = { navController.navigate(Router.ACCOUNTS.name) },
                     onHomeTabsClick = { navController.navigate(Router.TAB.name) },
                     onParamsClick = { navController.navigate(Router.PARAMS.name) },
                     onAboutClick = { navController.navigate(Router.ABOUT.name) },
                     onViewBlackList = navController::navigateToBlackList,
+                )
+            }
+
+            composable(route = Router.ACCOUNTS.name) {
+                com.example.c001apk.compose.ui.accounts.AccountsScreen(
+                    onBack = { navController.popBackStack() },
+                    onLogin = { navController.navigate(Router.LOGIN.name) },
                 )
             }
 

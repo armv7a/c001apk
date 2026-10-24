@@ -10,34 +10,32 @@ import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.logic.model.ProductConfigData
 import com.example.c001apk.compose.logic.network.ApiService
 import com.example.c001apk.compose.logic.state.LoadingState
+import com.example.c001apk.compose.util.CookieUtil
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import okhttp3.MultipartBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.suspendCancellableCoroutine
+import okhttp3.MultipartBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/3
- */
+/** Created by bggRGjQaUbCoE on 2024/6/3 */
 @Singleton
-class NetworkRepo @Inject constructor(
-    @param:Api1Service
-    private val apiService: ApiService,
-    @param:Api1ServiceNoRedirect
-    private val apiServiceNoRedirect: ApiService,
-    @param:Api2Service
-    private val api2Service: ApiService,
-    @param:AccountService
-    private val accountService: ApiService,
+class NetworkRepo
+@Inject
+constructor(
+    @param:Api1Service private val apiService: ApiService,
+    @param:Api1ServiceNoRedirect private val apiServiceNoRedirect: ApiService,
+    @param:Api2Service private val api2Service: ApiService,
+    @param:AccountService private val accountService: ApiService,
 ) {
 
     suspend fun getHomeFeed(
@@ -45,7 +43,7 @@ class NetworkRepo @Inject constructor(
         firstLaunch: Int,
         installTime: String,
         firstItem: String?,
-        lastItem: String?
+        lastItem: String?,
     ) = flowList {
         api2Service.getHomeFeed(page, firstLaunch, installTime, firstItem, lastItem).await()
     }
@@ -63,28 +61,45 @@ class NetworkRepo @Inject constructor(
         discussMode: Int,
         feedType: String,
         blockStatus: Int,
-        fromFeedAuthor: Int
+        fromFeedAuthor: Int,
     ) = flowList {
-        api2Service.getFeedContentReply(
-            id,
-            listType,
-            page,
-            firstItem,
-            lastItem,
-            discussMode,
-            feedType,
-            blockStatus,
-            fromFeedAuthor
-        ).await()
+        api2Service
+            .getFeedContentReply(
+                id,
+                listType,
+                page,
+                firstItem,
+                lastItem,
+                discussMode,
+                feedType,
+                blockStatus,
+                fromFeedAuthor,
+            )
+            .await()
     }
 
     suspend fun getSearch(
-        type: String, feedType: String, sort: String, keyWord: String, pageType: String?,
-        pageParam: String?, page: Int, lastItem: String?
+        type: String,
+        feedType: String,
+        sort: String,
+        keyWord: String,
+        pageType: String?,
+        pageParam: String?,
+        page: Int,
+        lastItem: String?,
     ) = flowList {
-        apiService.getSearch(
-            type, feedType, sort, keyWord, pageType, pageParam, page, lastItem
-        ).await()
+        apiService
+            .getSearch(
+                type,
+                feedType,
+                sort,
+                keyWord,
+                pageType,
+                pageParam,
+                page,
+                lastItem,
+            )
+            .await()
     }
 
     suspend fun getReply2Reply(id: String, page: Int, lastItem: String?) = flowList {
@@ -102,15 +117,17 @@ class NetworkRepo @Inject constructor(
     suspend fun getProductConfig(id: String) = fire {
         val response = apiService.getProductConfig(id).await()
         when {
-            !response.dataRows.isNullOrEmpty() -> Result.success(
-                ProductConfigData(
-                    title = response.title,
-                    dataRows = response.dataRows,
+            !response.dataRows.isNullOrEmpty() ->
+                Result.success(
+                    ProductConfigData(
+                        title = response.title,
+                        dataRows = response.dataRows,
+                    ),
                 )
-            )
-            !response.message.isNullOrBlank() -> Result.failure(
-                IllegalStateException(mapServerMessage(response.message))
-            )
+            !response.message.isNullOrBlank() ->
+                Result.failure(
+                    IllegalStateException(mapServerMessage(response.message)),
+                )
             else -> Result.failure(IllegalStateException(LOADING_FAILED))
         }
     }
@@ -148,7 +165,7 @@ class NetworkRepo @Inject constructor(
         id: String?,
         showDefault: Int?,
         page: Int,
-        lastItem: String?
+        lastItem: String?,
     ) = flowList {
         apiService.getFollowList(url, uid, id, showDefault, page, lastItem).await()
     }
@@ -182,36 +199,42 @@ class NetworkRepo @Inject constructor(
     }
 
     suspend fun getDataList(
-        url: String, title: String, subTitle: String?, lastItem: String?, page: Int
+        url: String,
+        title: String,
+        subTitle: String?,
+        lastItem: String?,
+        page: Int,
     ) = flowList {
         api2Service.getDataList(url, title, subTitle, lastItem, page).await()
     }
 
     suspend fun getEventDetail(id: String) = flow {
-        val state = try {
-            val response = api2Service.getEventDetail(id).await()
-            when {
-                !response.message.isNullOrEmpty() ->
-                    LoadingState.Error(mapServerMessage(response.message))
+        val state =
+            try {
+                val response = api2Service.getEventDetail(id).await()
+                when {
+                    !response.message.isNullOrEmpty() ->
+                        LoadingState.Error(mapServerMessage(response.message))
 
-                response.data != null -> LoadingState.Success(response.data)
-                else -> LoadingState.Error(LOADING_FAILED)
+                    response.data != null -> LoadingState.Success(response.data)
+                    else -> LoadingState.Error(LOADING_FAILED)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                LoadingState.Error(mapErrorMessage(e))
             }
-        } catch (e: Exception) {
-            LoadingState.Error(mapErrorMessage(e))
-        }
         emit(state)
-    }.flowOn(Dispatchers.IO)
+    }
+        .flowOn(Dispatchers.IO)
 
-    suspend fun getDyhDetail(dyhId: String, type: String, page: Int, lastItem: String?) =
-        flowList {
-            apiService.getDyhDetail(dyhId, type, page, lastItem).await()
-        }
+    suspend fun getDyhDetail(dyhId: String, type: String, page: Int, lastItem: String?) = flowList {
+        apiService.getDyhDetail(dyhId, type, page, lastItem).await()
+    }
 
-    suspend fun getCoolPic(tag: String, type: String, page: Int, lastItem: String?) =
-        flowList {
-            apiService.getCoolPic(tag, type, page, lastItem).await()
-        }
+    suspend fun getCoolPic(tag: String, type: String, page: Int, lastItem: String?) = flowList {
+        apiService.getCoolPic(tag, type, page, lastItem).await()
+    }
 
     suspend fun getMessage(url: String, page: Int, lastItem: String?) = flowList {
         apiService.getMessage(url, page, lastItem).await()
@@ -259,10 +282,10 @@ class NetworkRepo @Inject constructor(
         id: String?,
         showDefault: Int,
         page: Int,
-        lastItem: String?
+        lastItem: String?,
     ) = fire {
         Result.success(
-            apiService.getCollectionList(url, uid, id, showDefault, page, lastItem).await()
+            apiService.getCollectionList(url, uid, id, showDefault, page, lastItem).await(),
         )
     }
 
@@ -325,83 +348,121 @@ class NetworkRepo @Inject constructor(
         Result.success(apiService.checkCount().await())
     }
 
-
     suspend fun postDelete(url: String, data: Map<String, String>?) = fire {
         Result.success(apiService.postDelete(url, data).await())
     }
 
     private suspend fun <T> Call<T>.await(): T {
-        return suspendCoroutine { continuation ->
-            enqueue(object : Callback<T> {
-                override fun onResponse(call: Call<T>, response: Response<T>) {
-                    val body = response.body()
-                    if (body != null) continuation.resume(body)
-                    else continuation.resumeWithException(
-                        RuntimeException("response body is null")
-                    )
-                }
+        val revision = CookieUtil.accountSession.revision
+        return suspendCancellableCoroutine { continuation ->
+            continuation.invokeOnCancellation { cancel() }
+            enqueue(
+                object : Callback<T> {
+                    override fun onResponse(call: Call<T>, response: Response<T>) {
+                        if (!continuation.isActive) {
+                            (response.body() as? okhttp3.ResponseBody)?.close()
+                            return
+                        }
+                        if (revision != CookieUtil.accountSession.revision) {
+                            (response.body() as? okhttp3.ResponseBody)?.close()
+                            continuation.cancel(CancellationException("账号已切换"))
+                            return
+                        }
+                        val body = response.body()
+                        if (body != null) continuation.resume(body)
+                        else
+                            continuation.resumeWithException(
+                                RuntimeException("response body is null"),
+                            )
+                    }
 
-                override fun onFailure(call: Call<T>, t: Throwable) {
-                    continuation.resumeWithException(t)
-                }
-            })
+                    override fun onFailure(call: Call<T>, t: Throwable) {
+                        if (continuation.isActive) continuation.resumeWithException(t)
+                    }
+                },
+            )
         }
     }
 
     private suspend fun <T> Call<T>.response(): Response<T> {
-        return suspendCoroutine { continuation ->
-            enqueue(object : Callback<T> {
-                override fun onResponse(call: Call<T>, response: Response<T>) {
-                    continuation.resume(response)
-                }
+        val revision = CookieUtil.accountSession.revision
+        return suspendCancellableCoroutine { continuation ->
+            continuation.invokeOnCancellation { cancel() }
+            enqueue(
+                object : Callback<T> {
+                    override fun onResponse(call: Call<T>, response: Response<T>) {
+                        if (!continuation.isActive) {
+                            (response.body() as? okhttp3.ResponseBody)?.close()
+                            return
+                        }
+                        if (revision != CookieUtil.accountSession.revision) {
+                            (response.body() as? okhttp3.ResponseBody)?.close()
+                            continuation.cancel(CancellationException("账号已切换"))
+                            return
+                        }
+                        continuation.resume(response)
+                    }
 
-                override fun onFailure(call: Call<T>, t: Throwable) {
-                    continuation.resumeWithException(t)
-                }
-            })
+                    override fun onFailure(call: Call<T>, t: Throwable) {
+                        if (continuation.isActive) continuation.resumeWithException(t)
+                    }
+                },
+            )
         }
     }
 
     private fun <T> fire(block: suspend () -> Result<T>) = flow {
-        val result = try {
-            block()
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        val result =
+            try {
+                block()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         emit(result)
-    }.flowOn(Dispatchers.IO)
+    }
+        .flowOn(Dispatchers.IO)
 
     private fun flowList(block: suspend () -> HomeFeedResponse) = flow {
-        val result = try {
-            val response = block()
-            if (!response.message.isNullOrEmpty()) {
-                LoadingState.Error(mapServerMessage(response.message))
-            } else if (!response.data.isNullOrEmpty()) {
-                LoadingState.Success(response.data)
-            } else if (response.data?.isEmpty() == true) {
-                LoadingState.Empty
-            } else {
-                LoadingState.Error(LOADING_FAILED)
+        val result =
+            try {
+                val response = block()
+                if (!response.message.isNullOrEmpty()) {
+                    LoadingState.Error(mapServerMessage(response.message))
+                } else if (!response.data.isNullOrEmpty()) {
+                    LoadingState.Success(response.data)
+                } else if (response.data?.isEmpty() == true) {
+                    LoadingState.Empty
+                } else {
+                    LoadingState.Error(LOADING_FAILED)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                LoadingState.Error(mapErrorMessage(e))
             }
-        } catch (e: Exception) {
-            LoadingState.Error(mapErrorMessage(e))
-        }
         emit(result)
-    }.flowOn(Dispatchers.IO)
+    }
+        .flowOn(Dispatchers.IO)
 
     private fun flowUpdateList(block: suspend () -> List<HomeFeedResponse.Data>) = flow {
-        val result = try {
-            val response = block()
-            if (response.isNotEmpty()) {
-                LoadingState.Success(response)
-            } else {
-                LoadingState.Empty
+        val result =
+            try {
+                val response = block()
+                if (response.isNotEmpty()) {
+                    LoadingState.Success(response)
+                } else {
+                    LoadingState.Empty
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                LoadingState.Error(mapErrorMessage(e))
             }
-        } catch (e: Exception) {
-            LoadingState.Error(mapErrorMessage(e))
-        }
         emit(result)
-    }.flowOn(Dispatchers.IO)
+    }
+        .flowOn(Dispatchers.IO)
 
     private fun parseAppsUpdate(raw: String): List<HomeFeedResponse.Data> {
         val payload = raw.trim()
@@ -418,20 +479,24 @@ class NetworkRepo @Inject constructor(
     }
 
     private fun flowData(block: suspend () -> FeedContentResponse) = flow {
-        val result = try {
-            val response = block()
-            if (!response.message.isNullOrEmpty()) {
-                LoadingState.Error(mapServerMessage(response.message))
-            } else if (response.data != null) {
-                LoadingState.Success(response.data)
-            } else {
-                LoadingState.Error(LOADING_FAILED)
+        val result =
+            try {
+                val response = block()
+                if (!response.message.isNullOrEmpty()) {
+                    LoadingState.Error(mapServerMessage(response.message))
+                } else if (response.data != null) {
+                    LoadingState.Success(response.data)
+                } else {
+                    LoadingState.Error(LOADING_FAILED)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                LoadingState.Error(mapErrorMessage(e))
             }
-        } catch (e: Exception) {
-            LoadingState.Error(mapErrorMessage(e))
-        }
         emit(result)
-    }.flowOn(Dispatchers.IO)
+    }
+        .flowOn(Dispatchers.IO)
 
     private fun mapServerMessage(message: String?): String {
         val normalized = message?.trim().orEmpty()
@@ -451,5 +516,4 @@ class NetworkRepo @Inject constructor(
         }
         return message.ifEmpty { "unknown error" }
     }
-
 }

@@ -34,7 +34,6 @@ import com.example.c001apk.compose.util.CookieUtil.hapticStrength
 import com.example.c001apk.compose.util.CookieUtil.imageFilter
 import com.example.c001apk.compose.util.CookieUtil.imageQuality
 import com.example.c001apk.compose.util.CookieUtil.isDarkMode
-import com.example.c001apk.compose.util.CookieUtil.isLogin
 import com.example.c001apk.compose.util.CookieUtil.materialYou
 import com.example.c001apk.compose.util.CookieUtil.openInBrowser
 import com.example.c001apk.compose.util.CookieUtil.paletteStyle
@@ -47,10 +46,7 @@ import com.example.c001apk.compose.util.CookieUtil.showEmoji
 import com.example.c001apk.compose.util.CookieUtil.showSquare
 import com.example.c001apk.compose.util.CookieUtil.szlmId
 import com.example.c001apk.compose.util.CookieUtil.themeType
-import com.example.c001apk.compose.util.CookieUtil.token
-import com.example.c001apk.compose.util.CookieUtil.uid
 import com.example.c001apk.compose.util.CookieUtil.userAgent
-import com.example.c001apk.compose.util.CookieUtil.username
 import com.example.c001apk.compose.util.CookieUtil.versionCode
 import com.example.c001apk.compose.util.CookieUtil.versionName
 import com.example.c001apk.compose.util.CookieUtil.xAppDevice
@@ -138,12 +134,9 @@ class MainActivity : ComponentActivity() {
                     if (preferences.xAppDevice.isEmpty()) viewModel.regenerateParams()
                 }
 
-                isLogin = preferences.isLogin
+                com.example.c001apk.compose.util.CookieUtil.publishAccount(preferences)
                 szlmId = preferences.szlmId
                 xAppDevice = preferences.xAppDevice
-                uid = preferences.uid
-                username = preferences.username
-                token = preferences.token
                 userAgent = preferences.userAgent
                 sdkInt = preferences.sdkInt
                 versionName = preferences.versionName

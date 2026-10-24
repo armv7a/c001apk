@@ -17,12 +17,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/10
- */
-
+/** Created by bggRGjQaUbCoE on 2024/6/10 */
 enum class LikeType {
-    FEED, REPLY
+    FEED,
+    REPLY,
 }
 
 abstract class BaseViewModel(
@@ -30,9 +28,12 @@ abstract class BaseViewModel(
     val blackListRepo: BlackListRepo,
 ) : ViewModel() {
 
+    private val accountRevision = CookieUtil.accountSession.revision
+
     var isRefreshing by mutableStateOf(false)
 
-    var loadingState by mutableStateOf<LoadingState<List<HomeFeedResponse.Data>>>(LoadingState.Loading)
+    var loadingState by
+        mutableStateOf<LoadingState<List<HomeFeedResponse.Data>>>(LoadingState.Loading)
 
     var footerState by mutableStateOf<FooterState>(FooterState.Success)
 
@@ -46,8 +47,10 @@ abstract class BaseViewModel(
     abstract suspend fun customFetchData(): Flow<LoadingState<List<HomeFeedResponse.Data>>>
 
     fun fetchData() {
+        if (accountRevision != CookieUtil.accountSession.revision) return
         viewModelScope.launch(Dispatchers.IO) {
             customFetchData().collect { state ->
+                if (accountRevision != CookieUtil.accountSession.revision) return@collect
                 when (state) {
                     LoadingState.Empty -> {
                         if (loadingState is LoadingState.Success && !isRefreshing)
@@ -62,43 +65,39 @@ abstract class BaseViewModel(
                     is LoadingState.Error -> {
                         if (loadingState is LoadingState.Success)
                             footerState = FooterState.Error(state.errMsg)
-                        else
-                            loadingState = state
+                        else loadingState = state
                         isEnd = true
                     }
 
                     LoadingState.Loading -> {
-                        if (loadingState is LoadingState.Success)
-                            footerState = FooterState.Loading
-                        else
-                            loadingState = state
+                        if (loadingState is LoadingState.Success) footerState = FooterState.Loading
+                        else loadingState = state
                     }
 
                     is LoadingState.Success -> {
                         page++
-                        var response = state.response.filter {
-                            ((it.entityType in entityTypeList
-                                    || it.entityTemplate in
-                                    if (CookieUtil.showSquare) entityTemplateList
-                                    else entityTemplateList.toMutableList()
-                                        .also { list ->
-                                            list.removeAll(
-                                                listOf(
-                                                    "iconMiniScrollCard",
-                                                    "iconMiniGridCard"
+                        var response =
+                            state.response.filter {
+                                ((it.entityType in entityTypeList ||
+                                    it.entityTemplate in
+                                        if (CookieUtil.showSquare) entityTemplateList
+                                        else
+                                            entityTemplateList.toMutableList().also { list ->
+                                                list.removeAll(
+                                                    listOf(
+                                                        "iconMiniScrollCard",
+                                                        "iconMiniGridCard",
+                                                    ),
                                                 )
-                                            )
-                                        })
-                                    || isAdditionalItemSupported(it))
-                                    && !blackListRepo.checkUid(
-                                if (!it.fromuid.isNullOrEmpty()) it.fromuid
-                                else it.uid.orEmpty()
-                            )
-                                    && !blackListRepo.checkTopic(
-                                it.tags + it.ttitle +
-                                        it.relationRows?.getOrNull(0)?.title
-                            )
-                        }
+                                            }) || isAdditionalItemSupported(it)) &&
+                                    !blackListRepo.checkUid(
+                                        if (!it.fromuid.isNullOrEmpty()) it.fromuid
+                                        else it.uid.orEmpty(),
+                                    ) &&
+                                    !blackListRepo.checkTopic(
+                                        it.tags + it.ttitle + it.relationRows?.getOrNull(0)?.title,
+                                    )
+                            }
                         firstItem = response.firstOrNull()?.id
                         lastItem = response.lastOrNull()?.id
 
@@ -109,7 +108,7 @@ abstract class BaseViewModel(
                         if (isLoadMore) {
                             response =
                                 ((loadingState as? LoadingState.Success)?.response ?: emptyList()) +
-                                        response
+                                    response
                         }
 
                         handleLoadMore(response)?.let {
@@ -173,36 +172,38 @@ abstract class BaseViewModel(
     }
 
     fun onLike(id: String, like: Int, likeType: LikeType) {
-        val isLike = when (likeType) {
-            LikeType.FEED -> if (like == 1) "unlike" else "like"
-            LikeType.REPLY -> if (like == 1) "unLikeReply" else "likeReply"
-        }
+        val isLike =
+            when (likeType) {
+                LikeType.FEED -> if (like == 1) "unlike" else "like"
+                LikeType.REPLY -> if (like == 1) "unLikeReply" else "likeReply"
+            }
         val likeUrl = "/v6/feed/$isLike"
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.postLike(likeUrl, id)
-                .collect { result ->
-                    val response = result.getOrNull()
-                    if (response != null) {
-                        if (!response.message.isNullOrEmpty()) {
-                            toastText = response.message
-                        } else if (response.data != null) {
-                            if (handleLikeResponse(id, like, response.data.count) == null) {
-                                val dataList = (loadingState as LoadingState.Success).response.map {
+            networkRepo.postLike(likeUrl, id).collect { result ->
+                val response = result.getOrNull()
+                if (response != null) {
+                    if (!response.message.isNullOrEmpty()) {
+                        toastText = response.message
+                    } else if (response.data != null) {
+                        if (handleLikeResponse(id, like, response.data.count) == null) {
+                            val dataList =
+                                (loadingState as LoadingState.Success).response.map {
                                     if (it.id == id) {
                                         it.copy(
                                             likenum = response.data.count,
-                                            userAction = it.userAction?.copy(like = if (like == 1) 0 else 1)
+                                            userAction =
+                                                it.userAction?.copy(like = if (like == 1) 0 else 1),
                                         )
                                     } else it
                                 }
-                                loadingState = LoadingState.Success(dataList)
-                            }
+                            loadingState = LoadingState.Success(dataList)
                         }
-                    } else {
-                        toastText = result.exceptionOrNull()?.message ?: "response is null"
-                        result.exceptionOrNull()?.printStackTrace()
                     }
+                } else {
+                    toastText = result.exceptionOrNull()?.message ?: "response is null"
+                    result.exceptionOrNull()?.printStackTrace()
                 }
+            }
         }
     }
 
@@ -211,34 +212,32 @@ abstract class BaseViewModel(
     }
 
     fun onDelete(id: String, deleteType: LikeType) {
-        val url = if (deleteType == LikeType.FEED) "/v6/feed/deleteFeed"
-        else "/v6/feed/deleteReply"
+        val url = if (deleteType == LikeType.FEED) "/v6/feed/deleteFeed" else "/v6/feed/deleteReply"
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.postDelete(url, id)
-                .collect { result ->
-                    val data = result.getOrNull()
-                    if (data != null) {
-                        if (!data.message.isNullOrEmpty()) {
-                            toastText = data.message
-                        } else if (data.data?.count == "删除成功") {
-                            var response = (loadingState as LoadingState.Success).response
-                            handleDeleteResponse(id, response)?.let {
-                                response = it
-                                loadingState = LoadingState.Success(response)
-                            }
-                            toastText = data.data.count
+            networkRepo.postDelete(url, id).collect { result ->
+                val data = result.getOrNull()
+                if (data != null) {
+                    if (!data.message.isNullOrEmpty()) {
+                        toastText = data.message
+                    } else if (data.data?.count == "删除成功") {
+                        var response = (loadingState as LoadingState.Success).response
+                        handleDeleteResponse(id, response)?.let {
+                            response = it
+                            loadingState = LoadingState.Success(response)
                         }
-                    } else {
-                        toastText = result.exceptionOrNull()?.message ?: "response is null"
-                        result.exceptionOrNull()?.printStackTrace()
+                        toastText = data.data.count
                     }
+                } else {
+                    toastText = result.exceptionOrNull()?.message ?: "response is null"
+                    result.exceptionOrNull()?.printStackTrace()
                 }
+            }
         }
     }
 
     open fun handleDeleteResponse(
         id: String,
-        response: List<HomeFeedResponse.Data>
+        response: List<HomeFeedResponse.Data>,
     ): List<HomeFeedResponse.Data>? {
         return response.filterNot { it.id == id }
     }
@@ -260,7 +259,7 @@ abstract class BaseViewModel(
 
     open fun handleBlockUser(
         uid: String,
-        response: List<HomeFeedResponse.Data>
+        response: List<HomeFeedResponse.Data>,
     ): List<HomeFeedResponse.Data>? {
         return null
     }
@@ -268,35 +267,31 @@ abstract class BaseViewModel(
     fun onFollowUser(uid: String, isFollow: Int) {
         val url = if (isFollow == 1) "/v6/user/unfollow" else "/v6/user/follow"
         viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.postFollowUnFollow(url, uid)
-                .collect { result ->
-                    val response = result.getOrNull()
-                    if (response != null) {
-                        if (!response.message.isNullOrEmpty()) {
-                            toastText = response.message
-                        } else {
-                            val follow = if (isFollow == 1) 0 else 1
-                            if (handleFollowResponse(follow) == null) {
-                                val dataList = (loadingState as LoadingState.Success).response.map {
-                                    if (it.uid == uid)
-                                        it.copy(isFollow = follow)
-                                    else it
-                                }
-                                loadingState = LoadingState.Success(dataList)
-                            }
-                            toastText = if (follow == 1) "关注成功"
-                            else "取消关注成功"
-                        }
+            networkRepo.postFollowUnFollow(url, uid).collect { result ->
+                val response = result.getOrNull()
+                if (response != null) {
+                    if (!response.message.isNullOrEmpty()) {
+                        toastText = response.message
                     } else {
-                        toastText = result.exceptionOrNull()?.message ?: "response is null"
-                        result.exceptionOrNull()?.printStackTrace()
+                        val follow = if (isFollow == 1) 0 else 1
+                        if (handleFollowResponse(follow) == null) {
+                            val dataList =
+                                (loadingState as LoadingState.Success).response.map {
+                                    if (it.uid == uid) it.copy(isFollow = follow) else it
+                                }
+                            loadingState = LoadingState.Success(dataList)
+                        }
+                        toastText = if (follow == 1) "关注成功" else "取消关注成功"
                     }
+                } else {
+                    toastText = result.exceptionOrNull()?.message ?: "response is null"
+                    result.exceptionOrNull()?.printStackTrace()
                 }
+            }
         }
     }
 
     open fun handleFollowResponse(follow: Int): Boolean? {
         return null
     }
-
 }

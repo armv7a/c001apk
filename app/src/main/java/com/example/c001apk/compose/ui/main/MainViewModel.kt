@@ -5,17 +5,16 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.logic.repository.NetworkRepo
 import com.example.c001apk.compose.logic.repository.UserPreferencesRepository
 import com.example.c001apk.compose.logic.smid.DigitalUnionRepository
 import com.example.c001apk.compose.ui.base.PrefsViewModel
 import com.example.c001apk.compose.util.CookieUtil
-import com.example.c001apk.compose.util.CookieUtil.SESSID
 import com.example.c001apk.compose.util.encode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 
 /** Created by bggRGjQaUbCoE on 2024/6/3 */
@@ -26,6 +25,7 @@ constructor(
     private val networkRepo: NetworkRepo,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val digitalUnion: DigitalUnionRepository,
+    private val accounts: com.example.c001apk.compose.logic.accounts.AccountStore,
 ) : PrefsViewModel(userPreferencesRepository) {
 
     var preparingIdentity by mutableStateOf(true)
@@ -34,6 +34,7 @@ constructor(
     init {
         viewModelScope.launch {
             try {
+                accounts.initialize()
                 digitalUnion.ensureId()
             } finally {
                 preparingIdentity = false
@@ -46,45 +47,34 @@ constructor(
         private set
 
     private fun getCheckLoginInfo() {
-        viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.checkLoginInfo().collect { result ->
-                val response = result.getOrNull()
-                if (response != null) {
-                    response.body()?.data?.let { login ->
-                        badge = login.notifyCount.badge
-                        CookieUtil.atme = login.notifyCount.atme
-                        CookieUtil.atcommentme = login.notifyCount.atcommentme
-                        CookieUtil.feedlike = login.notifyCount.feedlike
-                        CookieUtil.contacts_follow = login.notifyCount.contactsFollow
-                        CookieUtil.message = login.notifyCount.message
-
-                        userPreferencesRepository.apply {
-                            setUid(login.uid)
-                            setUserAvatar(login.userAvatar)
-                            setUsername(login.username.encode)
-                            setToken(login.token)
-                            setIsLogin(true)
+        viewModelScope.launch {
+            accounts.data
+                .distinctUntilChangedBy { it.accountRevision }
+                .collectLatest { prefs ->
+                    badge = 0
+                    val revision = prefs.accountRevision
+                    networkRepo.checkLoginInfo().collect { result ->
+                        if (CookieUtil.accountSession.revision != revision) return@collect
+                        val response = result.getOrNull() ?: return@collect
+                        val login = response.body()?.data
+                        // Anonymous or partial responses never create/replace a saved account.
+                        if (prefs.isLogin && login?.uid == prefs.uid) {
+                            badge = login.notifyCount.badge
+                            CookieUtil.atme = login.notifyCount.atme
+                            CookieUtil.atcommentme = login.notifyCount.atcommentme
+                            CookieUtil.feedlike = login.notifyCount.feedlike
+                            CookieUtil.contacts_follow = login.notifyCount.contactsFollow
+                            CookieUtil.message = login.notifyCount.message
+                            accounts.refreshProfile(
+                                revision,
+                                username = login.username.encode,
+                                avatar = login.userAvatar,
+                            )
                         }
-                    }
-
-                    if (response.body()?.message == "登录信息有误") {
-                        userPreferencesRepository.apply {
-                            setUid(EMPTY_STRING)
-                            setUserAvatar(EMPTY_STRING)
-                            setUsername(EMPTY_STRING)
-                            setToken(EMPTY_STRING)
-                            setIsLogin(false)
-                        }
-                    }
-
-                    try {
-                        val session = response.headers().values("Set-Cookie")[0]
-                        SESSID = session.substring(0, session.indexOf(";"))
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                        if (prefs.isLogin && response.body()?.message == "登录信息有误")
+                            accounts.expire(revision)
                     }
                 }
-            }
         }
     }
 

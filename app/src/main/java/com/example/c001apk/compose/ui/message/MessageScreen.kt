@@ -11,7 +11,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
@@ -38,6 +37,7 @@ fun MessageScreen(
     bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
     onLogin: () -> Unit,
     onSettingsClick: () -> Unit,
+    onAccountsClick: () -> Unit,
     onViewUser: (String) -> Unit,
     onViewFeed: (String, Boolean) -> Unit,
     onOpenLink: (String, String?) -> Unit,
@@ -55,7 +55,6 @@ fun MessageScreen(
         hiltViewModel<MessageViewModel, MessageViewModel.ViewModelFactory> { factory ->
             factory.create(url = "/v6/notification/list")
         }
-    var showLogoutDialog by remember { mutableStateOf(false) }
     var showInboxDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(prefs.isLogin) {
@@ -71,9 +70,7 @@ fun MessageScreen(
                 title = "我的",
                 actions = {
                     top.yukonga.miuix.kmp.basic.IconButton(
-                        onClick = {
-                            if (prefs.isLogin) showLogoutDialog = true else onLogin()
-                        },
+                        onClick = onAccountsClick,
                     ) {
                         top.yukonga.miuix.kmp.basic.Icon(
                             FlutterProfileIcons.Account,
@@ -167,32 +164,6 @@ fun MessageScreen(
     }
 
     when {
-        showLogoutDialog -> {
-            AlertDialog(
-                onDismissRequest = { showLogoutDialog = false },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            viewModel.onLogout()
-                            showLogoutDialog = false
-                        },
-                    ) {
-                        Text(text = stringResource(id = android.R.string.ok))
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { showLogoutDialog = false },
-                    ) {
-                        Text(text = stringResource(id = android.R.string.cancel))
-                    }
-                },
-                title = {
-                    Text(text = "确定退出登录？", modifier = Modifier.fillMaxWidth())
-                },
-            )
-        }
-
         showInboxDialog -> {
             AlertDialog(
                 onDismissRequest = { showInboxDialog = false },

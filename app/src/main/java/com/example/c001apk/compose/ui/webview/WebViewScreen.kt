@@ -64,6 +64,7 @@ fun WebViewScreen(
 
     val viewModel = hiltViewModel<WebViewViewModel>(key = url)
     val prefs = LocalUserPreferences.current
+    val initialAccountRevision = remember { prefs.accountRevision }
     val context = LocalContext.current
     val layoutDirection = LocalLayoutDirection.current
     var title by remember { mutableStateOf(EMPTY_STRING) }
@@ -218,9 +219,11 @@ fun WebViewScreen(
         }
     }
 
-    if (isLogin && prefs.isLogin) {
+    if (isLogin && prefs.accountRevision != initialAccountRevision) {
         onBackClick()
     }
+
+    viewModel.error?.let { Text(it) }
 
     BackHandler {
         onBack = true

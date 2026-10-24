@@ -49,6 +49,9 @@ message UserPreferences {
   int32 hapticStrength = 43;
   bool customHaptics = 44;
   bool reverseHapticEffects = 45;
+  int32 accountsVersion = 46;
+  repeated SavedAccountRecord savedAccounts = 47;
+  int64 accountRevision = 48;
 }
 
 enum ThemeType{
@@ -86,4 +89,15 @@ enum ThemeMode {
   FOLLOW_SYSTEM = 0;
   ALWAYS_ON = 1;
   ALWAYS_OFF = 2;
+}
+
+// Stored only in the application's private DataStore. Never include in diagnostics.
+message SavedAccountRecord {
+  string uid = 1;
+  string username = 2;
+  string token = 3;
+  string avatar = 4;
+  string level = 5;
+  string experience = 6;
+  string nextLevelExperience = 7;
 }

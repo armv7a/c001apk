@@ -84,18 +84,46 @@ fun WebView(
                     }
                 }
 
-                CookieManager.getInstance().let {
-                    it.setAcceptCookie(true)
-                    it.setAcceptThirdPartyCookies(this@apply, true)
-                    if (prefs.isLogin) {
-                        it.removeAllCookies {}
-                        it.setCookie(".coolapk.com", "DID=${prefs.szlmId}")
-                        it.setCookie(".coolapk.com", "forward=https://www.coolapk.com")
-                        it.setCookie(".coolapk.com", "displayVersion=v14")
-                        it.setCookie(".coolapk.com", "uid=${prefs.uid}")
-                        it.setCookie(".coolapk.com", "username=${prefs.username}")
-                        it.setCookie(".coolapk.com", "token=${prefs.token}")
+                CookieManager.getInstance().let { cookies ->
+                    cookies.setAcceptCookie(true)
+                    cookies.setAcceptThirdPartyCookies(this@apply, false)
+                    // Replace only our account cookies. Login starts blank; cancel keeps
+                    // AccountStore intact.
+                    val domains = listOf("coolapk.com", "account.coolapk.com", "www.coolapk.com")
+                    for (domain in domains) {
+                        for (name in listOf("uid", "username", "token", "SESSID", "validate")) {
+                            cookies.setCookie(
+                                "https://$domain/",
+                                "$name=; Max-Age=0; Path=/; Secure",
+                            )
+                            cookies.setCookie(
+                                "https://$domain/",
+                                "$name=; Max-Age=0; Domain=.$domain; Path=/; Secure",
+                            )
+                        }
                     }
+                    if (!isLogin && prefs.isLogin) {
+                        for ((name, value) in
+                            mapOf(
+                                "uid" to prefs.uid,
+                                "username" to prefs.username,
+                                "token" to prefs.token,
+                            )) {
+                            cookies.setCookie(
+                                "https://www.coolapk.com/",
+                                "$name=$value; Domain=.coolapk.com; Path=/; Secure",
+                            )
+                        }
+                    }
+                    cookies.setCookie(
+                        "https://www.coolapk.com/",
+                        "DID=${prefs.szlmId}; Domain=.coolapk.com; Path=/; Secure",
+                    )
+                    cookies.setCookie(
+                        "https://www.coolapk.com/",
+                        "displayVersion=v16; Domain=.coolapk.com; Path=/; Secure",
+                    )
+                    cookies.flush()
                 }
 
                 setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
@@ -152,7 +180,7 @@ fun WebView(
 
                                 if (isLogin && requestUrl == "https://www.coolapk.com/") {
                                     val cookie = CookieManager.getInstance().getCookie(requestUrl)
-                                    onFinishLogin(cookie)
+                                    onFinishLogin(cookie.orEmpty())
                                 }
 
                                 try {

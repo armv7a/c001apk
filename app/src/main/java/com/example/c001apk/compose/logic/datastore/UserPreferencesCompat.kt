@@ -10,6 +10,7 @@ import com.example.c001apk.compose.constant.Constants.API_VERSION
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.constant.Constants.VERSION_CODE
 import com.example.c001apk.compose.constant.Constants.VERSION_NAME
+import com.example.c001apk.compose.logic.accounts.SavedAccount
 import com.example.c001apk.compose.logic.model.HapticStrength
 
 data class UserPreferencesCompat(
@@ -58,6 +59,9 @@ data class UserPreferencesCompat(
     val hapticStrength: HapticStrength,
     val customHaptics: Boolean,
     val reverseHapticEffects: Boolean,
+    val accountsVersion: Int = 0,
+    val savedAccounts: List<SavedAccount> = emptyList(),
+    val accountRevision: Long = 0,
 ) {
     constructor(
         original: UserPreferences,
@@ -107,7 +111,12 @@ data class UserPreferencesCompat(
         hapticStrength = HapticStrength.fromProtoValue(original.hapticStrength),
         customHaptics = original.customHaptics,
         reverseHapticEffects = original.reverseHapticEffects,
+        accountsVersion = original.accountsVersion,
+        savedAccounts = original.savedAccountsList.map(SavedAccount::fromProto),
+        accountRevision = original.accountRevision,
     )
+
+    override fun toString() = "UserPreferencesCompat(credentials=redacted)"
 
     @Composable
     fun isDarkMode() =
@@ -164,6 +173,9 @@ data class UserPreferencesCompat(
             .setHapticStrength(hapticStrength.protoValue)
             .setCustomHaptics(customHaptics)
             .setReverseHapticEffects(reverseHapticEffects)
+            .setAccountsVersion(accountsVersion)
+            .addAllSavedAccounts(savedAccounts.map(SavedAccount::toProto))
+            .setAccountRevision(accountRevision)
             .build()
 
     companion object {

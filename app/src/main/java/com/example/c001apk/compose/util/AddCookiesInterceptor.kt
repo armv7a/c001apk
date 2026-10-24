@@ -23,6 +23,7 @@ object AddCookiesInterceptor : Interceptor {
         if (!api && !CoolapkRequestPolicy.isPublicFeed(request)) {
             return chain.proceed(builder.build())
         }
+        val session = CookieUtil.accountSession
         val deviceCode = CookieUtil.xAppDevice
         val token = deviceCode.getTokenV2()
         builder.apply {
@@ -41,10 +42,10 @@ object AddCookiesInterceptor : Interceptor {
             header("X-App-Mode", MODE)
             header("X-App-Supported", CookieUtil.versionCode)
             header("Content-Type", "application/x-www-form-urlencoded")
-            if (api && CookieUtil.isLogin)
+            if (api && session.isLogin)
                 header(
                     "Cookie",
-                    "uid=${CookieUtil.uid}; username=${CookieUtil.username}; token=${CookieUtil.token}",
+                    "uid=${session.uid}; username=${session.username}; token=${session.token}",
                 )
             else if (api) header("Cookie", SESSID)
         }
