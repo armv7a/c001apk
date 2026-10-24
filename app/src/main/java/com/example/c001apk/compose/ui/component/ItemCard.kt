@@ -302,7 +302,11 @@ fun FeedListEntry(
                 isReply2Reply = if (index == 0) isReply2Reply else false,
                 onReply = onReply,
             )
-            if (item.fetchType == "feed_reply") HorizontalDivider()
+            if (
+                item.fetchType == "feed_reply" &&
+                    !com.example.c001apk.compose.ui.component.cards.LocalDetailComments.current
+            )
+                HorizontalDivider()
         }
 
         "apk",

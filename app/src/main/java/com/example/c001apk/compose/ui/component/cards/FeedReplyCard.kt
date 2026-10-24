@@ -18,9 +18,11 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,6 +56,8 @@ import top.yukonga.miuix.kmp.squircle.squircleClip
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+val LocalDetailComments = staticCompositionLocalOf { false }
+
 /** Created by bggRGjQaUbCoE on 2024/6/6 */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -79,17 +83,20 @@ fun FeedReplyCard(
 
     val isFeedReply by lazy { data.fetchType == "feed_reply" }
     val isLikeReply by lazy { data.likeUserInfo != null }
+    val detailComments = LocalDetailComments.current
     val horizontal by lazy { if (isFeedReply) 16.dp else 10.dp }
     val vertical by lazy { if (isFeedReply) 12.dp else 10.dp }
 
     ConstraintLayout(
         modifier =
             modifier
-                .padding(horizontal = if (isFeedReply) 0.dp else 10.dp)
+                .padding(horizontal = if (detailComments || isFeedReply) 0.dp else 10.dp)
+                .padding(bottom = if (detailComments) 10.dp else 0.dp)
                 .fillMaxWidth()
-                .squircleClip(if (isFeedReply) 0.dp else 16.dp)
+                .squircleClip(if (detailComments) 20.dp else if (isFeedReply) 0.dp else 16.dp)
                 .background(
-                    if ((isTotalReply && !isTopReply) || !isFeedReply) cardBg()
+                    if (detailComments) MiuixTheme.colorScheme.surfaceContainer
+                    else if ((isTotalReply && !isTopReply) || !isFeedReply) cardBg()
                     else Color.Transparent,
                 )
                 .combinedClickable(
@@ -486,7 +493,13 @@ fun FeedReplyCard(
                 ReplyRows(
                     modifier =
                         Modifier.padding(start = 10.dp, top = 10.dp, end = 16.dp)
-                            .squircleSurface(cardBg(), 16.dp)
+                            .squircleSurface(
+                                MiuixTheme.colorScheme.onSurface
+                                    .copy(alpha = 0.08f)
+                                    .compositeOver(MiuixTheme.colorScheme.surfaceContainer),
+                                12.dp,
+                            )
+                            .padding(vertical = 6.dp)
                             .constrainAs(replyRows) {
                                 top.linkTo(dateLine.bottom)
                                 start.linkTo(avatar.end)

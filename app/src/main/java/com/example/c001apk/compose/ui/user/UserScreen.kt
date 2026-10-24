@@ -2,6 +2,7 @@ package com.example.c001apk.compose.ui.user
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -22,26 +23,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.R
-import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.FooterCard
 import com.example.c001apk.compose.ui.component.ItemCard
 import com.example.c001apk.compose.ui.component.MiuixActionButton as TextButton
 import com.example.c001apk.compose.ui.component.MiuixAlertDialog as AlertDialog
-import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
 import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
+import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
 import com.example.c001apk.compose.ui.component.cards.UserInfoCard
@@ -77,7 +74,6 @@ fun UserScreen(
     val layoutDirection = LocalLayoutDirection.current
 
     val context = LocalContext.current
-    val scrollBehavior = top.yukonga.miuix.kmp.basic.MiuixScrollBehavior(canScroll = { false })
     val viewModel =
         hiltViewModel<UserViewModel, UserViewModel.ViewModelFactory>(key = uid) { factory ->
             factory.create(uid)
@@ -96,17 +92,10 @@ fun UserScreen(
                 navigationIcon = {
                     BackButton { onBackClick() }
                 },
-                title = {
-                    Text(
-                        text =
-                            if (firstVisibleItemIndex > 0)
-                                (viewModel.userState as? LoadingState.Success)?.response?.username
-                                    ?: uid
-                            else EMPTY_STRING,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
+                title =
+                    if (firstVisibleItemIndex > 0)
+                        (viewModel.userState as? LoadingState.Success)?.response?.username.orEmpty()
+                    else "用户主页",
                 actions = {
                     if (viewModel.userState is LoadingState.Success) {
                         Row(Modifier.wrapContentSize(Alignment.TopEnd)) {
@@ -115,7 +104,7 @@ fun UserScreen(
                                     onSearch(viewModel.username, "user", viewModel.uid)
                                 },
                             ) {
-                                Icon(MiuixIcons.Search, contentDescription = null)
+                                Icon(MiuixIcons.Search, contentDescription = "搜索此用户的动态")
                             }
                             Box {
                                 MoreMenuButton { dropdownMenuExpanded = true }
@@ -181,7 +170,6 @@ fun UserScreen(
                         }
                     }
                 },
-                color = Color.Transparent,
             )
         },
     ) { paddingValues ->
@@ -197,80 +185,108 @@ fun UserScreen(
                 viewModel.refresh()
             },
         ) {
-            LazyColumn(
-                modifier =
-                    Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-                contentPadding =
-                    PaddingValues(bottom = 10.dp + paddingValues.calculateBottomPadding()),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                state = lazyListState,
-            ) {
-                when (viewModel.userState) {
-                    LoadingState.Loading,
-                    LoadingState.Empty,
-                    is LoadingState.Error -> {
-                        item(key = "userState") {
-                            Box(modifier = Modifier.fillParentMaxSize()) {
-                                LoadingCard(
-                                    modifier =
-                                        Modifier.align(Alignment.Center)
-                                            .padding(horizontal = 10.dp),
-                                    state = viewModel.userState,
-                                    onClick =
-                                        if (viewModel.userState is LoadingState.Loading) null
-                                        else viewModel::refresh,
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                val sideInset = ((maxWidth - 800.dp) / 2).coerceAtLeast(0.dp)
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding =
+                        PaddingValues(
+                            top = paddingValues.calculateTopPadding() + 12.dp,
+                            bottom = 24.dp + paddingValues.calculateBottomPadding(),
+                            start = sideInset,
+                            end = sideInset,
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    state = lazyListState,
+                ) {
+                    when (viewModel.userState) {
+                        LoadingState.Loading,
+                        LoadingState.Empty,
+                        is LoadingState.Error -> {
+                            item(key = "userState") {
+                                Box(modifier = Modifier.fillParentMaxSize()) {
+                                    LoadingCard(
+                                        modifier =
+                                            Modifier.align(Alignment.Center)
+                                                .padding(horizontal = 10.dp),
+                                        state = viewModel.userState,
+                                        onClick =
+                                            if (viewModel.userState is LoadingState.Loading) null
+                                            else viewModel::refresh,
+                                    )
+                                }
+                            }
+                        }
+
+                        is LoadingState.Success -> {
+                            item(key = "userInfo") {
+                                UserInfoCard(
+                                    data = (viewModel.userState as LoadingState.Success).response,
+                                    onFollow = viewModel::onFollowUser,
+                                    onLocalFollow = viewModel::toggleLocalFollow,
+                                    onPMUser = onPMUser,
+                                    onViewFFFList = onViewFFFList,
                                 )
                             }
                         }
                     }
 
-                    is LoadingState.Success -> {
-                        item(key = "userInfo") {
-                            UserInfoCard(
-                                data = (viewModel.userState as LoadingState.Success).response,
-                                onFollow = viewModel::onFollowUser,
-                                onLocalFollow = viewModel::toggleLocalFollow,
-                                onPMUser = onPMUser,
-                                onViewFFFList = onViewFFFList,
-                            )
-                        }
-                    }
-                }
-
-                if (viewModel.userState is LoadingState.Success) {
-
-                    ItemCard(
-                        loadingState = viewModel.loadingState,
-                        loadMore = viewModel::loadMore,
-                        isEnd = viewModel.isEnd,
-                        onViewUser = { uid ->
-                            if (uid != viewModel.uid) {
-                                onViewUser(uid)
+                    if (viewModel.userState is LoadingState.Success) {
+                        item(key = "feedSection") {
+                            Row(
+                                Modifier.fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    "动态",
+                                    style =
+                                        top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.subtitle,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                                )
+                                Text(
+                                    "${(viewModel.userState as LoadingState.Success).response.feed?.id ?: 0}",
+                                    modifier = Modifier.padding(start = 8.dp),
+                                    style =
+                                        top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.footnote1,
+                                    color =
+                                        top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
+                                            .onSurfaceVariantSummary,
+                                )
                             }
-                        },
-                        onViewFeed = onViewFeed,
-                        onOpenLink = onOpenLink,
-                        onCopyText = onCopyText,
-                        onReport = onReport,
-                        onLike = viewModel::onLike,
-                        onDelete = { id, deleteType, _ ->
-                            viewModel.onDelete(id, deleteType)
-                        },
-                        onBlockUser = { uid, _ ->
-                            viewModel.onBlockUser(uid)
-                        },
-                    )
+                        }
+                        ItemCard(
+                            loadingState = viewModel.loadingState,
+                            loadMore = viewModel::loadMore,
+                            isEnd = viewModel.isEnd,
+                            onViewUser = { uid ->
+                                if (uid != viewModel.uid) {
+                                    onViewUser(uid)
+                                }
+                            },
+                            onViewFeed = onViewFeed,
+                            onOpenLink = onOpenLink,
+                            onCopyText = onCopyText,
+                            onReport = onReport,
+                            onLike = viewModel::onLike,
+                            onDelete = { id, deleteType, _ ->
+                                viewModel.onDelete(id, deleteType)
+                            },
+                            onBlockUser = { uid, _ ->
+                                viewModel.onBlockUser(uid)
+                            },
+                        )
 
-                    FooterCard(
-                        modifier = Modifier.padding(horizontal = 10.dp),
-                        footerState = viewModel.footerState,
-                        loadMore = viewModel::loadMore,
-                    )
+                        FooterCard(
+                            modifier = Modifier.padding(horizontal = 10.dp),
+                            footerState = viewModel.footerState,
+                            loadMore = viewModel::loadMore,
+                        )
+                    }
                 }
             }
         }
     }
-
     when {
         showUserInfoDialog -> {
             val data = (viewModel.userState as LoadingState.Success).response

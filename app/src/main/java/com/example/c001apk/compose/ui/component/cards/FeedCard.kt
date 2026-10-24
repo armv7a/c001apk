@@ -83,7 +83,13 @@ fun FeedCard(
 ) {
     val horizontal = 16.dp
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .then(
+                    if (isFeedContent) Modifier.squircleClip(0.dp, 0.dp, 20.dp, 20.dp)
+                    else Modifier,
+                ),
         cornerRadius = if (isFeedContent) 0.dp else 16.dp,
         onClick = if (isFeedContent) null else ({ onViewFeed(data.id.orEmpty(), false) }),
         onLongPress = { onCopyText(data.message) },
@@ -243,7 +249,7 @@ fun FeedMessage(
     if (!data.messageTitle.isNullOrEmpty()) {
         LinkText(
             text = data.messageTitle,
-            textSize = 16f,
+            textSize = if (isFeedContent) 20f else 16f,
             isBold = true,
             lineSpacingMultiplier = 1.3f,
             modifier = modifier.padding(top = 10.dp),
@@ -255,7 +261,7 @@ fun FeedMessage(
             preview = !isFeedContent,
             text = data.message,
             textSize = 16f,
-            lineSpacingMultiplier = 1.3f,
+            lineSpacingMultiplier = if (isFeedContent) 1.45f else 1.3f,
             modifier = modifier.padding(top = 10.dp),
             onOpenLink = onOpenLink,
         )

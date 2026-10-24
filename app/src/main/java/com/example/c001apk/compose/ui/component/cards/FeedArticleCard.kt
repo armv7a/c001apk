@@ -37,7 +37,7 @@ fun FeedArticleCard(
                         }
                         .padding(horizontal = 16.dp)
                         .padding(top = 12.dp),
-                lineSpacingMultiplier = 1.3f,
+                lineSpacingMultiplier = 1.45f,
                 textSize = 16f,
                 onOpenLink = onOpenLink,
             )

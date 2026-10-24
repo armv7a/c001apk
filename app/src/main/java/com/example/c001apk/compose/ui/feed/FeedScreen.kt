@@ -11,6 +11,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -59,7 +60,6 @@ import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.ui.component.cards.FeedCard
-import com.example.c001apk.compose.ui.component.cards.FeedHeader
 import com.example.c001apk.compose.ui.component.cards.FeedReplyCard
 import com.example.c001apk.compose.ui.component.cards.FeedReplySortCard
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
@@ -76,13 +76,13 @@ import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.noRippleClickable
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Reply
 
 /** Created by bggRGjQaUbCoE on 2024/6/4 */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun FeedScreen(
     modifier: Modifier = Modifier,
@@ -116,9 +116,6 @@ fun FeedScreen(
     var selected by rememberSaveable { mutableIntStateOf(0) }
     val shouldShowSortCard by remember {
         derivedStateOf { lazyListState.firstVisibleItemIndex > viewModel.itemSize - 1 }
-    }
-    val shouldShowTopCard by remember {
-        derivedStateOf { lazyListState.firstVisibleItemIndex > 0 }
     }
 
     fun onShowTotalReply(id: String, uid: String, frid: String?) {
@@ -184,447 +181,461 @@ fun FeedScreen(
         replyLauncher.launch(intent, options)
     }
 
-    CompositionLocalProvider(LocalMarkdownRaw provides rawMarkdown) {
-        Scaffold(
-            modifier = modifier.fillMaxSize(),
-            topBar = {
-                TopAppBar(
-                    windowInsets =
-                        WindowInsets.systemBars.only(
-                            WindowInsetsSides.Top +
-                                if (isCompat) WindowInsetsSides.Start else WindowInsetsSides.End,
-                        ),
-                    navigationIcon = {
-                        BackButton {
-                            if (!isCompat) {
-                                viewModel.resetState()
-                            }
-                            onBackClick()
-                        }
-                    },
-                    title =
-                        viewModel.feedTypeName +
-                            if ((viewModel.feedState as? LoadingState.Success)?.isPublic == true)
-                                " · 公开内容"
-                            else "",
-                    modifier =
-                        Modifier.noRippleClickable {
-                            scope.launch {
-                                lazyListState.scrollToItem(
-                                    if (shouldShowSortCard || viewReply) {
-                                        viewReply = false
-                                        0
-                                    } else {
-                                        viewReply = true
-                                        viewModel.itemSize
-                                    },
-                                )
+    CompositionLocalProvider(
+        LocalMarkdownRaw provides rawMarkdown,
+        com.example.c001apk.compose.ui.component.cards.LocalDetailComments provides true,
+    ) {
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val detailInset = ((maxWidth - 800.dp) / 2).coerceAtLeast(12.dp)
+            Scaffold(
+                modifier = modifier.fillMaxSize(),
+                topBar = {
+                    TopAppBar(
+                        windowInsets =
+                            WindowInsets.systemBars.only(
+                                WindowInsetsSides.Top +
+                                    if (isCompat) WindowInsetsSides.Start
+                                    else WindowInsetsSides.End,
+                            ),
+                        navigationIcon = {
+                            BackButton {
+                                if (!isCompat) {
+                                    viewModel.resetState()
+                                }
+                                onBackClick()
                             }
                         },
-                    actions = {
-                        if (viewModel.feedState is LoadingState.Success) {
-                            FeedExportAction(
-                                (viewModel.feedState as LoadingState.Success).response,
-                                articleList,
-                            )
-                            Box(Modifier.wrapContentSize(Alignment.TopEnd)) {
-                                MoreMenuButton { dropdownMenuExpanded = true }
-                                DropdownMenu(
-                                    expanded = dropdownMenuExpanded,
-                                    onDismissRequest = { dropdownMenuExpanded = false },
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text(if (rawMarkdown) "格式化正文" else "查看原文") },
-                                        onClick = {
-                                            dropdownMenuExpanded = false
-                                            rawMarkdown = !rawMarkdown
+                        title =
+                            viewModel.feedTypeName.ifBlank { "动态" } +
+                                if (
+                                    (viewModel.feedState as? LoadingState.Success)?.isPublic == true
+                                )
+                                    " · 公开内容"
+                                else "",
+                        modifier =
+                            Modifier.noRippleClickable {
+                                scope.launch {
+                                    lazyListState.scrollToItem(
+                                        if (shouldShowSortCard || viewReply) {
+                                            viewReply = false
+                                            0
+                                        } else {
+                                            viewReply = true
+                                            viewModel.itemSize
                                         },
                                     )
-                                    com.example.c001apk.compose.ui.component.ContentShareMenuItems(
-                                        type = ShareType.FEED,
-                                        id = id,
-                                        title =
-                                            (viewModel.feedState as LoadingState.Success)
-                                                .response
-                                                .messageTitle,
-                                        message =
-                                            (viewModel.feedState as LoadingState.Success)
-                                                .response
-                                                .message,
-                                        dismiss = { dropdownMenuExpanded = false },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(if (viewModel.isFav) "取消收藏" else "收藏") },
-                                        onClick = {
-                                            dropdownMenuExpanded = false
-                                            viewModel.onFav()
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                if (viewModel.isBlocked) {
-                                                    stringResource(id = R.string.menu_unblock)
-                                                } else {
-                                                    "拉黑"
-                                                },
+                                }
+                            },
+                        actions = {
+                            if (viewModel.feedState is LoadingState.Success) {
+                                FeedExportAction(
+                                    (viewModel.feedState as LoadingState.Success).response,
+                                    articleList,
+                                )
+                                Box(Modifier.wrapContentSize(Alignment.TopEnd)) {
+                                    MoreMenuButton { dropdownMenuExpanded = true }
+                                    DropdownMenu(
+                                        expanded = dropdownMenuExpanded,
+                                        onDismissRequest = { dropdownMenuExpanded = false },
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(if (rawMarkdown) "格式化正文" else "查看原文") },
+                                            onClick = {
+                                                dropdownMenuExpanded = false
+                                                rawMarkdown = !rawMarkdown
+                                            },
+                                        )
+                                        com.example.c001apk.compose.ui.component
+                                            .ContentShareMenuItems(
+                                                type = ShareType.FEED,
+                                                id = id,
+                                                title =
+                                                    (viewModel.feedState as LoadingState.Success)
+                                                        .response
+                                                        .messageTitle,
+                                                message =
+                                                    (viewModel.feedState as LoadingState.Success)
+                                                        .response
+                                                        .message,
+                                                dismiss = { dropdownMenuExpanded = false },
                                             )
-                                        },
-                                        onClick = {
-                                            dropdownMenuExpanded = false
-                                            viewModel.blockUser()
-                                        },
-                                    )
-                                    if (isLogin) {
+                                        DropdownMenuItem(
+                                            text = { Text(if (viewModel.isFav) "取消收藏" else "收藏") },
+                                            onClick = {
+                                                dropdownMenuExpanded = false
+                                                viewModel.onFav()
+                                            },
+                                        )
                                         DropdownMenuItem(
                                             text = {
-                                                Text(stringResource(id = R.string.menu_report))
+                                                Text(
+                                                    if (viewModel.isBlocked) {
+                                                        stringResource(id = R.string.menu_unblock)
+                                                    } else {
+                                                        "拉黑"
+                                                    },
+                                                )
                                             },
                                             onClick = {
                                                 dropdownMenuExpanded = false
-                                                onReport(id, ReportType.FEED)
+                                                viewModel.blockUser()
                                             },
+                                        )
+                                        if (isLogin) {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(stringResource(id = R.string.menu_report))
+                                                },
+                                                onClick = {
+                                                    dropdownMenuExpanded = false
+                                                    onReport(id, ReportType.FEED)
+                                                },
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                    )
+                },
+                floatingActionButton = {
+                    if (isLogin && viewModel.feedState is LoadingState.Success) {
+                        AnimatedVisibility(
+                            modifier =
+                                if (!isCompat) Modifier.navigationBarsPadding() else Modifier,
+                            visible = lazyListState.isScrollingUp(),
+                            enter = slideInVertically { it * 2 },
+                            exit = slideOutVertically { it * 2 },
+                        ) {
+                            FloatingActionButton(
+                                onClick =
+                                    rememberHapticClick {
+                                        viewModel.replyId = viewModel.id
+                                        viewModel.replyUid = viewModel.feedUid
+                                        viewModel.replyName = viewModel.feedUsername
+                                        viewModel.replyType = "feed"
+                                        launchReply()
+                                    },
+                            ) {
+                                Icon(
+                                    imageVector = MiuixIcons.Reply,
+                                    contentDescription = null,
+                                )
+                            }
+                        }
+                    }
+                },
+            ) { paddingValues ->
+                top.yukonga.miuix.kmp.basic.PullToRefresh(
+                    refreshTexts = listOf("下拉刷新", "释放刷新", "正在刷新", "刷新完成"),
+                    modifier =
+                        Modifier.padding(
+                            top = paddingValues.calculateTopPadding(),
+                            end =
+                                if (isCompat) 0.dp
+                                else paddingValues.calculateRightPadding(layoutDirection),
+                            start =
+                                if (isCompat) paddingValues.calculateLeftPadding(layoutDirection)
+                                else 0.dp,
+                        ),
+                    isRefreshing = viewModel.isRefreshing,
+                    onRefresh = {
+                        viewModel.isPull = true
+                        viewModel.refresh()
+                    },
+                ) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding =
+                            PaddingValues(
+                                start = detailInset,
+                                end = detailInset,
+                                top = 12.dp,
+                                bottom = paddingValues.calculateBottomPadding() + 16.dp,
+                            ),
+                        state = lazyListState,
+                    ) {
+                        when (viewModel.feedState) {
+                            LoadingState.Loading,
+                            LoadingState.Empty,
+                            is LoadingState.Error -> {
+                                item(key = "feedState") {
+                                    Box(modifier = Modifier.fillParentMaxSize()) {
+                                        LoadingCard(
+                                            modifier = Modifier.align(Alignment.Center),
+                                            state = viewModel.feedState,
+                                            onClick =
+                                                if (viewModel.feedState is LoadingState.Loading)
+                                                    null
+                                                else viewModel::refresh,
+                                            isFeed = true,
                                         )
                                     }
                                 }
                             }
+
+                            is LoadingState.Success -> {
+                                val response =
+                                    (viewModel.feedState as LoadingState.Success).response
+                                if (!articleList.isNullOrEmpty()) {
+                                    ArticleItem(
+                                        response = response,
+                                        articleList = articleList,
+                                        onOpenLink = onOpenLink,
+                                        onCopyText = onCopyText,
+                                        onLike = {
+                                            if (isLogin) {
+                                                viewModel.onLike(
+                                                    response.id.orEmpty(),
+                                                    response.userAction?.like ?: 0,
+                                                    LikeType.FEED,
+                                                )
+                                            }
+                                        },
+                                        onViewUser = onViewUser,
+                                        onComments = {
+                                            scope.launch {
+                                                lazyListState.animateScrollToItem(
+                                                    viewModel.itemSize,
+                                                )
+                                            }
+                                        },
+                                    )
+                                } else {
+                                    item(key = "header") {
+                                        FeedDetailAuthor(data = response, onViewUser = onViewUser)
+                                    }
+                                    item(key = "feed") {
+                                        FeedCard(
+                                            isFeedContent = true,
+                                            data = response,
+                                            onViewUser = onViewUser,
+                                            onViewFeed = { targetId, replies ->
+                                                if (targetId == id && replies) {
+                                                    scope.launch {
+                                                        lazyListState.animateScrollToItem(
+                                                            viewModel.itemSize,
+                                                        )
+                                                    }
+                                                } else onViewFeed(targetId, replies)
+                                            },
+                                            onOpenLink = onOpenLink,
+                                            onCopyText = onCopyText,
+                                            onReport = onReport,
+                                            onLike = viewModel::onLike,
+                                            onDelete = { id, deleteType, frid ->
+                                                viewModel.frid = frid
+                                                viewModel.onDelete(id, deleteType)
+                                            },
+                                            onBlockUser = {},
+                                        )
+                                    }
+                                }
+
+                                stickyHeader(key = "sort") {
+                                    FeedReplySortCard(
+                                        replyCount = viewModel.replyCount,
+                                        selected = selected,
+                                        updateSortReply = { index ->
+                                            setReplyType(index)
+                                            if (shouldShowSortCard) viewModel.isViewReply = true
+                                            viewModel.refresh()
+                                        },
+                                    )
+                                }
+
+                                if (viewModel.listType == "lastupdate_desc") {
+                                    if (!response.topReplyRows.isNullOrEmpty()) {
+                                        response.topReplyRows?.getOrNull(0)?.let { reply ->
+                                            item(key = "topReplyRows") {
+                                                FeedReplyCard(
+                                                    data = reply,
+                                                    onViewUser = onViewUser,
+                                                    onShowTotalReply = ::onShowTotalReply,
+                                                    onOpenLink = onOpenLink,
+                                                    onCopyText = onCopyText,
+                                                    onReport = onReport,
+                                                    onLike = viewModel::onLike,
+                                                    onDelete = { id, deleteType, frid ->
+                                                        viewModel.frid = frid
+                                                        viewModel.onDelete(id, deleteType)
+                                                    },
+                                                    onBlockUser = { uid, frid ->
+                                                        viewModel.frid = frid
+                                                        viewModel.onBlockUser(uid)
+                                                    },
+                                                    onReply = { rid, uid, username, frid ->
+                                                        viewModel.replyId = rid
+                                                        viewModel.replyUid = uid
+                                                        viewModel.replyName = username
+                                                        viewModel.frid = frid
+                                                        viewModel.replyType = "reply"
+                                                        launchReply()
+                                                    },
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    if (!response.replyMeRows.isNullOrEmpty()) {
+                                        response.replyMeRows?.getOrNull(0)?.let { reply ->
+                                            item(key = "replyMeRows") {
+                                                FeedReplyCard(
+                                                    data = reply,
+                                                    onViewUser = onViewUser,
+                                                    onShowTotalReply = ::onShowTotalReply,
+                                                    onOpenLink = onOpenLink,
+                                                    onCopyText = onCopyText,
+                                                    onReport = onReport,
+                                                    onLike = viewModel::onLike,
+                                                    onDelete = { id, deleteType, frid ->
+                                                        viewModel.frid = frid
+                                                        viewModel.onDelete(id, deleteType)
+                                                    },
+                                                    onBlockUser = { uid, frid ->
+                                                        viewModel.frid = frid
+                                                        viewModel.onBlockUser(uid)
+                                                    },
+                                                    onReply = { rid, uid, username, frid ->
+                                                        viewModel.replyId = rid
+                                                        viewModel.replyUid = uid
+                                                        viewModel.replyName = username
+                                                        viewModel.frid = frid
+                                                        viewModel.replyType = "reply"
+                                                        launchReply()
+                                                    },
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                if (viewModel.isViewReply) {
+                                    viewModel.isViewReply = false
+                                    scope.launch {
+                                        lazyListState.scrollToItem(viewModel.itemSize)
+                                    }
+                                }
+                            }
                         }
-                    },
-                )
-            },
-            floatingActionButton = {
-                if (isLogin && viewModel.feedState is LoadingState.Success) {
-                    AnimatedVisibility(
-                        modifier = if (!isCompat) Modifier.navigationBarsPadding() else Modifier,
-                        visible = lazyListState.isScrollingUp(),
-                        enter = slideInVertically { it * 2 },
-                        exit = slideOutVertically { it * 2 },
-                    ) {
-                        FloatingActionButton(
-                            onClick =
-                                rememberHapticClick {
-                                    viewModel.replyId = viewModel.id
-                                    viewModel.replyUid = viewModel.feedUid
-                                    viewModel.replyName = viewModel.feedUsername
-                                    viewModel.replyType = "feed"
+
+                        if (viewModel.feedState is LoadingState.Success) {
+
+                            ItemCard(
+                                loadingState = viewModel.loadingState,
+                                loadMore = viewModel::loadMore,
+                                isEnd = viewModel.isEnd,
+                                onViewUser = onViewUser,
+                                onViewFeed = onViewFeed,
+                                onOpenLink = onOpenLink,
+                                onCopyText = onCopyText,
+                                onShowTotalReply = ::onShowTotalReply,
+                                onReport = onReport,
+                                onLike = viewModel::onLike,
+                                onDelete = { id, deleteType, frid ->
+                                    viewModel.frid = frid
+                                    viewModel.onDelete(id, deleteType)
+                                },
+                                onBlockUser = { uid, frid ->
+                                    viewModel.frid = frid
+                                    viewModel.onBlockUser(uid)
+                                },
+                                onFollowUser = viewModel::onFollowUser,
+                                onReply = { rid, uid, username, frid ->
+                                    viewModel.replyId = rid
+                                    viewModel.replyUid = uid
+                                    viewModel.replyName = username
+                                    viewModel.frid = frid
+                                    viewModel.replyType = "reply"
                                     launchReply()
                                 },
-                        ) {
-                            Icon(
-                                imageVector = MiuixIcons.Reply,
-                                contentDescription = null,
+                            )
+
+                            FooterCard(
+                                footerState = viewModel.footerState,
+                                loadMore = viewModel::loadMore,
+                                isFeed = true,
                             )
                         }
                     }
                 }
-            },
-        ) { paddingValues ->
-            top.yukonga.miuix.kmp.basic.PullToRefresh(
-                refreshTexts = listOf("下拉刷新", "释放刷新", "正在刷新", "刷新完成"),
-                modifier =
-                    Modifier.padding(
-                        top = paddingValues.calculateTopPadding(),
-                        end =
-                            if (isCompat) 0.dp
-                            else paddingValues.calculateRightPadding(layoutDirection),
-                        start =
-                            if (isCompat) paddingValues.calculateLeftPadding(layoutDirection)
-                            else 0.dp,
-                    ),
-                isRefreshing = viewModel.isRefreshing,
-                onRefresh = {
-                    viewModel.isPull = true
-                    viewModel.refresh()
-                },
-            ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding()),
-                    state = lazyListState,
+            }
+
+            fun resetBottomSheet() {
+                openBottomSheet = false
+                viewModel.resetReplyState()
+            }
+
+            if (openBottomSheet) {
+                val topInsetPx = WindowInsets.systemBars.getTop(LocalDensity.current)
+                val topInset = with(LocalDensity.current) { topInsetPx.toDp() }
+
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        resetBottomSheet()
+                    },
+                    modifier = Modifier.padding(top = topInset),
                 ) {
-                    when (viewModel.feedState) {
-                        LoadingState.Loading,
-                        LoadingState.Empty,
-                        is LoadingState.Error -> {
-                            item(key = "feedState") {
-                                Box(modifier = Modifier.fillParentMaxSize()) {
-                                    LoadingCard(
-                                        modifier = Modifier.align(Alignment.Center),
-                                        state = viewModel.feedState,
-                                        onClick =
-                                            if (viewModel.feedState is LoadingState.Loading) null
-                                            else viewModel::refresh,
-                                        isFeed = true,
-                                    )
-                                }
-                            }
-                        }
-
-                        is LoadingState.Success -> {
-                            val response = (viewModel.feedState as LoadingState.Success).response
-                            if (!articleList.isNullOrEmpty()) {
-                                ArticleItem(
-                                    response = response,
-                                    articleList = articleList,
-                                    onOpenLink = onOpenLink,
-                                    onCopyText = onCopyText,
-                                    onLike = {
-                                        if (isLogin) {
-                                            viewModel.onLike(
-                                                response.id.orEmpty(),
-                                                response.userAction?.like ?: 0,
-                                                LikeType.FEED,
-                                            )
-                                        }
-                                    },
-                                    onViewUser = onViewUser,
-                                )
-                            } else {
-                                item(key = "header") {
-                                    FeedHeader(
-                                        modifier = Modifier.padding(horizontal = 16.dp),
-                                        data = response,
-                                        onViewUser = onViewUser,
-                                        isFeedContent = true,
-                                        isFeedTop = false,
-                                    )
-                                }
-                                item(key = "feed") {
-                                    FeedCard(
-                                        isFeedContent = true,
-                                        data = response,
-                                        onViewUser = onViewUser,
-                                        onViewFeed = onViewFeed,
-                                        onOpenLink = onOpenLink,
-                                        onCopyText = onCopyText,
-                                        onReport = onReport,
-                                        onLike = viewModel::onLike,
-                                        onDelete = { id, deleteType, frid ->
-                                            viewModel.frid = frid
-                                            viewModel.onDelete(id, deleteType)
-                                        },
-                                        onBlockUser = {},
-                                    )
-                                }
-                            }
-
-                            item(key = "sort") {
-                                FeedReplySortCard(
-                                    replyCount = viewModel.replyCount,
-                                    selected = selected,
-                                    updateSortReply = { index ->
-                                        setReplyType(index)
-                                        if (shouldShowSortCard) viewModel.isViewReply = true
-                                        viewModel.refresh()
-                                    },
-                                )
-                                HorizontalDivider()
-                            }
-
-                            if (viewModel.listType == "lastupdate_desc") {
-                                if (!response.topReplyRows.isNullOrEmpty()) {
-                                    response.topReplyRows?.getOrNull(0)?.let { reply ->
-                                        item(key = "topReplyRows") {
-                                            FeedReplyCard(
-                                                data = reply,
-                                                onViewUser = onViewUser,
-                                                onShowTotalReply = ::onShowTotalReply,
-                                                onOpenLink = onOpenLink,
-                                                onCopyText = onCopyText,
-                                                onReport = onReport,
-                                                onLike = viewModel::onLike,
-                                                onDelete = { id, deleteType, frid ->
-                                                    viewModel.frid = frid
-                                                    viewModel.onDelete(id, deleteType)
-                                                },
-                                                onBlockUser = { uid, frid ->
-                                                    viewModel.frid = frid
-                                                    viewModel.onBlockUser(uid)
-                                                },
-                                                onReply = { rid, uid, username, frid ->
-                                                    viewModel.replyId = rid
-                                                    viewModel.replyUid = uid
-                                                    viewModel.replyName = username
-                                                    viewModel.frid = frid
-                                                    viewModel.replyType = "reply"
-                                                    launchReply()
-                                                },
-                                            )
-                                            HorizontalDivider()
-                                        }
-                                    }
-                                }
-
-                                if (!response.replyMeRows.isNullOrEmpty()) {
-                                    response.replyMeRows?.getOrNull(0)?.let { reply ->
-                                        item(key = "replyMeRows") {
-                                            FeedReplyCard(
-                                                data = reply,
-                                                onViewUser = onViewUser,
-                                                onShowTotalReply = ::onShowTotalReply,
-                                                onOpenLink = onOpenLink,
-                                                onCopyText = onCopyText,
-                                                onReport = onReport,
-                                                onLike = viewModel::onLike,
-                                                onDelete = { id, deleteType, frid ->
-                                                    viewModel.frid = frid
-                                                    viewModel.onDelete(id, deleteType)
-                                                },
-                                                onBlockUser = { uid, frid ->
-                                                    viewModel.frid = frid
-                                                    viewModel.onBlockUser(uid)
-                                                },
-                                                onReply = { rid, uid, username, frid ->
-                                                    viewModel.replyId = rid
-                                                    viewModel.replyUid = uid
-                                                    viewModel.replyName = username
-                                                    viewModel.frid = frid
-                                                    viewModel.replyType = "reply"
-                                                    launchReply()
-                                                },
-                                            )
-                                            HorizontalDivider()
-                                        }
-                                    }
-                                }
-                            }
-                            if (viewModel.isViewReply) {
-                                viewModel.isViewReply = false
-                                scope.launch {
-                                    lazyListState.scrollToItem(viewModel.itemSize)
-                                }
-                            }
-                        }
-                    }
-
-                    if (viewModel.feedState is LoadingState.Success) {
-
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
                         ItemCard(
-                            loadingState = viewModel.loadingState,
-                            loadMore = viewModel::loadMore,
-                            isEnd = viewModel.isEnd,
-                            onViewUser = onViewUser,
-                            onViewFeed = onViewFeed,
-                            onOpenLink = onOpenLink,
-                            onCopyText = onCopyText,
-                            onShowTotalReply = ::onShowTotalReply,
-                            onReport = onReport,
-                            onLike = viewModel::onLike,
-                            onDelete = { id, deleteType, frid ->
-                                viewModel.frid = frid
-                                viewModel.onDelete(id, deleteType)
+                            loadingState = viewModel.replyLoadingState,
+                            loadMore = viewModel::loadMoreReply,
+                            isEnd = viewModel.isEndReply,
+                            onViewUser = { uid ->
+                                resetBottomSheet()
+                                onViewUser(uid)
                             },
-                            onBlockUser = { uid, frid ->
-                                viewModel.frid = frid
-                                viewModel.onBlockUser(uid)
+                            onViewFeed = { id, isViewReply ->
+                                resetBottomSheet()
+                                onViewFeed(id, isViewReply)
                             },
-                            onFollowUser = viewModel::onFollowUser,
-                            onReply = { rid, uid, username, frid ->
+                            onOpenLink = { url, title ->
+                                resetBottomSheet()
+                                onOpenLink(url, title)
+                            },
+                            onCopyText = {
+                                context.copyText(it?.getAllLinkAndText?.richToString())
+                            },
+                            onReport = { id, type ->
+                                resetBottomSheet()
+                                onReport(id, type)
+                            },
+                            isTotalReply = true,
+                            onLike = { id, like, likeType ->
+                                viewModel.onLikeReply(id, like, likeType)
+                            },
+                            onDelete = { id, deleteType, _ ->
+                                viewModel.onDeleteRely(id, deleteType)
+                            },
+                            onBlockUser = { uid, _ ->
+                                viewModel.onBlockReplyUser(uid)
+                            },
+                            isReply2Reply = !viewModel.frid.isNullOrEmpty(),
+                            onShowTotalReply = { id, uid, frid ->
+                                viewModel.replyId = id
+                                viewModel.replyUid = uid
+                                viewModel.frid = frid
+                                viewModel.resetReplyState()
+                                viewModel.fetchTotalReply()
+                            },
+                            onReply = { rid, uid, username, _ ->
+                                viewModel.isSheet = true
                                 viewModel.replyId = rid
                                 viewModel.replyUid = uid
                                 viewModel.replyName = username
-                                viewModel.frid = frid
+                                viewModel.frid = null
                                 viewModel.replyType = "reply"
                                 launchReply()
                             },
                         )
 
                         FooterCard(
-                            footerState = viewModel.footerState,
-                            loadMore = viewModel::loadMore,
+                            footerState = viewModel.replyFooterState,
+                            loadMore = viewModel::loadMoreReply,
                             isFeed = true,
                         )
                     }
-                }
-                if (shouldShowSortCard) {
-                    FeedReplySortCard(
-                        replyCount = viewModel.replyCount,
-                        selected = selected,
-                        updateSortReply = { index ->
-                            setReplyType(index)
-                            viewModel.isViewReply = true
-                            viewModel.refresh()
-                        },
-                    )
-                }
-            }
-        }
-
-        fun resetBottomSheet() {
-            openBottomSheet = false
-            viewModel.resetReplyState()
-        }
-
-        if (openBottomSheet) {
-            val topInsetPx = WindowInsets.systemBars.getTop(LocalDensity.current)
-            val topInset = with(LocalDensity.current) { topInsetPx.toDp() }
-
-            ModalBottomSheet(
-                onDismissRequest = {
-                    resetBottomSheet()
-                },
-                modifier = Modifier.padding(top = topInset),
-            ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    ItemCard(
-                        loadingState = viewModel.replyLoadingState,
-                        loadMore = viewModel::loadMoreReply,
-                        isEnd = viewModel.isEndReply,
-                        onViewUser = { uid ->
-                            resetBottomSheet()
-                            onViewUser(uid)
-                        },
-                        onViewFeed = { id, isViewReply ->
-                            resetBottomSheet()
-                            onViewFeed(id, isViewReply)
-                        },
-                        onOpenLink = { url, title ->
-                            resetBottomSheet()
-                            onOpenLink(url, title)
-                        },
-                        onCopyText = {
-                            context.copyText(it?.getAllLinkAndText?.richToString())
-                        },
-                        onReport = { id, type ->
-                            resetBottomSheet()
-                            onReport(id, type)
-                        },
-                        isTotalReply = true,
-                        onLike = { id, like, likeType ->
-                            viewModel.onLikeReply(id, like, likeType)
-                        },
-                        onDelete = { id, deleteType, _ ->
-                            viewModel.onDeleteRely(id, deleteType)
-                        },
-                        onBlockUser = { uid, _ ->
-                            viewModel.onBlockReplyUser(uid)
-                        },
-                        isReply2Reply = !viewModel.frid.isNullOrEmpty(),
-                        onShowTotalReply = { id, uid, frid ->
-                            viewModel.replyId = id
-                            viewModel.replyUid = uid
-                            viewModel.frid = frid
-                            viewModel.resetReplyState()
-                            viewModel.fetchTotalReply()
-                        },
-                        onReply = { rid, uid, username, _ ->
-                            viewModel.isSheet = true
-                            viewModel.replyId = rid
-                            viewModel.replyUid = uid
-                            viewModel.replyName = username
-                            viewModel.frid = null
-                            viewModel.replyType = "reply"
-                            launchReply()
-                        },
-                    )
-
-                    FooterCard(
-                        footerState = viewModel.replyFooterState,
-                        loadMore = viewModel::loadMoreReply,
-                        isFeed = true,
-                    )
                 }
             }
         }

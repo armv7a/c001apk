@@ -1,26 +1,21 @@
 package com.example.c001apk.compose.ui.component.cards
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.c001apk.compose.ui.component.rememberHapticClick
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.VerticalDivider
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.utils.SinkFeedback
 
-/** Created by bggRGjQaUbCoE on 2024/6/12 */
 @Composable
 fun FeedReplySortCard(
     modifier: Modifier = Modifier,
@@ -28,87 +23,52 @@ fun FeedReplySortCard(
     selected: Int = 0,
     updateSortReply: (Int) -> Unit,
 ) {
-
-    Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min)
-                .background(MiuixTheme.colorScheme.surface),
+    Row(
+        modifier.fillMaxWidth().background(MiuixTheme.colorScheme.surface).padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        HorizontalDivider()
-
         Row(
+            Modifier.weight(1f).padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            Text("评论", style = MiuixTheme.textStyles.subtitle, fontWeight = FontWeight.SemiBold)
             Text(
-                text = "共 $replyCount 回复",
-                modifier = Modifier.weight(1f).padding(start = 16.dp).padding(vertical = 2.dp),
-                style = MiuixTheme.textStyles.headline2.copy(fontSize = 13.sp),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-
-            VerticalDivider()
-
-            FeedReplySortCardItem(
-                title = "默认",
-                isSelected = selected == 0,
-                updateSortReply = {
-                    updateSortReply(0)
-                },
-            )
-
-            FeedReplySortCardItem(
-                title = "最新",
-                isSelected = selected == 1,
-                updateSortReply = {
-                    updateSortReply(1)
-                },
-            )
-
-            FeedReplySortCardItem(
-                title = "热门",
-                isSelected = selected == 2,
-                updateSortReply = {
-                    updateSortReply(2)
-                },
-            )
-
-            FeedReplySortCardItem(
-                modifier = Modifier.padding(end = 16.dp),
-                title = "楼主",
-                isSelected = selected == 3,
-                updateSortReply = {
-                    updateSortReply(3)
-                },
+                replyCount,
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             )
         }
-
-        HorizontalDivider()
+        Row(Modifier.selectableGroup()) {
+            listOf("默认", "最新", "热门", "楼主").forEachIndexed { index, label ->
+                val isSelected = index == selected
+                Box(
+                    modifier =
+                        Modifier.selectable(
+                                selected = isSelected,
+                                interactionSource = null,
+                                indication = SinkFeedback(),
+                                role = Role.RadioButton,
+                                onClick =
+                                    rememberHapticClick {
+                                        if (!isSelected) updateSortReply(index)
+                                    },
+                            )
+                            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                            .padding(horizontal = 6.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = label,
+                        fontSize = 13.sp,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                        color =
+                            if (isSelected) MiuixTheme.colorScheme.primary
+                            else MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        maxLines = 1,
+                    )
+                }
+            }
+        }
     }
-}
-
-@Composable
-fun FeedReplySortCardItem(
-    modifier: Modifier = Modifier,
-    title: String,
-    isSelected: Boolean,
-    updateSortReply: () -> Unit,
-) {
-    Text(
-        text = title,
-        style = MiuixTheme.textStyles.headline2.copy(fontSize = 13.sp),
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier =
-            Modifier.clickable(onClick = rememberHapticClick { updateSortReply() })
-                .background(
-                    if (isSelected) MiuixTheme.colorScheme.secondaryContainer
-                    else MiuixTheme.colorScheme.surface,
-                )
-                .padding(horizontal = 8.dp, vertical = 2.dp),
-    )
-
-    VerticalDivider(modifier = modifier)
 }
