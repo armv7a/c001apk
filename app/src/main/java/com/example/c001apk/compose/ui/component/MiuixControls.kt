@@ -163,11 +163,22 @@ fun MiuixMenuItem(
             onClick = if (onLongClick == null) onClick else null,
             enabled = enabled,
             role = Role.Button,
-            startAction = leadingIcon,
-            endActions = trailingIcon?.let { icon -> { icon() } },
             insideMargin = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
         ) {
-            text()
+            // ListPopupColumn queries intrinsic widths with an unbounded constraint.
+            // BasicComponent's action-slot layout in miuix 0.9.4 overflows in that pass.
+            // Keep its native interaction surface, with intrinsic-safe menu content.
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                leadingIcon?.let { icon ->
+                    icon()
+                    Spacer(Modifier.width(8.dp))
+                }
+                Box(Modifier.weight(1f)) { text() }
+                trailingIcon?.let { icon ->
+                    Spacer(Modifier.width(8.dp))
+                    icon()
+                }
+            }
         }
     }
 }
