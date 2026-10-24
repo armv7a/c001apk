@@ -27,7 +27,7 @@ object AddCookiesInterceptor : Interceptor {
         val builder = CoolapkRequestPolicy.withoutPrivateHeaders(request)
         val api = CoolapkRequestPolicy.isApi(request.url)
         if (!api && !CoolapkRequestPolicy.isPublicFeed(request)) {
-            return chain.proceed(builder.build())
+            return chain.proceed(CoolapkRequestPolicy.publicRequest(request))
         }
         val session = CookieUtil.accountSession
         val deviceCode = CookieUtil.xAppDevice

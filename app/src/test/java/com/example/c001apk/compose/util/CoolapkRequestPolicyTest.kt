@@ -7,6 +7,28 @@ import org.junit.Test
 
 class CoolapkRequestPolicyTest {
     @Test
+    fun publicImagesKeepAUsableUaWithoutLeakingApiIdentity() {
+        for (host in listOf("avatar.coolapk.com", "image.coolapk.com", "untrusted.example")) {
+            val request =
+                Request.Builder()
+                    .url("https://$host/image.jpg")
+                    .header("User-Agent", "private-device-identity")
+                    .header("Cookie", "token=synthetic-secret")
+                    .header("Authorization", "synthetic-secret")
+                    .header("X-App-Token", "synthetic-secret")
+                    .header("X-App-Device", "private-device-identity")
+                    .header("Range", "bytes=0-1023")
+                    .build()
+            val clean = CoolapkRequestPolicy.publicRequest(request)
+            assertEquals(CoolapkRequestPolicy.PUBLIC_USER_AGENT, clean.header("User-Agent"))
+            assertEquals("bytes=0-1023", clean.header("Range"))
+            listOf("Cookie", "Authorization", "X-App-Token", "X-App-Device").forEach {
+                assertNull(it, clean.header(it))
+            }
+        }
+    }
+
+    @Test
     fun apiCredentialsRequireExactHttpsOrigin() {
         listOf("https://api.coolapk.com/v6/main/indexV8", "https://api2.coolapk.com/v6/feed/detail")
             .forEach {

@@ -6,6 +6,13 @@ import okhttp3.Request
 
 /** The same boundary is checked on every redirect hop, before bytes leave the client. */
 object CoolapkRequestPolicy {
+    // Public media needs a non-empty UA. Never reuse the API UA containing device information.
+    const val PUBLIC_USER_AGENT =
+        "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+
+    fun publicRequest(request: Request): Request =
+        withoutPrivateHeaders(request).header("User-Agent", PUBLIC_USER_AGENT).build()
+
     fun isApi(url: HttpUrl) =
         url.isHttps && url.port == 443 && url.host in setOf("api.coolapk.com", "api2.coolapk.com")
 
@@ -41,7 +48,7 @@ object CoolapkRequestPolicy {
     val accountBoundary = Interceptor { chain ->
         val request = chain.request()
         chain.proceed(
-            if (isAccount(request.url)) request else withoutPrivateHeaders(request).build(),
+            if (isAccount(request.url)) request else publicRequest(request),
         )
     }
 }

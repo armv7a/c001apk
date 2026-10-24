@@ -24,7 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-
 import android.content.Context
 import android.graphics.Color
 import android.os.Build
@@ -33,7 +32,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.setPadding
-import coil.load
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.CachePolicy
@@ -43,18 +41,21 @@ import com.example.c001apk.compose.constant.Constants.SUFFIX_THUMBNAIL
 import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.ImageShowUtil
 import com.example.c001apk.compose.util.ImageShowUtil.getImageLp
+import com.example.c001apk.compose.util.bindRecoverableImage
 import com.example.c001apk.compose.util.dp
 import com.example.c001apk.compose.util.http2https
 import com.example.c001apk.compose.util.isGifUrl
+import com.example.c001apk.media.R as MediaR
 import com.example.c001apk.media.RichMediaHint
 import com.example.c001apk.media.coolApkRichMediaHint
-import com.example.c001apk.media.R as MediaR
 import jp.wasabeef.transformers.coil.ColorFilterTransformation
 
-class NineGridImageView @JvmOverloads constructor(
+class NineGridImageView
+@JvmOverloads
+constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr) {
 
     var userAgent = ""
@@ -62,6 +63,7 @@ class NineGridImageView @JvmOverloads constructor(
     var isSingle = false
 
     private var urlList: List<String>? = null
+    private var lastLoadStyle: List<Any>? = null
 
     var imgHeight = 1
     var imgWidth = 1
@@ -90,8 +92,7 @@ class NineGridImageView @JvmOverloads constructor(
                 if (isSingle) {
                     singleWidth = totalWidth
                     singleHeight =
-                        if (imgHeight >= imgWidth * 22f / 9f)
-                            totalWidth * 22 / 9
+                        if (imgHeight >= imgWidth * 22f / 9f) totalWidth * 22 / 9
                         else totalWidth * imgHeight / imgWidth
                 } else if (imgHeight < imgWidth) {
                     singleHeight = defaultWidth * 2
@@ -125,7 +126,7 @@ class NineGridImageView @JvmOverloads constructor(
             }
             measureChildren(
                 MeasureSpec.makeMeasureSpec(singleWidth, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(singleHeight, MeasureSpec.EXACTLY)
+                MeasureSpec.makeMeasureSpec(singleHeight, MeasureSpec.EXACTLY),
             )
             val measureHeight: Int = singleHeight * rows + gap * (rows - 1)
             setMeasuredDimension(sizeWidth, measureHeight)
@@ -141,8 +142,8 @@ class NineGridImageView @JvmOverloads constructor(
         for (i in 0 until rows) {
             for (j in 0 until columns) {
                 if (i * columns + j == childNum) {
-                    position[0] = i //行
-                    position[1] = j //列
+                    position[0] = i // 行
+                    position[1] = j // 列
                     break
                 }
             }
@@ -163,26 +164,14 @@ class NineGridImageView @JvmOverloads constructor(
             val bottom = top + singleHeight
             val childrenView = getChildAt(i) as ImageView
             if (childrenCount == 1) {
-                //只有一张图片
+                // 只有一张图片
                 childrenView.scaleType = ImageView.ScaleType.FIT_CENTER
             } else {
                 childrenView.scaleType = ImageView.ScaleType.CENTER_CROP
             }
-            urlList?.let { urlList ->
-                childrenView.setOnClickListener {
-                    ImageShowUtil.startBigImgView(
-                        this,
-                        childrenView,
-                        urlList,
-                        i,
-                        userAgent = userAgent,
-                    )
-                }
-            }
             childrenView.layout(left, top, right, bottom)
         }
     }
-
 
     private fun generateChildrenLayout(length: Int) {
         if (length <= 3) {
@@ -215,15 +204,19 @@ class NineGridImageView @JvmOverloads constructor(
 
     fun setUrlList(urlList: List<String>?) {
         if (urlList != null) {
-            this.urlList = urlList.map { url ->
+            val normalized = urlList.map { url ->
                 val originalUrl = url.replace(SUFFIX_THUMBNAIL, EMPTY_STRING).http2https
                 if (originalUrl.isGifUrl) originalUrl else url.http2https
             }
-            generateChildrenLayout(urlList.size)
+            val style = listOf(userAgent, CookieUtil.isDarkMode, CookieUtil.imageFilter, isSingle)
+            if (normalized == this.urlList && style == lastLoadStyle) return
+            this.urlList = normalized
+            lastLoadStyle = style
+            generateChildrenLayout(normalized.size)
             removeAllViews()
 
-            this.urlList?.forEach {
-                val replace = it.replace(SUFFIX_THUMBNAIL, EMPTY_STRING)
+            this.urlList?.forEachIndexed { index, url ->
+                val replace = url.replace(SUFFIX_THUMBNAIL, EMPTY_STRING)
                 val isGif = replace.isGifUrl
                 val imageView = BadgedImageView(context)
                 imageView.apply {
@@ -246,29 +239,42 @@ class NineGridImageView @JvmOverloads constructor(
                     when (mediaHint) {
                         RichMediaHint.LIVE_PHOTO -> {
                             AppCompatResources.getDrawable(
-                                context,
-                                MediaR.drawable.ic_live_photo_badge,
-                            )
+                                    context,
+                                    MediaR.drawable.ic_live_photo_badge,
+                                )
                                 ?.let { setBadge(it, 24.dp, 24.dp) }
                         }
                         RichMediaHint.ULTRA_HDR -> {
                             setBadge("HDR")
                             if (isLongImage) setTopStartBadge("长图")
                         }
-                        RichMediaHint.NONE -> when {
-                            isGif -> setBadge("GIF")
-                            isLongImage -> setBadge("长图")
-                            else -> Unit
-                        }
+                        RichMediaHint.NONE ->
+                            when {
+                                isGif -> setBadge("GIF")
+                                isLongImage -> setBadge("长图")
+                                else -> Unit
+                            }
                     }
                 }
                 addView(imageView, generateDefaultLayoutParams())
 
-                imageView.load(it) {
+                imageView.bindRecoverableImage(
+                    url = url,
+                    key = url to style,
+                    onOpen = {
+                        ImageShowUtil.startBigImgView(
+                            this,
+                            imageView,
+                            normalized,
+                            index,
+                            userAgent = userAgent,
+                        )
+                    },
+                ) {
                     memoryCachePolicy(CachePolicy.ENABLED)
                     diskCachePolicy(CachePolicy.ENABLED)
-                    memoryCacheKey(it)
-                    diskCacheKey(it)
+                    memoryCacheKey(url)
+                    diskCacheKey(url)
                     crossfade(200)
                     if (isGif) {
                         decoderFactory(
@@ -284,7 +290,7 @@ class NineGridImageView @JvmOverloads constructor(
                     addHeader("User-Agent", userAgent)
                 }
             }
+            requestLayout()
         }
     }
-
 }

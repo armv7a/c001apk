@@ -5,21 +5,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import coil.drawable.CrossfadeDrawable
-import coil.load
 import com.example.c001apk.compose.constant.Constants.PREFIX_HTTP
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.util.CookieUtil.token
 import com.example.c001apk.compose.util.CookieUtil.uid
 import com.example.c001apk.compose.util.CookieUtil.username
 import com.example.c001apk.compose.util.ImageShowUtil.startBigImgViewSimple
+import com.example.c001apk.compose.util.bindRecoverableImage
 import com.example.c001apk.compose.util.dp
 import com.example.c001apk.compose.util.http2https
 import com.example.c001apk.compose.view.RoundedImageView
 import jp.wasabeef.transformers.coil.ColorFilterTransformation
 
-/**
- * Created by bggRGjQaUbCoE on 2024/6/10
- */
+/** Created by bggRGjQaUbCoE on 2024/6/10 */
 @Composable
 fun ImageView(
     modifier: Modifier = Modifier,
@@ -50,24 +48,26 @@ fun ImageView(
                 borderColor?.let {
                     setBorderColor(it)
                 }
-
             }
         },
         update = { imageView ->
-            imageView.setOnClickListener {
-                if (isChat) {
-                    onClearFocus?.let { it() }
-                }
-                if (url.startsWith(PREFIX_HTTP)) {
-                    startBigImgViewSimple(
-                        imageView,
-                        url = if (isChat) url else url.http2https,
-                        cookie = if (isChat) cookie else null,
-                        userAgent = prefs.userAgent,
-                    )
-                }
-            }
-            imageView.load(if (isChat) url else url.http2https) {
+            imageView.bindRecoverableImage(
+                url = if (isChat) url else url.http2https,
+                key = listOf(url, isChat, isCover, isDarkMode, prefs.userAgent),
+                onOpen = {
+                    if (isChat) {
+                        onClearFocus?.let { it() }
+                    }
+                    if (url.startsWith(PREFIX_HTTP)) {
+                        startBigImgViewSimple(
+                            imageView,
+                            url = if (isChat) url else url.http2https,
+                            cookie = if (isChat) cookie else null,
+                            userAgent = prefs.userAgent,
+                        )
+                    }
+                },
+            ) {
                 crossfade(CrossfadeDrawable.DEFAULT_DURATION)
                 addHeader("User-Agent", prefs.userAgent)
                 if (isChat) {
@@ -77,16 +77,12 @@ fun ImageView(
                     transformations(
                         ColorFilterTransformation(
                             Color.parseColor(
-                                if (isDarkMode)
-                                    "#8D000000"
-                                else
-                                    "#5DFFFFFF"
-                            )
-                        )
+                                if (isDarkMode) "#8D000000" else "#5DFFFFFF",
+                            ),
+                        ),
                     )
                 }
             }
-        }
+        },
     )
-
 }

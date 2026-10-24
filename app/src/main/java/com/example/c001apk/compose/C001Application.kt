@@ -32,7 +32,12 @@ class C001Application : Application() {
             ImageLoader.Builder(this)
                 .crossfade(true)
                 .okHttpClient {
-                    OkHttpClient.Builder().addNetworkInterceptor(AddCookiesInterceptor).build()
+                    OkHttpClient.Builder()
+                        .addNetworkInterceptor(AddCookiesInterceptor)
+                        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+                        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                        .callTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                        .build()
                 }
                 .components {
                     add(AppIconKeyer())

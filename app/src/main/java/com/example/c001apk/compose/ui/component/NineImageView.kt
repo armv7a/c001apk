@@ -36,6 +36,8 @@ fun NineImageView(
             }
         },
         update = { imageView ->
+            imageView.isSingle = isSingle
+            imageView.userAgent = prefs.userAgent
             imageView.colorPrimaryContainer = primaryContainer
             imageView.colorOnPrimaryContainer = onPrimaryContainer
             if (!picArr.isNullOrEmpty()) {
