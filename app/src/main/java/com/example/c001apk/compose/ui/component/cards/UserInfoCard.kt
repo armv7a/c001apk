@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -20,8 +19,10 @@ import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.noRippleClickable
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Email
 import top.yukonga.miuix.kmp.squircle.squircleBackground
+import top.yukonga.miuix.kmp.squircle.squircleClip
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -36,124 +37,107 @@ fun UserInfoCard(
     val prefs = LocalUserPreferences.current
     val locallyFollowed = prefs.localFollows.any { it.uid == data.uid }
     val ownProfile = prefs.isLogin && prefs.uid == data.uid
-    Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
-        Card(cornerRadius = 24.dp) {
-            Box(Modifier.fillMaxWidth().height(212.dp)) {
+    val followed = if (prefs.isLogin) data.isFollow == 1 else locallyFollowed
+    val coverHeight = if (data.cover.isNullOrBlank()) 96.dp else 180.dp
+
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        cornerRadius = 26.dp,
+    ) {
+        Box(Modifier.fillMaxWidth()) {
+            Column {
                 Box(
-                    Modifier.fillMaxWidth()
-                        .height(180.dp)
-                        .squircleBackground(MiuixTheme.colorScheme.secondaryContainer, 0.dp),
+                    Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)
+                        .fillMaxWidth()
+                        .height(coverHeight)
+                        .squircleClip(20.dp)
+                        .squircleBackground(MiuixTheme.colorScheme.secondaryContainer, 20.dp),
                 ) {
+                    // No text overlays the cover, so preserve its original color and brightness.
                     if (!data.cover.isNullOrBlank())
-                        ImageView(Modifier.fillMaxSize(), url = data.cover, isCover = true)
+                        ImageView(Modifier.fillMaxSize(), url = data.cover)
                 }
-                Box(
-                    Modifier.padding(start = 20.dp)
-                        .align(Alignment.BottomStart)
-                        .size(76.dp)
-                        .squircleBackground(MiuixTheme.colorScheme.surfaceContainer, 28.dp),
-                    contentAlignment = Alignment.Center,
+                Column(
+                    Modifier.fillMaxWidth()
+                        .padding(start = 108.dp, end = 20.dp, top = 10.dp)
+                        .heightIn(min = 48.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Text(data.username.orEmpty().take(1), style = MiuixTheme.textStyles.title1)
-                    ImageView(
-                        Modifier.fillMaxSize(),
-                        url = data.userAvatar.orEmpty(),
-                        isRound = true,
-                        borderWidth = 4f,
-                        borderColor = MiuixTheme.colorScheme.surfaceContainer.toArgb(),
-                    )
-                }
-                if (data.level != null)
-                    Text(
-                        "Lv.${data.level}",
-                        modifier =
-                            Modifier.align(Alignment.BottomEnd)
-                                .padding(end = 20.dp, bottom = 8.dp)
-                                .squircleBackground(MiuixTheme.colorScheme.secondaryContainer, 8.dp)
-                                .padding(horizontal = 10.dp, vertical = 5.dp),
-                        style = MiuixTheme.textStyles.footnote1,
-                        color = MiuixTheme.colorScheme.onSecondaryContainer,
-                    )
-            }
-            Column(
-                Modifier.padding(horizontal = 20.dp).padding(top = 12.dp, bottom = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Text(
-                    data.username.orEmpty(),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier =
-                        Modifier.noRippleClickable { context.copyText(data.username.orEmpty()) },
-                )
-                Text(
-                    "UID ${data.uid.orEmpty()}",
-                    style = MiuixTheme.textStyles.footnote1,
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                    modifier = Modifier.noRippleClickable { context.copyText(data.uid.orEmpty()) },
-                )
-                if (!data.bio.isNullOrBlank())
-                    Text(
-                        data.bio.richToString(),
-                        style = MiuixTheme.textStyles.body2,
-                        modifier = Modifier.noRippleClickable { context.copyText(data.bio) },
-                    )
-                if ((data.logintime ?: 0) > 0)
-                    Text(
-                        "${fromToday(data.logintime ?: 0)}活跃",
-                        style = MiuixTheme.textStyles.footnote1,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                    )
-                if (!ownProfile) {
-                    Spacer(Modifier.height(2.dp))
                     Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                if (prefs.isLogin) onFollow(data.uid.orEmpty(), data.isFollow ?: 0)
-                                else onLocalFollow()
-                            },
-                            colors =
-                                if (
-                                    (!prefs.isLogin && locallyFollowed) ||
-                                        (prefs.isLogin && data.isFollow == 1)
-                                )
-                                    ButtonDefaults.buttonColors()
-                                else ButtonDefaults.buttonColorsPrimary(),
-                        ) {
+                        Text(
+                            data.username.orEmpty(),
+                            modifier =
+                                Modifier.weight(1f, fill = false).noRippleClickable {
+                                    context.copyText(data.username.orEmpty())
+                                },
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        data.level?.let { level ->
                             Text(
-                                if (!prefs.isLogin) {
-                                    if (locallyFollowed) "已本地关注" else "本地关注"
-                                } else if (data.isFollow == 1) "已关注" else "关注",
+                                "Lv.$level",
+                                modifier =
+                                    Modifier.squircleBackground(
+                                            MiuixTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                            6.dp,
+                                        )
+                                        .padding(horizontal = 6.dp, vertical = 3.dp),
+                                fontSize = 11.sp,
+                                color = MiuixTheme.colorScheme.primary,
+                                maxLines = 1,
                             )
                         }
-                        Button(
-                            onClick = { onPMUser(data.uid.orEmpty(), data.username.orEmpty()) },
-                            enabled = prefs.isLogin,
-                        ) {
-                            Icon(MiuixIcons.Email, null, modifier = Modifier.size(20.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("私信")
-                        }
                     }
-                    if (prefs.isLogin && prefs.quietFollow)
-                        TextButton(
-                            text = if (locallyFollowed) "已悄悄关注" else "悄悄关注",
-                            onClick = onLocalFollow,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                    Text(
+                        "UID ${data.uid.orEmpty()}",
+                        modifier =
+                            Modifier.noRippleClickable { context.copyText(data.uid.orEmpty()) },
+                        fontSize = 12.sp,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
                 }
             }
+            Box(
+                Modifier.padding(start = 20.dp, top = coverHeight - 14.dp)
+                    .size(76.dp)
+                    .squircleBackground(MiuixTheme.colorScheme.surfaceContainer, 26.dp)
+                    .padding(4.dp)
+                    .squircleClip(22.dp)
+                    .squircleBackground(MiuixTheme.colorScheme.secondaryContainer, 22.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(data.username.orEmpty().take(1), style = MiuixTheme.textStyles.title1)
+                if (!data.userAvatar.isNullOrBlank())
+                    ImageView(Modifier.fillMaxSize(), url = data.userAvatar)
+            }
         }
-        Spacer(Modifier.height(12.dp))
-        Card(
-            cornerRadius = 20.dp,
-            insideMargin = PaddingValues(horizontal = 8.dp, vertical = 16.dp),
-        ) {
-            Row(Modifier.fillMaxWidth()) {
+
+        Column(Modifier.padding(horizontal = 20.dp).padding(top = 12.dp, bottom = 16.dp)) {
+            if (!data.bio.isNullOrBlank()) {
+                Text(
+                    data.bio.richToString(),
+                    modifier = Modifier.noRippleClickable { context.copyText(data.bio) },
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp,
+                )
+                Spacer(Modifier.height(6.dp))
+            }
+            if ((data.logintime ?: 0) > 0)
+                Text(
+                    "${fromToday(data.logintime ?: 0)}活跃",
+                    fontSize = 12.sp,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+
+            Row(
+                Modifier.fillMaxWidth()
+                    .padding(top = 16.dp, bottom = if (ownProfile) 0.dp else 16.dp),
+            ) {
                 UserStatistic("动态", (data.feed?.id ?: 0).toString(), Modifier.weight(1f))
                 UserStatistic("获赞", (data.beLikeNum ?: 0).toString(), Modifier.weight(1f))
                 UserStatistic("关注", (data.follow ?: 0).toString(), Modifier.weight(1f)) {
@@ -161,6 +145,57 @@ fun UserInfoCard(
                 }
                 UserStatistic("粉丝", (data.fans ?: 0).toString(), Modifier.weight(1f)) {
                     onViewFFFList(data.uid.orEmpty(), FFFListType.FAN.name)
+                }
+            }
+
+            if (!ownProfile) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            if (prefs.isLogin) onFollow(data.uid.orEmpty(), data.isFollow ?: 0)
+                            else onLocalFollow()
+                        },
+                        minHeight = 48.dp,
+                        insideMargin = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                        colors =
+                            if (followed) ButtonDefaults.buttonColors()
+                            else ButtonDefaults.buttonColorsPrimary(),
+                    ) {
+                        if (!followed) {
+                            Icon(MiuixIcons.Add, null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                        }
+                        Text(
+                            if (!prefs.isLogin) {
+                                if (locallyFollowed) "已本地关注" else "本地关注"
+                            } else if (data.isFollow == 1) "已关注" else "关注",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = { onPMUser(data.uid.orEmpty(), data.username.orEmpty()) },
+                        enabled = prefs.isLogin,
+                        minHeight = 48.dp,
+                        insideMargin = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                    ) {
+                        Icon(MiuixIcons.Email, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("私信", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    }
+                }
+                if (prefs.isLogin && prefs.quietFollow) {
+                    Spacer(Modifier.height(8.dp))
+                    TextButton(
+                        text = if (locallyFollowed) "已悄悄关注" else "悄悄关注",
+                        onClick = onLocalFollow,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
         }
@@ -176,21 +211,22 @@ private fun UserStatistic(
 ) {
     Column(
         modifier
+            .heightIn(min = 48.dp)
             .then(if (onClick != null) Modifier.noRippleClickable(onClick = onClick) else Modifier)
             .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically),
     ) {
         Text(
             value,
-            style = MiuixTheme.textStyles.subtitle,
+            fontSize = 19.sp,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
         Text(
             label,
-            style = MiuixTheme.textStyles.footnote1,
+            fontSize = 12.sp,
             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         )
     }

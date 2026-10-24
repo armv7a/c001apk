@@ -8,6 +8,7 @@
 - `:media-support:testDebugUnitTest`：8 项通过，无失败/跳过。
 - `:app:lintDebug`：通过，0 error；保留已有 warning，没有把 warning 当作 error 隐藏。
 - 本轮封面与回复页调整已通过 `:app:assembleDebug` 和 `:app:lintDebug`：用户封面由 116 dp 增至 180 dp；“全部回复”使用固定标题、16 dp 外边距、独立原评论和连续圆角回复组，保留懒加载与既有操作。动态话题区同时收紧上下间距。
+- 个人页资料卡再次依照 imagegen 设计稿重排：180 dp 封面内嵌圆角并移除压暗滤镜，头像与昵称并排，等级缩为小标签，统计合入资料卡，关注/私信按钮等宽。无封面时缩短占位区，保留游客本地关注、悄悄关注与自己的主页状态。Debug 构建和 Lint 通过；新版已覆盖安装，后续界面验收按用户要求交由用户完成。
 - `:app:assembleRelease`：R8 和资源压缩构建通过。
 - `python3 -m unittest discover -s tools -p 'test_*.py'`：2 项通过，涵盖新旧证书前缀、Source Stamp 拒绝和多个签名者拒绝。
 - `tools/verify_apk.py`：包名、Android 13 下限、ARM64、数盟库、必需资源、原生库压缩、预期证书、v2 签名、16 KiB ZIP 对齐检查通过。
