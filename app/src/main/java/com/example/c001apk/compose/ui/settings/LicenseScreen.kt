@@ -57,6 +57,12 @@ fun LicenseScreen(
 private val licenseList =
     listOf(
         LicenseItem(
+            "commonmark-java contributors",
+            "CommonMark",
+            "https://github.com/commonmark/commonmark-java",
+            LicenseType.BSD3,
+        ),
+        LicenseItem(
             "daimiaopeng",
             "coolapk-desktop protocol compatibility",
             "https://github.com/daimiaopeng/coolapk-desktop",
@@ -184,10 +190,12 @@ enum class LicenseType {
     MIT,
     GPL3,
     CCBY4,
+    BSD3,
 }
 
 private fun getLicense(type: LicenseType): String =
     when (type) {
+        LicenseType.BSD3 -> "BSD 3-Clause License"
         LicenseType.CCBY4 -> "Creative Commons Attribution 4.0 International"
         LicenseType.Apache2 -> "Apache Software License 2.0"
         LicenseType.MIT -> "MIT License"

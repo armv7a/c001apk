@@ -44,6 +44,7 @@ import com.example.c001apk.compose.ui.component.LinkText
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
 import com.example.c001apk.compose.ui.component.MiuixMoreMenu
 import com.example.c001apk.compose.ui.component.NineImageView
+import com.example.c001apk.compose.ui.component.RichPostText
 import com.example.c001apk.compose.ui.component.icons.Smartphone
 import com.example.c001apk.compose.ui.component.icons.ThumbUpAlt
 import com.example.c001apk.compose.ui.component.icons.ThumbUpOffAlt
@@ -250,7 +251,8 @@ fun FeedMessage(
         )
     }
     if (!data.message.isNullOrEmpty()) {
-        LinkText(
+        RichPostText(
+            preview = !isFeedContent,
             text = data.message,
             textSize = 16f,
             lineSpacingMultiplier = 1.3f,
@@ -303,20 +305,23 @@ fun FeedMessage(
                         .padding(10.dp),
             ) {
                 if (!data.forwardSourceFeed.messageTitle.isNullOrEmpty()) {
-                    LinkText(
+                    RichPostText(
+                        preview = true,
                         text =
                             """<a class="feed-link-uname" href="/u/${data.forwardSourceFeed.uid}">@${data.forwardSourceFeed.username}</a>: ${data.forwardSourceFeed.messageTitle}""",
                         onOpenLink = onOpenLink,
                         lineSpacingMultiplier = 1.2f,
                     )
                     if (!data.forwardSourceFeed.message.isNullOrEmpty())
-                        LinkText(
+                        RichPostText(
+                            preview = true,
                             text = data.forwardSourceFeed.message,
                             onOpenLink = onOpenLink,
                             lineSpacingMultiplier = 1.2f,
                         )
                 } else {
-                    LinkText(
+                    RichPostText(
+                        preview = true,
                         text =
                             """<a class="feed-link-uname" href="/u/${data.forwardSourceFeed.uid}">@${data.forwardSourceFeed.username}</a>: ${data.forwardSourceFeed.message}""",
                         onOpenLink = onOpenLink,

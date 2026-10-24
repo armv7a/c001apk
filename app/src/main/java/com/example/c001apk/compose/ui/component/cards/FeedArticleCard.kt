@@ -11,8 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.c001apk.compose.logic.model.FeedArticleContentBean
-import com.example.c001apk.compose.ui.component.LinkText
 import com.example.c001apk.compose.ui.component.NineImageView
+import com.example.c001apk.compose.ui.component.RichPostText
 import com.example.c001apk.compose.util.longClick
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.squircle.squircleClip
@@ -28,7 +28,7 @@ fun FeedArticleCard(
 
     when (item.type) {
         "text" -> {
-            LinkText(
+            RichPostText(
                 text = item.message.orEmpty(),
                 modifier =
                     Modifier.fillMaxWidth()

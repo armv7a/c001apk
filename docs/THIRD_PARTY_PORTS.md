@@ -7,3 +7,7 @@ Token V3 算法、协议查找表、公开分享页 JSON 与网易验证码配�
 签名测试向量沿用参考工程的合成设备与固定时间数据，不包含真实账号或设备标识。人机验证由用户在网易官方 Web SDK 中完成，不分发验证码 SDK 源码。
 
 32 张 `niuniu_emotion_*.png` 沿用 TG-Twilight 所收录的酷安官方 16.6.4 表情素材，名称映射用于显示兼容。版权归酷安及相应权利人，根 AGPL-3.0 不改变这些素材的权利。
+
+## Markdown
+
+CommonMark 0.30.0 与 GFM 表格、删除线、任务列表扩展遵循 BSD 3-Clause；完整许可证打包于 `app/src/main/assets/licenses/CommonMark-BSD-3-Clause.txt`。解析行为参考 TG-Twilight 98526cc，使用原生 Compose 渲染，不使用 WebView 执行正文。

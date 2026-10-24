@@ -208,6 +208,10 @@ dependencies {
 
     implementation(libs.jbcrypt)
     implementation(libs.jsoup)
+    implementation("org.commonmark:commonmark:0.30.0")
+    implementation("org.commonmark:commonmark-ext-gfm-tables:0.30.0")
+    implementation("org.commonmark:commonmark-ext-gfm-strikethrough:0.30.0")
+    implementation("org.commonmark:commonmark-ext-task-list-items:0.30.0")
     implementation(libs.toolbar.compose) {
         // This library uses only Foundation; its published UI demo dependencies are unused.
         exclude(group = "androidx.compose.material")
