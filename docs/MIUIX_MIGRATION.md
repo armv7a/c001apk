@@ -71,12 +71,12 @@ adb shell am instrument -w -e smidNetwork true \
 
 ## 分发校验
 
-`python3 tools/verify_apk.py <APK> --sdk <Android SDK> --certificate-sha256 <预期证书摘要>` 核对独立包名、版本、Android 13 下限、ARM64 原生数盟库、压缩、v2 签名和 16 KiB zipalign。证书解析兼容不同 Build Tools 输出前缀，不允许用 Source Stamp 代替实际签名者。
+`python3 tools/verify_apk.py <APK> --sdk <Android SDK> --certificate-sha256 <预期证书摘要>` 核对独立包名、版本、Android 13 下限、ARM64 原生数盟库、压缩、v2/v3 签名和 16 KiB zipalign。证书解析兼容不同 Build Tools 输出前缀，不允许用 Source Stamp 代替实际签名者。
 
-CI 手动构建，不自动发布。Release 要求 `KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD` 和 `SIGNING_CERT_SHA256`，缺失或签名不符即失败；Debug 使用调试密钥。Gradle 支持同名 `C001APK_` 环境变量及既有 `local.properties`，密钥不打包进源码或产物。
+CI 支持手动构建；推送 `vMAJOR.MINOR.PATCH` 标签会执行测试、Lint、Release 构建和签名校验，再自动发布 APK、校验报告和 SHA256SUMS。也可从 `main` 手动运行 `Publish Release` 并指定已有标签，使用当前工作流重试该标签源码的发布。Release 要求 `KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD` 和 `SIGNING_CERT_SHA256`，缺失或签名不符即失败；Debug 使用调试密钥。Gradle 支持同名 `C001APK_` 环境变量及既有 `local.properties`，密钥不打包进源码或产物。
 
 ## 本轮上游功能移植
 
 完整范围和 33 条 TG-Twilight 提交对应关系见 [移植跟踪](TWILIGHT_PORT.md)。默认分享使用 `www.coolapk1s.com`，官方链接仍能打开；数盟继续使用 native SDK。公告小助手和独立 announcements 分支按用户要求排除。
 
-应用自更新只读取本版本的发布仓库。当前不预置他人的发布仓库；可在设置填写 `owner/repo`，或构建时传入 `-PupdateRepository=owner/repo`。CI 默认使用当前 GitHub 仓库。未配置时手动检查会说明原因，不会引导安装 Flutter 版 APK。
+应用自更新默认读取 `KiritoXDone/c001apk` 的正式 Release；可在设置填写 `owner/repo`，或构建时传入 `-PupdateRepository=owner/repo`。CI 默认使用当前 GitHub 仓库。

@@ -35,9 +35,9 @@
 
 ## 范围与限制
 
-助手未发送真实私信、发帖、点赞或修改远程账号；点赞由用户自行操作确认。多账号切换与失败重试以本地测试验证。此前账号相关自动测试使用游客状态；随后用户自行登录并验证点赞。宽屏/平板及完整验证码人工流程未实测；离线 HTML 已做本地内容/资源限制测试，尚未在真机完整保存。GitHub Actions 配置已更新；本轮将推送源码与工作流，但不主动创建版本标签或执行远端发布。
+助手未发送真实私信、发帖、点赞或修改远程账号；点赞由用户自行操作确认。多账号切换与失败重试以本地测试验证。此前账号相关自动测试使用游客状态；随后用户自行登录并验证点赞。宽屏/平板及完整验证码人工流程未实测；离线 HTML 已做本地内容/资源限制测试，尚未在真机完整保存。最初交付时仅推送源码与工作流，未创建版本标签；后续正式发布结果单独记录。
 
-公告小助手按用户要求排除。自更新默认仓库已设为 `KiritoXDone/c001apk`；当前仅推送源码，尚无正式 APK Release，不会检查或安装 TG-Twilight 的 Flutter APK。
+公告小助手按用户要求排除。自更新默认仓库已设为 `KiritoXDone/c001apk`，不会检查或安装 TG-Twilight 的 Flutter APK。
 
 此前 `.miuix` 包的本地 Release 使用本机调试签名。新包名 `com.example.c001apk.compose` 从 1.3.7 交付开始使用专用发布签名，同一密钥已加密配置到仓库 Actions Secrets，用于后续标签发布与覆盖更新。旧包保留；源码包不包含私钥、local.properties、用户数据或构建缓存。
 
@@ -59,10 +59,19 @@
 
 ## 标签发布 CI
 
-`release.yml` 仅由 `vMAJOR.MINOR.PATCH` 标签触发，复用 `android.yml` 完成验证和固定签名构建，再发布 APK、校验报告、SHA256SUMS 与对应 CHANGELOG 条目。仓库 Secrets 已配置专用签名材料；两个工作流通过 Actionlint、YAML 与内嵌 Shell 语法检查。本轮不主动打标签，不将本地成功构建等同于远端工作流运行成功。
+`release.yml` 由 `vMAJOR.MINOR.PATCH` 标签触发，复用 `android.yml` 完成验证和固定签名构建，再发布 APK、校验报告、SHA256SUMS 与对应 CHANGELOG 条目。仓库 Secrets 已配置专用签名材料；最初两个工作流通过 Actionlint、YAML 与内嵌 Shell 语法检查，但当时未触发远端发布。后续增加手动指定已有标签的重试入口，源码仍固定检出该标签。
 
 专用签名构建经 apksigner 验证为有效 APK v3 签名。校验器接受 Android 13 支持的 v2 或 v3（含 v3.1），仍要求 apksigner 整体验证成功、唯一且匹配的签名证书；Source Stamp 不作为应用签名。校验报告分别记录实际 v2/v3 结果。
 
 ## README 真机截图
 
 按用户后续授权，在 1.3.7 新包中通过 ADB 浏览并截取主页、游客「我的」和外观设置，首页已显示真实数据。原始截图仅保存在本机临时目录；提交到 `docs/screenshots` 的图片已对头像、昵称及通知图标做像素化处理并清除 PNG 元数据。逐张检查处理后的图像，并用像素比较确认掩码外画面未改动。截图浏览不包含发帖、点赞、收藏、创建收藏夹、删除或账号迁移，也不等同于完整界面回归。
+
+## v1.3.7 正式发布
+
+- 按用户指示创建并推送 `v1.3.7`，固定指向 `486fdfdc2ef6d6b401e13eaf99cd7ab8cb7645c0`，未移动或重建标签。
+- 首次发布在 SDK 初始化时因已移除的 `tools` 包失败；工作流改为显式安装 `platform-tools`，从 `main` 使用手动重试入口发布原标签源码。
+- [发布工作流 40107437878](https://github.com/KiritoXDone/c001apk/actions/runs/40107437878) 全部成功：2 项 Python 校验器测试、app 与 media-support 的 JVM 单元测试、Debug Lint、Release 构建、APK 校验和资产上传。本次远端验证针对该标签，不代表其后的提交也已运行所有检查。
+- [v1.3.7 Release](https://github.com/KiritoXDone/c001apk/releases/tag/v1.3.7) 已公开发布，APK 为 `c001apk_1.3.7.298.apk`，同时提供 JSON 校验报告与 SHA256SUMS。发布流程在生成报告和清单前规范化文件名，避免 GitHub 改写括号后清单无法匹配下载文件。
+- 下载公开 APK 后独立复核：版本 `1.3.7` / `298`、包名 `com.example.c001apk.compose`、Android 13 下限、ARM64、专用发布证书、有效 v3 签名及 16 KiB ZIP 对齐均通过，报告与实际 APK 一致。
+- APK SHA-256：`3994bc25e06a43177bedd27af9a8f63d51329fcec7729afbaa52022e5c729490`。发布签名与已交付的新包一致；本次未操作手机或远程账号。

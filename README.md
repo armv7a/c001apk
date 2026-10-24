@@ -94,7 +94,7 @@
 
 当前源码版本为 **1.3.7**，支持 **Android 13 / API 33 及以上的 ARM64 设备**。
 
-项目源码发布在 [KiritoXDone/c001apk](https://github.com/KiritoXDone/c001apk)。目前尚未发布正式 APK Release，可按下方步骤自行构建；配置签名并手动运行 [Android 工作流](.github/workflows/android.yml) 后，也可从 Actions 的 Artifacts 获取构建产物。
+正式 APK 请前往 [GitHub Releases](https://github.com/KiritoXDone/c001apk/releases/latest) 下载，每个版本同时提供签名校验报告与 SHA256SUMS。也可按下方步骤自行构建；配置签名并手动运行 [Android 工作流](.github/workflows/android.yml) 后，可从 Actions 的 Artifacts 获取构建产物。
 
 应用显示名称为 **c001apk**，独立包名为 `com.example.c001apk.compose`，可与其他包名的版本共存。账号与本地数据不会从原版或 Flutter 版自动迁移；同包名、同签名的后续版本可覆盖安装并保留数据。
 
