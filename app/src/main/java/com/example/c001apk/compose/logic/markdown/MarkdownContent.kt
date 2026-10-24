@@ -192,7 +192,9 @@ class MarkdownContent(
                 val text = plainText(document).trim()
                 MarkdownContent(
                     source,
-                    normalized,
+                    nativeLinks.entries.fold(normalized) { value, (marker, label) ->
+                        value.replace(marker, label.replace(Regex("([\\\\\\[\\]`*_])"), "\\\\$1"))
+                    },
                     document,
                     detected,
                     safe.body().html(),

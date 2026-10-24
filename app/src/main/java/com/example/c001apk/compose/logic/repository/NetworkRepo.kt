@@ -95,6 +95,7 @@ constructor(
         feedType: String,
         blockStatus: Int,
         fromFeedAuthor: Int,
+        verifyCaptcha: Boolean = true,
     ) = flowList {
         api2Service
             .getFeedContentReply(
@@ -107,6 +108,8 @@ constructor(
                 feedType,
                 blockStatus,
                 fromFeedAuthor,
+                if (verifyCaptcha) null
+                else com.example.c001apk.compose.logic.network.SkipCaptcha(),
             )
             .await()
     }

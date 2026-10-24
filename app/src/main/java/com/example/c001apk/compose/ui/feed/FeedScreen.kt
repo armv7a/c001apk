@@ -221,6 +221,10 @@ fun FeedScreen(
                         },
                     actions = {
                         if (viewModel.feedState is LoadingState.Success) {
+                            FeedExportAction(
+                                (viewModel.feedState as LoadingState.Success).response,
+                                articleList,
+                            )
                             Box(Modifier.wrapContentSize(Alignment.TopEnd)) {
                                 MoreMenuButton { dropdownMenuExpanded = true }
                                 DropdownMenu(

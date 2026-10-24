@@ -55,6 +55,7 @@ interface ApiService {
         @Query("feedType") feedType: String,
         @Query("blockStatus") blockStatus: Int,
         @Query("fromFeedAuthor") fromFeedAuthor: Int,
+        @retrofit2.http.Tag skipCaptcha: SkipCaptcha? = null,
     ): Call<HomeFeedResponse>
 
     @GET("/v6/search")
