@@ -20,6 +20,7 @@ class ApiSessionStore(
 
     data class Context(val identity: Identity, val revision: Long)
 
+    @androidx.annotation.Keep
     private data class Session(
         val identity: String,
         val value: String,
@@ -29,6 +30,7 @@ class ApiSessionStore(
         val expires: Long,
     )
 
+    @androidx.annotation.Keep
     private data class Validation(
         val identity: String,
         val session: String,
@@ -38,6 +40,7 @@ class ApiSessionStore(
         val generation: Long,
     )
 
+    @androidx.annotation.Keep
     private data class State(val session: Session? = null, val validation: Validation? = null)
 
     private val gson = Gson()

@@ -23,7 +23,7 @@ data class CaptchaChallenge(val id: String, val field: String) {
     companion object {
         fun from(body: JsonObject?): CaptchaChallenge? {
             if (
-                body?.get("messageStatus")?.takeUnless { it.isJsonNull }?.asString !=
+                body?.get("messageStatus")?.takeIf { it.isJsonPrimitive }?.asString !=
                     "err_request_captcha_v2"
             )
                 return null

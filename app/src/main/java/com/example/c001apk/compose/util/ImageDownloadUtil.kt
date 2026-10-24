@@ -10,7 +10,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
-import coil.ImageLoader
+import coil.imageLoader
 import coil.request.ImageRequest
 import com.example.c001apk.compose.R
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +27,12 @@ import java.io.FileOutputStream
  * Created by bggRGjQaUbCoE on 2024/6/7
  */
 object ImageDownloadUtil {
+
+    private val downloadClient = OkHttpClient.Builder()
+        .addNetworkInterceptor(AddCookiesInterceptor)
+        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .build()
 
     suspend fun saveMotionPhoto(
         context: Context,
@@ -85,7 +91,7 @@ object ImageDownloadUtil {
             return
         }
 
-        val imageLoader = ImageLoader.Builder(context).build()
+        val imageLoader = context.imageLoader
 
         val request = ImageRequest.Builder(context)
             .data(imageUrl)
@@ -318,7 +324,7 @@ object ImageDownloadUtil {
     ): Pair<ByteArray?, String?> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val client = downloadClient
                 val request = Request.Builder()
                     .url(imageUrl)
                     .header("User-Agent", userAgent ?: "")
@@ -328,7 +334,9 @@ object ImageDownloadUtil {
                         return@withContext null to null
                     }
                     val body = response.body ?: return@withContext null to null
-                    val bytes = body.bytes()
+                    require(body.contentLength() <= 64 * 1024 * 1024)
+                    val bytes = body.byteStream().readNBytes(64 * 1024 * 1024 + 1)
+                    require(bytes.size <= 64 * 1024 * 1024)
                     val contentType = response.header("Content-Type")
                     bytes to contentType
                 }
