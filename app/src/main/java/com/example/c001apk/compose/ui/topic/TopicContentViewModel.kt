@@ -14,6 +14,8 @@ import com.example.c001apk.compose.logic.repository.BlackListRepo
 import com.example.c001apk.compose.logic.repository.NetworkRepo
 import com.example.c001apk.compose.logic.repository.ProductComparisonRepo
 import com.example.c001apk.compose.logic.repository.ToggleResult
+import com.example.c001apk.compose.logic.state.LoadingState
+import com.example.c001apk.compose.logic.state.FooterState
 import com.example.c001apk.compose.ui.base.BaseViewModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -45,6 +47,23 @@ class TopicContentViewModel @AssistedInject constructor(
     }
 
     var sortType = ProductSortType.REPLY
+
+    fun changeSort(sort: ProductSortType, requestUrl: String, pageTitle: String) {
+        if (sortType == sort && url == requestUrl) return
+        cancelFetch()
+        sortType = sort
+        url = requestUrl
+        title = pageTitle
+        page = 1
+        firstItem = null
+        lastItem = null
+        isEnd = false
+        isLoadMore = false
+        isRefreshing = false
+        loadingState = LoadingState.Loading
+        footerState = FooterState.Success
+        fetchData()
+    }
 
     var productConfigSheetState by mutableStateOf<ProductConfigSheetState>(ProductConfigSheetState.Hidden)
         private set

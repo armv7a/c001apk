@@ -1,6 +1,7 @@
 package com.example.c001apk.compose.ui.component
 
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
@@ -47,6 +48,7 @@ fun MiuixTabScaffold(
     selectedTabIndex: Int,
     onTabSelected: (Int) -> Unit,
     visible: Boolean = true,
+    belowTabs: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     if (!visible) {
@@ -55,11 +57,14 @@ fun MiuixTabScaffold(
     }
     MiuixScaffold(
         topBar = {
-            MiuixTabRow(
-                tabs = tabs,
-                selectedTabIndex = selectedTabIndex,
-                onTabSelected = onTabSelected,
-            )
+            Column {
+                MiuixTabRow(
+                    tabs = tabs,
+                    selectedTabIndex = selectedTabIndex,
+                    onTabSelected = onTabSelected,
+                )
+                belowTabs()
+            }
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->

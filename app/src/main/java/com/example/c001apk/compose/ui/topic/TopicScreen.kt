@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -60,12 +58,9 @@ import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.RadioButton
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Forward
 import top.yukonga.miuix.kmp.icon.extended.Search
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** Created by bggRGjQaUbCoE on 2024/6/9 */
 enum class ProductSortType {
@@ -88,7 +83,7 @@ fun TopicScreen(
 ) {
 
     val viewModel =
-        hiltViewModel<TopicViewModel, TopicViewModel.ViewModelFactory>(key = id) { factory ->
+        hiltViewModel<TopicViewModel, TopicViewModel.ViewModelFactory>(key = tag ?: id) { factory ->
             factory.create(
                 url =
                     when {
@@ -105,11 +100,10 @@ fun TopicScreen(
     val layoutDirection = LocalLayoutDirection.current
     val scrollBehavior = top.yukonga.miuix.kmp.basic.MiuixScrollBehavior(canScroll = { false })
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
-    var sortMenuExpanded by remember { mutableStateOf(false) }
     var pagerState: PagerState = rememberPagerState(pageCount = { 0 })
     val scope = rememberCoroutineScope()
     var refreshState by remember { mutableStateOf(false) }
-    var sortType by rememberSaveable { mutableStateOf(ProductSortType.REPLY) }
+    var sortType by rememberSaveable(tag, id) { mutableStateOf(ProductSortType.REPLY) }
     var isScrollingUp by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -164,28 +158,6 @@ fun TopicScreen(
                                         title = viewModel.title,
                                         dismiss = { dropdownMenuExpanded = false },
                                     )
-                                    if (
-                                        viewModel.entityType == "product" &&
-                                            viewModel.tabList
-                                                ?.getOrNull(pagerState.currentPage)
-                                                ?.title == "讨论"
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(stringResource(id = R.string.menu_sort))
-                                            },
-                                            onClick = {
-                                                dropdownMenuExpanded = false
-                                                sortMenuExpanded = true
-                                            },
-                                            trailingIcon = {
-                                                Icon(
-                                                    imageVector = MiuixIcons.Forward,
-                                                    contentDescription = null,
-                                                )
-                                            },
-                                        )
-                                    }
                                     if (isLogin) {
                                         DropdownMenuItem(
                                             text = {
@@ -220,46 +192,6 @@ fun TopicScreen(
                                             viewModel.blockTopic()
                                         },
                                     )
-                                }
-                                DropdownMenu(
-                                    expanded = sortMenuExpanded,
-                                    onDismissRequest = { sortMenuExpanded = false },
-                                ) {
-                                    ProductSortType.entries.forEach { sort ->
-                                        Row(
-                                            modifier =
-                                                Modifier.clickable {
-                                                    sortMenuExpanded = false
-                                                    sortType = sort
-                                                },
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            RadioButton(
-                                                selected = sort == sortType,
-                                                onClick = {
-                                                    sortMenuExpanded = false
-                                                    sortType = sort
-                                                },
-                                            )
-                                            Text(
-                                                text =
-                                                    stringResource(
-                                                        id =
-                                                            when (sort) {
-                                                                ProductSortType.REPLY ->
-                                                                    R.string.sort_reply
-                                                                ProductSortType.HOT ->
-                                                                    R.string.sort_hot
-                                                                ProductSortType.DATELINE ->
-                                                                    R.string.sort_dateline
-                                                            },
-                                                    ),
-                                                style = MiuixTheme.textStyles.body1,
-                                                modifier =
-                                                    Modifier.fillMaxWidth().padding(end = 16.dp),
-                                            )
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -346,6 +278,18 @@ fun TopicScreen(
                         MiuixTabScaffold(
                             tabs = tabList.map { it.title.orEmpty() },
                             selectedTabIndex = pagerState.currentPage,
+                            belowTabs = {
+                                val tab = tabList.getOrNull(pagerState.currentPage)
+                                if (
+                                    supportsTopicSort(
+                                        viewModel.entityType,
+                                        tab?.title.orEmpty(),
+                                        tab?.url.orEmpty(),
+                                    )
+                                ) {
+                                    TopicSortOptions(sortType) { sortType = it }
+                                }
+                            },
                             onTabSelected = { index ->
                                 if (pagerState.currentPage == index) refreshState = true
                                 scope.launch { pagerState.animateScrollToPage(index) }
