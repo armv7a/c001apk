@@ -132,6 +132,7 @@ abstract class BaseViewModel(
                                 isLoadMore = false
                                 isRefreshing = false
                                 loadMore()
+                                return@collect
                             }
                         }
                     }

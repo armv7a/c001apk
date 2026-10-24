@@ -20,7 +20,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.*
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.TopDownloads
+import top.yukonga.miuix.kmp.icon.extended.Download
 
 @HiltViewModel
 class FeedExportViewModel @Inject constructor(private val exporter: FeedExportService) :
@@ -121,8 +121,8 @@ fun FeedExportAction(feed: HomeFeedResponse.Data, article: List<FeedArticleConte
     LaunchedEffect(model.prepared) {
         if (model.prepared?.warnings?.isEmpty() == true && !model.awaitingFile) save()
     }
-    MiuixActionButton(onClick = { choose = true }, enabled = !model.busy && !model.awaitingFile) {
-        Icon(MiuixIcons.TopDownloads, contentDescription = "保存内容")
+    IconButton(onClick = { choose = true }, enabled = !model.busy && !model.awaitingFile) {
+        Icon(MiuixIcons.Download, contentDescription = "保存内容")
     }
     if (choose)
         MiuixAlertDialog(

@@ -130,6 +130,7 @@ class MarkdownContent(
                             node is Code ||
                             node is FencedCodeBlock ||
                             node is IndentedCodeBlock ||
+                            node is ThematicBreak ||
                             node is TableBlock ||
                             node is Emphasis ||
                             node is StrongEmphasis ||
@@ -193,7 +194,13 @@ class MarkdownContent(
                 MarkdownContent(
                     source,
                     nativeLinks.entries.fold(normalized) { value, (marker, label) ->
-                        value.replace(marker, label.replace(Regex("([\\\\\\[\\]`*_])"), "\\\\$1"))
+                        val escaped = buildString {
+                            label.forEach { char ->
+                                if (char in "\\[]`*_") append('\\')
+                                append(char)
+                            }
+                        }
+                        value.replace(marker, escaped)
                     },
                     document,
                     detected,

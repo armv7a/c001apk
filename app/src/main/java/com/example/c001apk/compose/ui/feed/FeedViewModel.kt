@@ -61,13 +61,14 @@ constructor(
 
     var articleList: List<FeedArticleContentBean>? = null
 
-    init {
-        fetchFeedData()
-    }
-
     var replyCount by mutableStateOf("0")
     var isFav by mutableStateOf(false)
     var isBlocked by mutableStateOf(false)
+    private var feedJob: kotlinx.coroutines.Job? = null
+
+    init {
+        fetchFeedData()
+    }
 
     private suspend fun recordHistory(
         username: String,
@@ -89,8 +90,6 @@ constructor(
                 )
         }
     }
-
-    private var feedJob: kotlinx.coroutines.Job? = null
 
     private fun fetchFeedData(verifyCaptcha: Boolean = false) {
         val requestedId = id
