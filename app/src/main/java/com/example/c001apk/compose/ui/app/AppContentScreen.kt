@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.ui.component.CommonScreen
 import com.example.c001apk.compose.util.ReportType
@@ -28,6 +30,8 @@ fun AppContentScreen(
     onCopyText: (String?) -> Unit,
     onReport: (String, ReportType) -> Unit,
     isScrollingUp: ((Boolean) -> Unit)? = null,
+    listHeader: @Composable () -> Unit,
+    listModifier: Modifier = Modifier,
 ) {
 
     val viewModel =
@@ -46,12 +50,15 @@ fun AppContentScreen(
         refreshState = refreshState,
         resetRefreshState = resetRefreshState,
         paddingValues = windowInsets.asPaddingValues(),
+        listHeader = listHeader,
+        listTopSpacing = 4.dp,
         onViewUser = onViewUser,
         onViewFeed = onViewFeed,
         onOpenLink = onOpenLink,
         onCopyText = onCopyText,
         onReport = onReport,
         isScrollingUp = isScrollingUp,
+        listModifier = listModifier,
     )
 
     val context = LocalContext.current

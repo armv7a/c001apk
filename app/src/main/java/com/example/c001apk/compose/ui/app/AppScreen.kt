@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,7 +44,6 @@ import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
 import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
-import com.example.c001apk.compose.ui.component.MiuixTabScaffold
 import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.ui.component.cards.AppInfoCard
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
@@ -102,6 +102,7 @@ fun AppScreen(
     var refreshState by remember { mutableStateOf(false) }
 
     val state = rememberCollapsingToolbarScaffoldState()
+    val headerScrollConnection = rememberAppHeaderScrollConnection(state.toolbarState)
 
     val windowInsets = WindowInsets.systemBars
     var isScrollingUp by remember { mutableStateOf(false) }
@@ -229,47 +230,54 @@ fun AppScreen(
 
                     if (viewModel.commentStatus == 1) {
 
-                        MiuixTabScaffold(
-                            tabs = tabList,
-                            selectedTabIndex = pagerState.currentPage,
-                            onTabSelected = { index ->
-                                if (pagerState.currentPage == index) refreshState = true
-                                scope.launch { pagerState.animateScrollToPage(index) }
-                            },
-                        ) {
-                            HorizontalPager(
-                                state = pagerState,
-                            ) { index ->
-                                AppContentScreen(
-                                    refreshState = refreshState,
-                                    resetRefreshState = {
-                                        refreshState = false
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.weight(1f),
+                        ) { index ->
+                            AppContentScreen(
+                                refreshState = refreshState,
+                                resetRefreshState = {
+                                    refreshState = false
+                                },
+                                id = viewModel.id,
+                                appCommentSort =
+                                    when (index) {
+                                        0 -> EMPTY_STRING
+                                        1 -> "&sort=dateline_desc"
+                                        2 -> "&sort=popular"
+                                        else -> EMPTY_STRING
                                     },
-                                    id = viewModel.id,
-                                    appCommentSort =
-                                        when (index) {
-                                            0 -> EMPTY_STRING
-                                            1 -> "&sort=dateline_desc"
-                                            2 -> "&sort=popular"
-                                            else -> EMPTY_STRING
-                                        },
-                                    appCommentTitle =
-                                        when (index) {
-                                            0 -> "最近回复"
-                                            1 -> "最新发布"
-                                            2 -> "热度排序"
-                                            else -> "最近回复"
-                                        },
-                                    onViewUser = onViewUser,
-                                    onViewFeed = onViewFeed,
-                                    onOpenLink = onOpenLink,
-                                    onCopyText = onCopyText,
-                                    onReport = onReport,
-                                    isScrollingUp = {
-                                        isScrollingUp = it
+                                appCommentTitle =
+                                    when (index) {
+                                        0 -> "最近回复"
+                                        1 -> "最新发布"
+                                        2 -> "热度排序"
+                                        else -> "最近回复"
                                     },
-                                )
-                            }
+                                onViewUser = onViewUser,
+                                onViewFeed = onViewFeed,
+                                onOpenLink = onOpenLink,
+                                onCopyText = onCopyText,
+                                onReport = onReport,
+                                isScrollingUp = {
+                                    isScrollingUp = it
+                                },
+                                listHeader = {
+                                    AppSortOptions(
+                                        options = tabList,
+                                        selectedIndex = pagerState.currentPage,
+                                        onSelect = { selectedIndex ->
+                                            if (pagerState.currentPage == selectedIndex) {
+                                                refreshState = true
+                                            }
+                                            scope.launch {
+                                                pagerState.animateScrollToPage(selectedIndex)
+                                            }
+                                        },
+                                    )
+                                },
+                                listModifier = Modifier.nestedScroll(headerScrollConnection),
+                            )
                         }
                     } else {
                         HorizontalDivider()
