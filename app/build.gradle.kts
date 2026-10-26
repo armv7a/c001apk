@@ -175,6 +175,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.compose.navigation)
+    implementation(libs.androidx.navigationevent.compose)
     implementation(libs.androidx.constraintlayout.compose)
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation(libs.androidx.recyclerview)

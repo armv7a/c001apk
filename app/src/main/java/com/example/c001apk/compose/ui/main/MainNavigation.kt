@@ -49,6 +49,7 @@ import com.example.c001apk.compose.ui.component.ReadingLayout
 import com.example.c001apk.compose.ui.component.SlideTransition
 import com.example.c001apk.compose.ui.component.WindowWidthSizeClass
 import com.example.c001apk.compose.ui.component.currentWindowSize
+import com.example.c001apk.compose.ui.component.edgeSwipeBack
 import com.example.c001apk.compose.ui.coolpic.CoolPicScreen
 import com.example.c001apk.compose.ui.dyh.DyhScreen
 import com.example.c001apk.compose.ui.event.EventScreen
@@ -149,7 +150,11 @@ fun MainNavigation(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier.fillMaxSize().edgeSwipeBack(
+            enabled = paneVisible || navController.previousBackStackEntry != null,
+        ),
+    ) {
         NavHost(
             modifier =
                 (if (split) Modifier.width(windowSize.width - detailWidth)

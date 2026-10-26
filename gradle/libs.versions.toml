@@ -12,6 +12,7 @@ appiconloader-coil = "1.5.0"
 coilCompose = "2.7.0"
 coilTransformers = "1.0.6"
 composeNavigation = "2.8.0"
+navigationEvent = "1.1.2"
 constraintlayoutCompose = "1.1.0-beta01"
 coreKtx = "1.13.1"
 espressoCore = "3.7.0"
@@ -48,6 +49,7 @@ androidx-activity = { group = "androidx.activity", name = "activity", version.re
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "composeNavigation" }
+androidx-navigationevent-compose = { module = "androidx.navigationevent:navigationevent-compose", version.ref = "navigationEvent" }
 androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintlayoutCompose" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore", version.ref = "androidxDataStore" }
