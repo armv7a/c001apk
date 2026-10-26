@@ -86,8 +86,11 @@ object ImageShowUtil {
         }
         val autoLoadOriginal = shouldAutoLoadTarget()
         val thumbnailList = urlList.mapIndexed { index, url ->
-            if (autoLoadOriginal || !originList[index].mayContainCoolApkRichMedia()) url.http2https
-            else originList[index]
+            val preview =
+                if (autoLoadOriginal || !originList[index].mayContainCoolApkRichMedia())
+                    url.http2https
+                else originList[index]
+            uncroppedPreviewUrl(originList[index], preview)
         }
         Mojito.start(imageView.context) {
             urls(thumbnailList, originList)
@@ -175,12 +178,14 @@ object ImageShowUtil {
         }
         val autoLoadOriginal = shouldAutoLoadTarget()
         val thumbnailList = urlList.mapIndexed { index, url ->
-            when {
-                !autoLoadOriginal && originList[index].mayContainCoolApkRichMedia() ->
-                    originList[index]
-                url.contains(SUFFIX_THUMBNAIL) -> url.http2https
-                else -> "${originList[index]}$SUFFIX_THUMBNAIL"
-            }
+            val preview =
+                when {
+                    !autoLoadOriginal && originList[index].mayContainCoolApkRichMedia() ->
+                        originList[index]
+                    url.contains(SUFFIX_THUMBNAIL) -> url.http2https
+                    else -> "${originList[index]}$SUFFIX_THUMBNAIL"
+                }
+            uncroppedPreviewUrl(originList[index], preview)
         }
         Mojito.start(context) {
             urls(thumbnailList, originList)
@@ -237,12 +242,13 @@ object ImageShowUtil {
         cookie: String? = null,
         userAgent: String? = null,
     ) {
+        val previewUrl = uncroppedPreviewUrl(url.replace(SUFFIX_THUMBNAIL, EMPTY_STRING), url)
         imageView.mojito(
-            url = url,
+            url = previewUrl,
             builder = {
                 val mediaFactories =
                     enableRichMedia(
-                        urls = listOf(url),
+                        urls = listOf(previewUrl),
                     )
                 progressLoader {
                     DefaultPercentProgress()
@@ -265,7 +271,7 @@ object ImageShowUtil {
                             if (fragmentActivity != null) {
                                 showSaveImgDialog(
                                     fragmentActivity,
-                                    url,
+                                    previewUrl,
                                     null,
                                     userAgent,
                                     mediaFactories[position],
