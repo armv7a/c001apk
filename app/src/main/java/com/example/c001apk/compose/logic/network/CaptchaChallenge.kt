@@ -5,7 +5,7 @@ import com.google.gson.JsonParser
 import java.net.URLEncoder
 
 class CaptchaProof(proof: String) {
-    val encoded: String = URLEncoder.encode(proof, Charsets.UTF_8)
+    val encoded: String = URLEncoder.encode(proof, "UTF-8")
 
     override fun toString() = "CaptchaProof(redacted)"
 }

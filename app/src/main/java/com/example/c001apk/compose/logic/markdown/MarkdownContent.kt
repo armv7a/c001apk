@@ -166,7 +166,7 @@ class MarkdownContent(
                         headings[node] =
                             URLEncoder.encode(
                                     if (index == 0) slug else "$slug-$index",
-                                    Charsets.UTF_8,
+                                    "UTF-8",
                                 )
                                 .replace("+", "%20")
                     }
