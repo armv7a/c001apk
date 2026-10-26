@@ -40,6 +40,7 @@ kotlin {
 }
 
 dependencies {
+    testImplementation(libs.junit)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.recyclerview)

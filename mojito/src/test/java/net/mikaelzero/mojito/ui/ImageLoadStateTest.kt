@@ -1,0 +1,49 @@
+package net.mikaelzero.mojito.ui
+
+import org.junit.Assert.*
+import org.junit.Test
+
+class ImageLoadStateTest {
+    @Test
+    fun coldPreviewAndMissingCachedTargetLeaveOriginalActionAvailable() {
+        val state = ImageLoadState(hasDistinctTarget = true)
+        assertTrue(state.beginTarget())
+        state.targetFailed()
+        assertTrue(state.acceptPreview())
+        assertTrue(state.showTargetAction)
+        assertTrue(state.beginTarget())
+        state.acceptTarget()
+        assertFalse(state.showTargetAction)
+    }
+
+    @Test
+    fun lateThumbnailCannotReplaceAnAlreadyLoadedOriginal() {
+        val state = ImageLoadState(hasDistinctTarget = true)
+        assertTrue(state.beginTarget())
+        state.acceptTarget()
+        assertFalse(state.acceptPreview())
+        assertTrue(state.targetLoaded)
+    }
+
+    @Test
+    fun animationAndPreviewCompletionShareOneTargetRequest() {
+        val state = ImageLoadState(hasDistinctTarget = true)
+        state.acceptPreview()
+        assertTrue(state.beginTarget())
+        assertFalse(state.beginTarget())
+        state.targetFailed()
+        assertTrue(state.showTargetAction)
+        assertTrue(state.beginTarget())
+        state.acceptTarget()
+        assertFalse(state.beginTarget())
+    }
+
+    @Test
+    fun completeLongImageIsNotDownloadedAgainAsItsOwnTarget() {
+        val state = ImageLoadState(hasDistinctTarget = false)
+        assertTrue(state.acceptPreview())
+        assertTrue(state.targetLoaded)
+        assertFalse(state.showTargetAction)
+        assertFalse(state.beginTarget())
+    }
+}
