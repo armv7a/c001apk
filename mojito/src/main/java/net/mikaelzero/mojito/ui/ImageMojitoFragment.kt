@@ -333,7 +333,18 @@ class ImageMojitoFragment : Fragment(), IMojitoFragment, OnMojitoViewCallback {
                 }
 
                 override fun onFail(error: Exception?) {
-                    loadImageFail(false)
+                    mainHandler.post {
+                        if (_binding == null || isDetached || context == null || imageLoadState.targetLoaded) {
+                            return@post
+                        }
+                        val target = fragmentConfig.targetUrl
+                        if (needHandleTarget && target != null && target != url) {
+                            // A missing thumbnail must not prevent displaying an available original.
+                            replaceImageUrl(target, forceLoadTarget = true)
+                        } else {
+                            loadImageFail(false)
+                        }
+                    }
                 }
 
                 override fun onSuccess(image: File) {

@@ -24,7 +24,6 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
-import net.mikaelzero.mojito.view.sketch.core.util.SketchUtils;
 import net.mikaelzero.mojito.view.sketch.core.viewfun.FunctionCallbackView;
 
 class TapHelper extends GestureDetector.SimpleOnGestureListener {
@@ -92,17 +91,12 @@ class TapHelper extends GestureDetector.SimpleOnGestureListener {
     @Override
     public boolean onDoubleTap(@NonNull MotionEvent ev) {
         try {
-            float currentScaleFormat = SketchUtils.formatFloat(imageZoomer.getZoomScale(), 2);
-            float finalScale = -1;
-            for (float scale : imageZoomer.getZoomScales().getZoomScales()) {
-                if (finalScale == -1) {
-                    finalScale = scale;
-                } else if (currentScaleFormat < SketchUtils.formatFloat(scale, 2)) {
-                    finalScale = scale;
-                    break;
-                }
-            }
-            imageZoomer.zoom(finalScale, true);
+            ZoomScales scales = imageZoomer.getZoomScales();
+            float initialScale = scales.getInitZoomScale();
+            float finalScale = imageZoomer.getZoomScale() > initialScale + 0.01f
+                    ? initialScale : scales.getMaxZoomScale();
+            // Focus on the tapped content; a second double tap also resets a pinch zoom.
+            imageZoomer.zoom(finalScale, ev.getX(), ev.getY(), true);
         } catch (ArrayIndexOutOfBoundsException e) {
             // Can sometimes happen when getX() and getY() is called
         }

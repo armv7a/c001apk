@@ -5,6 +5,19 @@ import org.junit.Test
 
 class ImageLoadStateTest {
     @Test
+    fun missingThumbnailCanFallBackToOriginalWithoutPreviewSuccess() {
+        val state = ImageLoadState(hasDistinctTarget = true)
+        assertTrue(state.beginTarget())
+        assertFalse(state.beginTarget())
+        state.targetFailed()
+        assertTrue(state.beginTarget())
+        state.acceptTarget()
+        assertTrue(state.targetLoaded)
+        assertFalse(state.acceptPreview())
+        assertFalse(state.showTargetAction)
+    }
+
+    @Test
     fun coldPreviewAndMissingCachedTargetLeaveOriginalActionAvailable() {
         val state = ImageLoadState(hasDistinctTarget = true)
         assertTrue(state.beginTarget())
