@@ -210,7 +210,7 @@ fun TopicScreen(
                     },
                     color = Color.Transparent,
                 )
-                if (pagerState != null) {
+                if (pagerState != null && tabList.size > 1) {
                     MiuixTabRow(
                         tabs = tabList.map { it.title.orEmpty() },
                         selectedTabIndex = pagerState.currentPage,
