@@ -57,6 +57,9 @@ message UserPreferences {
   int32 followSelection = 51;
   bool followSelectionConfigured = 52;
   int32 readingMode = 53;
+  bool floatingNavigationBar = 54;
+  bool blurBars = 55;
+  bool collapseTabsOnScroll = 56;
 }
 
 enum ThemeType{

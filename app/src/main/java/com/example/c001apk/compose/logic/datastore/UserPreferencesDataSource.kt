@@ -23,6 +23,18 @@ constructor(
         it.copy(readingMode = value.coerceIn(0, 2))
     }
 
+    suspend fun setFloatingNavigationBar(value: Boolean) = userPreferences.updateData {
+        it.copy(floatingNavigationBar = value)
+    }
+
+    suspend fun setBlurBars(value: Boolean) = userPreferences.updateData {
+        it.copy(blurBars = value)
+    }
+
+    suspend fun setCollapseTabsOnScroll(value: Boolean) = userPreferences.updateData {
+        it.copy(collapseTabsOnScroll = value)
+    }
+
     suspend fun setThemeMode(value: ThemeMode) =
         withContext(Dispatchers.IO) {
             userPreferences.updateData { it.copy(themeMode = value) }

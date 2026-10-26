@@ -54,7 +54,7 @@ fun MiuixHeader(
     actions: @Composable RowScope.() -> Unit = {},
     windowInsets: WindowInsets = WindowInsets.statusBars.union(WindowInsets.displayCutout),
     color: Color = LocalBarColor.current,
-) {
+) = CompactBar {
     top.yukonga.miuix.kmp.basic.Surface(color = color) {
         Row(
             modifier

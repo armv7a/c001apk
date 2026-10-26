@@ -9,6 +9,7 @@ import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -24,7 +25,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -48,6 +48,7 @@ import com.example.c001apk.compose.ui.collection.CollectionScreen
 import com.example.c001apk.compose.ui.component.ReadingLayout
 import com.example.c001apk.compose.ui.component.SlideTransition
 import com.example.c001apk.compose.ui.component.WindowWidthSizeClass
+import com.example.c001apk.compose.ui.component.currentWindowSize
 import com.example.c001apk.compose.ui.coolpic.CoolPicScreen
 import com.example.c001apk.compose.ui.dyh.DyhScreen
 import com.example.c001apk.compose.ui.event.EventScreen
@@ -103,7 +104,7 @@ fun MainNavigation(
             }
         }
     }
-    val windowSize = LocalWindowInfo.current.containerDpSize
+    val windowSize = currentWindowSize()
     val density = LocalDensity.current
     val readingMode =
         com.example.c001apk.compose.logic.providable.LocalUserPreferences.current.readingMode
@@ -151,7 +152,8 @@ fun MainNavigation(
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
             modifier =
-                Modifier.width(if (split) windowSize.width - detailWidth else windowSize.width)
+                (if (split) Modifier.width(windowSize.width - detailWidth)
+                    else Modifier.fillMaxWidth())
                     .fillMaxHeight()
                     .align(Alignment.CenterEnd)
                     .then(

@@ -1,16 +1,23 @@
 package com.example.c001apk.compose.ui.component
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import top.yukonga.miuix.kmp.basic.Badge
+import top.yukonga.miuix.kmp.basic.FloatingNavigationBar
+import top.yukonga.miuix.kmp.basic.FloatingNavigationBarItem
+import top.yukonga.miuix.kmp.basic.FloatingToolbarDefaults
 import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.basic.NavigationRail
 import top.yukonga.miuix.kmp.basic.NavigationRailItem
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun MiuixNavigationScaffold(
@@ -21,6 +28,7 @@ fun MiuixNavigationScaffold(
     onSelect: (Int) -> Unit,
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    val floating = !wide && LocalUserPreferences.current.floatingNavigationBar
     val badge: @Composable () -> Unit = {
         if (unreadCount > 0) Badge { Text(if (unreadCount > 99) "99+" else unreadCount.toString()) }
     }
@@ -40,8 +48,33 @@ fun MiuixNavigationScaffold(
         Scaffold(
             modifier = Modifier.weight(1f),
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            floatingBottomBar = floating,
             bottomBar = {
-                if (!wide)
+                if (floating) {
+                    val backdrop = LocalBarBackdrop.current
+                    FloatingNavigationBar(
+                        color =
+                            if (backdrop != null) Color.Transparent
+                            else MiuixTheme.colorScheme.surfaceContainer,
+                        modifier =
+                            if (backdrop != null)
+                                Modifier.barBlur(
+                                    backdrop,
+                                    RoundedCornerShape(FloatingToolbarDefaults.CornerRadius),
+                                )
+                            else Modifier,
+                    ) {
+                        items.forEachIndexed { index, item ->
+                            FloatingNavigationBarItem(
+                                selected = selectedIndex == index,
+                                onClick = { onSelect(index) },
+                                icon = item.first,
+                                label = item.second,
+                                badge = if (index == 2) badge else null,
+                            )
+                        }
+                    }
+                } else if (!wide)
                     NavigationBar(color = LocalBarColor.current) {
                         items.forEachIndexed { index, item ->
                             NavigationBarItem(

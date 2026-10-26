@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.Gravity
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.widget.doAfterTextChanged
 import com.example.c001apk.compose.ui.theme.C001apkViewTheme
+import com.example.c001apk.compose.ui.theme.DefaultFontScale
 import top.yukonga.miuix.kmp.basic.Checkbox
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.Text
@@ -54,11 +56,12 @@ class MiuixInputLayout @JvmOverloads constructor(context: Context, attrs: Attrib
         val editor =
             (0 until childCount).map(::getChildAt).filterIsInstance<EditText>().firstOrNull()
                 ?: return
+        editor.setTextSize(TypedValue.COMPLEX_UNIT_PX, editor.textSize * DefaultFontScale)
         if (editor.maxLines > 1) {
             counter =
                 TextView(context).apply {
                     gravity = Gravity.END
-                    textSize = 12f
+                    textSize = 12f * DefaultFontScale
                 }
             addView(counter)
             counter?.setTextColor(colors.primary.toArgb())

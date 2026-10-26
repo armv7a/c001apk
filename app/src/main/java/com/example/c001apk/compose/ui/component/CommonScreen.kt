@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.view.isVisible
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
@@ -30,6 +31,7 @@ fun CommonScreen(
     paddingValues: PaddingValues = PaddingValues(),
     needTopPadding: Boolean = false,
     listHeader: (@Composable () -> Unit)? = null,
+    listTopSpacing: Dp = 12.dp,
     onViewUser: (String) -> Unit,
     onViewFeed: (String, Boolean) -> Unit,
     onOpenLink: (String, String?) -> Unit,
@@ -49,12 +51,13 @@ fun CommonScreen(
     onShowProductConfigComparison: (() -> Unit)? = null,
     onShowGlobalProductComparison: (() -> Unit)? = null,
     onToggleProductEntityComparison: ((HomeFeedResponse.Entities) -> Unit)? = null,
+    listModifier: Modifier = Modifier,
 ) {
 
     val view = LocalView.current
     val layoutDirection = LocalLayoutDirection.current
     val contentTopPadding =
-        12.dp +
+        listTopSpacing +
             LocalTabContentPadding.current.calculateTopPadding() +
             if (needTopPadding) paddingValues.calculateTopPadding() else 0.dp
     val lazyListState = rememberLazyStaggeredGridState()
@@ -92,7 +95,7 @@ fun CommonScreen(
             val columns = ReadingLayout.columns(maxWidth.value, scale)
             LazyVerticalStaggeredGrid(
                 columns = StaggeredGridCells.Fixed(columns),
-                modifier = Modifier.fillMaxSize().scrollEndHaptic(),
+                modifier = listModifier.fillMaxSize().scrollEndHaptic(),
                 contentPadding =
                     PaddingValues(
                         top = contentTopPadding,

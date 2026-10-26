@@ -28,6 +28,18 @@ constructor(
         viewModelScope.launch { userPreferencesRepository.setReadingMode(value) }
     }
 
+    fun setFloatingNavigationBar(value: Boolean) {
+        viewModelScope.launch { userPreferencesRepository.setFloatingNavigationBar(value) }
+    }
+
+    fun setBlurBars(value: Boolean) {
+        viewModelScope.launch { userPreferencesRepository.setBlurBars(value) }
+    }
+
+    fun setCollapseTabsOnScroll(value: Boolean) {
+        viewModelScope.launch { userPreferencesRepository.setCollapseTabsOnScroll(value) }
+    }
+
     var generatingId by mutableStateOf(false)
         private set
 

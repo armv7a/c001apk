@@ -10,6 +10,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
 import androidx.core.text.method.LinkMovementMethodCompat
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
+import com.example.c001apk.compose.ui.theme.DefaultFontScale
 import com.example.c001apk.compose.util.ImageShowUtil
 import com.example.c001apk.compose.view.LinkTextView
 import top.yukonga.miuix.kmp.theme.LocalContentColor
@@ -39,11 +40,6 @@ fun LinkText(
         modifier = modifier,
         factory = { context ->
             LinkTextView(context).apply {
-                setParams(
-                    isReply = isReply,
-                    size = textSize,
-                    fontScale = userPreference.fontScale,
-                )
                 if (isBold) setTypeface(typeface, Typeface.BOLD)
                 setLineSpacing(0.0f, lineSpacingMultiplier)
                 maxLines?.let {
@@ -57,6 +53,11 @@ fun LinkText(
             }
         },
         update = { textView ->
+            textView.setParams(
+                isReply = isReply,
+                size = textSize,
+                fontScale = userPreference.fontScale,
+            )
             textView.setSpText(
                 text = text.orEmpty(),
                 color = primary,
@@ -84,6 +85,7 @@ fun HtmlText(html: String, modifier: Modifier = Modifier) {
         modifier = modifier,
         factory = { context ->
             TextView(context).apply {
+                setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, textSize * DefaultFontScale)
                 movementMethod = LinkMovementMethodCompat.getInstance()
                 setTextColor(contentColor)
                 setLinkTextColor(primary)

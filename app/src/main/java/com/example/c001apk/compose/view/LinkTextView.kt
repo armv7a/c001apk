@@ -12,6 +12,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.widget.TextView
+import com.example.c001apk.compose.ui.theme.DefaultFontScale
 import com.example.c001apk.compose.util.SpannableStringBuilderUtil
 
 //https://stackoverflow.com/questions/8558732
@@ -115,7 +116,7 @@ class LinkTextView : androidx.appcompat.widget.AppCompatTextView {
     ) {
         movementMethod =
             if (isReply) LocalLinkMovementMethod.instanceR else LocalLinkMovementMethod.instance
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, size * fontScale)
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, size * fontScale * DefaultFontScale)
     }
 
 

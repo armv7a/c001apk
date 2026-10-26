@@ -122,8 +122,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             navController = rememberNavController()
 
-            val widthSizeClass = currentWindowWidthSizeClass()
-
             val userPreferences by
                 userPreferencesRepository.data.collectAsStateWithLifecycle(
                     initialValue = initialPreferences,
@@ -205,7 +203,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 badge = viewModel.badge,
                                 resetBadge = viewModel::resetBadge,
-                                widthSizeClass = widthSizeClass,
+                                widthSizeClass = currentWindowWidthSizeClass(),
                             )
                         }
                     }

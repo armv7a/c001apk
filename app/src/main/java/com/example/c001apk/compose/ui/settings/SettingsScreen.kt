@@ -27,7 +27,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -53,6 +52,7 @@ import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
 import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.MoreMenuButton
+import com.example.c001apk.compose.ui.component.currentWindowSize
 import com.example.c001apk.compose.ui.component.icons.EmojiEmotions
 import com.example.c001apk.compose.ui.component.icons.Smartphone
 import com.example.c001apk.compose.ui.component.icons.Swatch
@@ -119,7 +119,7 @@ fun SettingsScreen(
     val prefs = LocalUserPreferences.current
     val layoutDirection = LocalLayoutDirection.current
     val context = LocalContext.current
-    val wide = LocalWindowInfo.current.containerDpSize.width >= 840.dp
+    val wide = currentWindowSize().width >= 840.dp
     val routeSection = SettingsSection.entries.firstOrNull { it.name == section }
     var wideSection by
         rememberSaveable(section) {
@@ -307,6 +307,30 @@ fun SettingsScreen(
                             }
                             item(key = "Appearance_1") {
                                 PreferenceGroup(title = "显示") {
+                                    SwitchListItem(
+                                        value = prefs.floatingNavigationBar,
+                                        leadingImageVector = MiuixIcons.ScreenMirroring,
+                                        headlineText = "悬浮底栏",
+                                        supportingText = "在手机布局中使用悬浮导航栏",
+                                    ) {
+                                        viewModel.setFloatingNavigationBar(it)
+                                    }
+                                    SwitchListItem(
+                                        value = prefs.blurBars,
+                                        leadingImageVector = MiuixIcons.Theme,
+                                        headlineText = "模糊效果",
+                                        supportingText = "模糊顶部栏和底部栏后方的内容",
+                                    ) {
+                                        viewModel.setBlurBars(it)
+                                    }
+                                    SwitchListItem(
+                                        value = prefs.collapseTabsOnScroll,
+                                        leadingImageVector = MiuixIcons.ScreenMirroring,
+                                        headlineText = "滚动时收起标签栏",
+                                        supportingText = "上滑收起 Tab 栏，下滑重新展开",
+                                    ) {
+                                        viewModel.setCollapseTabsOnScroll(it)
+                                    }
                                     DropdownListItem(
                                         value = prefs.readingMode,
                                         headlineText = "分栏阅读",

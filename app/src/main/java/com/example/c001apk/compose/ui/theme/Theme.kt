@@ -86,7 +86,10 @@ fun C001apkComposeTheme(
             LocalHapticFeedback provides haptics,
             LocalContentColor provides colors.onSurface,
             LocalDensity provides
-                Density(density.density * contentScale, density.fontScale * fontScale),
+                Density(
+                    density.density * contentScale,
+                    density.fontScale * fontScale * DefaultFontScale,
+                ),
         ) {
             content()
         }

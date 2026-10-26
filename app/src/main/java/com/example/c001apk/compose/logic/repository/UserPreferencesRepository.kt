@@ -20,6 +20,14 @@ constructor(
 
     suspend fun setReadingMode(value: Int) = userPreferencesDataSource.setReadingMode(value)
 
+    suspend fun setFloatingNavigationBar(value: Boolean) =
+        userPreferencesDataSource.setFloatingNavigationBar(value)
+
+    suspend fun setBlurBars(value: Boolean) = userPreferencesDataSource.setBlurBars(value)
+
+    suspend fun setCollapseTabsOnScroll(value: Boolean) =
+        userPreferencesDataSource.setCollapseTabsOnScroll(value)
+
     suspend fun setThemeMode(value: ThemeMode) = userPreferencesDataSource.setThemeMode(value)
 
     suspend fun setMaterialYou(value: Boolean) = userPreferencesDataSource.setMaterialYou(value)

@@ -66,6 +66,9 @@ data class UserPreferencesCompat(
     val quietFollow: Boolean = false,
     val followSelection: Int = 1,
     val readingMode: Int = 0,
+    val floatingNavigationBar: Boolean = false,
+    val blurBars: Boolean = false,
+    val collapseTabsOnScroll: Boolean = false,
 ) {
     constructor(
         original: UserPreferences,
@@ -124,6 +127,9 @@ data class UserPreferencesCompat(
             },
         quietFollow = original.quietFollow,
         readingMode = original.readingMode.coerceIn(0, 2),
+        floatingNavigationBar = original.floatingNavigationBar,
+        blurBars = original.blurBars,
+        collapseTabsOnScroll = original.collapseTabsOnScroll,
         followSelection =
             if (original.followSelectionConfigured) original.followSelection.coerceIn(0, 5)
             else original.followTypeValue.takeIf { it in 1..4 } ?: 1,
@@ -202,6 +208,9 @@ data class UserPreferencesCompat(
             .setFollowSelection(followSelection)
             .setFollowSelectionConfigured(true)
             .setReadingMode(readingMode)
+            .setFloatingNavigationBar(floatingNavigationBar)
+            .setBlurBars(blurBars)
+            .setCollapseTabsOnScroll(collapseTabsOnScroll)
             .build()
 
     companion object {

@@ -61,7 +61,7 @@ import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Link
-import top.yukonga.miuix.kmp.icon.extended.Messages
+import com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons
 import top.yukonga.miuix.kmp.squircle.squircleClip
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -220,7 +220,7 @@ fun FeedBottomInfo(
         )
 
         IconText(
-            imageVector = MiuixIcons.Messages,
+            imageVector = FlutterProfileIcons.Comment,
             title = replyNum,
             onClick = onViewFeed,
         )
