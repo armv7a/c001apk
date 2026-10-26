@@ -34,7 +34,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.HapticFeedbackConstantsCompat
@@ -57,6 +56,7 @@ import com.example.c001apk.compose.databinding.ItemCaptchaBinding
 import com.example.c001apk.compose.logic.model.OSSUploadPrepareModel
 import com.example.c001apk.compose.ui.component.MiuixViewDialogBuilder
 import com.example.c001apk.compose.ui.feed.reply.emoji.EmojiPagerAdapter
+import com.example.c001apk.compose.ui.feed.reply.emoji.updateEmojiCategoryStyle
 import com.example.c001apk.compose.util.EmojiTextWatcher
 import com.example.c001apk.compose.util.EmojiUtils
 import com.example.c001apk.compose.util.EmojiUtils.coolBList
@@ -666,11 +666,7 @@ class ReplyActivity :
                             }
                     gravity = Gravity.CENTER
                     text = listOf("最近", "默认", "酷币")[i]
-                    background =
-                        AppCompatResources.getDrawable(
-                            this@ReplyActivity,
-                            R.drawable.selector_bg_trans,
-                        )
+                    updateEmojiCategoryStyle(i == binding.emojiPanel.currentItem)
                     setOnClickListener {
                         binding.emojiPanel.setCurrentItem(i, false)
                     }
@@ -704,25 +700,7 @@ class ReplyActivity :
                     for (i in 0 until binding.indicator.childCount) {
                         with(binding.indicator.getChildAt(i)) {
                             if (this is TextView) {
-                                background =
-                                    AppCompatResources.getDrawable(
-                                        this@ReplyActivity,
-                                        if (i / 2 == position)
-                                            R.drawable.selector_emoji_indicator_selected
-                                        else R.drawable.selector_emoji_indicator,
-                                    )
-                                setTextColor(
-                                    if (i / 2 == position)
-                                        com.example.c001apk.compose.ui.theme
-                                            .miuixViewColors(this@ReplyActivity)
-                                            .onPrimary
-                                            .toArgb()
-                                    else
-                                        com.example.c001apk.compose.ui.theme
-                                            .miuixViewColors(this@ReplyActivity)
-                                            .onSurface
-                                            .toArgb(),
-                                )
+                                updateEmojiCategoryStyle(i / 2 == position)
                             }
                         }
                     }
