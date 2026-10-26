@@ -2,8 +2,8 @@ package com.example.c001apk.compose.ui.message
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,20 +50,15 @@ fun MessageScreen(
     val context = LocalContext.current
     val layoutDirection = LocalLayoutDirection.current
     val prefs = LocalUserPreferences.current
+    val listState = rememberLazyListState()
     val viewModel =
         hiltViewModel<MessageViewModel, MessageViewModel.ViewModelFactory> { factory ->
             factory.create(url = "/v6/notification/list")
         }
     androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-        if (prefs.isLogin) viewModel.refresh()
+        if (prefs.isLogin) viewModel.refreshSilently()
     }
     var showInboxDialog by remember { mutableStateOf(false) }
-
-    LaunchedEffect(prefs.isLogin) {
-        if (prefs.isLogin && viewModel.fffList.isEmpty()) {
-            viewModel.refresh()
-        }
-    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -110,6 +105,7 @@ fun MessageScreen(
                     val sideInset = ((maxWidth - 800.dp) / 2).coerceAtLeast(0.dp)
                     LazyColumn(
                         Modifier.fillMaxSize(),
+                        state = listState,
                         contentPadding =
                             PaddingValues(
                                 start = sideInset,
@@ -154,7 +150,7 @@ fun MessageScreen(
                             )
                         }
                         item(key = "messagesTitle") { ProfileSectionTitle("消息") }
-                        items(5) { index ->
+                        items(5, key = { "message_$it" }) { index ->
                             MessageListCard(
                                 modifier =
                                     Modifier.padding(horizontal = 12.dp)

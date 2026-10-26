@@ -14,14 +14,14 @@ import com.example.c001apk.compose.util.CookieUtil.contacts_follow
 import com.example.c001apk.compose.util.CookieUtil.feedlike
 import com.example.c001apk.compose.util.CookieUtil.isLogin
 import com.example.c001apk.compose.util.CookieUtil.message
-import com.example.c001apk.compose.util.CookieUtil.uid
+import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.encode
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 /** Created by bggRGjQaUbCoE on 2024/6/11 */
@@ -52,60 +52,66 @@ constructor(
 
     override suspend fun customFetchData() = networkRepo.getMessage(url, page, lastItem)
 
-    private fun fetchProfile() =
-        viewModelScope.launch(Dispatchers.IO) {
-            val session = com.example.c001apk.compose.util.CookieUtil.accountSession
-            networkRepo.getProfile(session.uid).collect { result ->
-                if (
-                    session.revision !=
-                        com.example.c001apk.compose.util.CookieUtil.accountSession.revision
-                )
-                    return@collect
-                val data = result.getOrNull()
-                if (data?.data != null) {
-                    fffList =
-                        listOf(
-                            data.data.feed?.id ?: "0",
-                            data.data.follow ?: "0",
-                            data.data.fans ?: "0",
-                        )
-                    accounts.refreshProfile(
-                        session.revision,
-                        avatar = data.data.userAvatar,
-                        username = data.data.username.encode,
-                        level = data.data.level,
-                        experience = data.data.experience,
-                        nextLevelExperience = data.data.nextLevelExperience,
+    private suspend fun fetchProfile(session: CookieUtil.AccountSession) {
+        networkRepo.getProfile(session.uid).collect { result ->
+            if (session.revision != CookieUtil.accountSession.revision) return@collect
+            val data = result.getOrNull()
+            if (data?.data != null) {
+                fffList =
+                    listOf(
+                        data.data.feed?.id ?: "0",
+                        data.data.follow ?: "0",
+                        data.data.fans ?: "0",
                     )
-                } else {
-                    result.exceptionOrNull()?.printStackTrace()
-                }
+                accounts.refreshProfile(
+                    session.revision,
+                    avatar = data.data.userAvatar,
+                    username = data.data.username.encode,
+                    level = data.data.level,
+                    experience = data.data.experience,
+                    nextLevelExperience = data.data.nextLevelExperience,
+                )
+            } else {
+                result.exceptionOrNull()?.printStackTrace()
             }
         }
+    }
 
-    private fun onCheckCount() =
-        viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.checkCount().collect { result ->
-                result.getOrNull()?.data?.let {
-                    com.example.c001apk.compose.util.CookieUtil.notification = it.notification
-                    badgeList =
-                        listOf(
-                            it.atme,
-                            it.atcommentme,
-                            it.feedlike,
-                            it.contactsFollow,
-                            it.message + it.notification,
-                        )
-                }
+    private suspend fun onCheckCount(session: CookieUtil.AccountSession) {
+        networkRepo.checkCount().collect { result ->
+            if (session.revision != CookieUtil.accountSession.revision) return@collect
+            result.getOrNull()?.data?.let {
+                CookieUtil.notification = it.notification
+                badgeList =
+                    listOf(
+                        it.atme,
+                        it.atcommentme,
+                        it.feedlike,
+                        it.contactsFollow,
+                        it.message + it.notification,
+                    )
             }
         }
+    }
 
-    override fun refresh() {
-        if (!isLogin || isRefreshing) return
-        isRefreshing = true
-        viewModelScope.launch {
+    private var refreshJob: Job? = null
+
+    override fun refresh() = refresh(showIndicator = true)
+
+    fun refreshSilently() = refresh(showIndicator = false)
+
+    private fun refresh(showIndicator: Boolean) {
+        if (!isLogin) return
+        // A manual pull can show progress for an already running background refresh.
+        if (showIndicator) isRefreshing = true
+        if (refreshJob?.isActive == true) return
+        val session = CookieUtil.accountSession
+        refreshJob = viewModelScope.launch {
             try {
-                joinAll(fetchProfile(), onCheckCount())
+                coroutineScope {
+                    launch { fetchProfile(session) }
+                    launch { onCheckCount(session) }
+                }
             } finally {
                 isRefreshing = false
             }

@@ -85,3 +85,7 @@ CI 支持手动构建；推送 `vMAJOR.MINOR.PATCH` 标签会执行测试、Lint
 完整范围和 33 条 TG-Twilight 提交对应关系见 [移植跟踪](TWILIGHT_PORT.md)。默认分享使用 `www.coolapk1s.com`，官方链接仍能打开；数盟继续使用 native SDK。公告小助手和独立 announcements 分支按用户要求排除。
 
 应用自更新默认读取 `KiritoXDone/c001apk` 的正式 Release；可在设置填写 `owner/repo`，或构建时传入 `-PupdateRepository=owner/repo`。CI 默认使用当前 GitHub 仓库。
+
+## 我的页面恢复
+
+“我的”页在恢复前台时静默更新个人资料、关注/粉丝数量和消息角标，保留列表状态及已有内容，不启动下拉刷新动画。手动下拉仍显示进度；如果后台请求尚未结束，手动刷新复用该请求。资料和角标结果均检查账号版本，账号切换后的旧响应不能写回。自动首次刷新与恢复刷新合并为一个入口。
