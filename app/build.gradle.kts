@@ -21,7 +21,7 @@ val gitCommitCount =
         .asText
         .map { it.trim().toInt() }
         .get()
-val appVersion = providers.gradleProperty("appVersion").orElse("1.3.9").get()
+val appVersion = providers.gradleProperty("appVersion").orElse("1.4.0").get()
 
 require(Regex("[0-9]+\\.[0-9]+\\.[0-9]+").matches(appVersion))
 
