@@ -60,6 +60,7 @@ message UserPreferences {
   bool floatingNavigationBar = 54;
   bool blurBars = 55;
   bool collapseTabsOnScroll = 56;
+  bool hideTradeLinkHint = 57;
 }
 
 enum ThemeType{

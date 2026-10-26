@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
+import com.example.c001apk.compose.logic.model.purchasePriceSummary
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.base.LikeType
 import com.example.c001apk.compose.ui.component.cards.AppCard
@@ -34,6 +35,7 @@ import com.example.c001apk.compose.ui.component.cards.MessageCard
 import com.example.c001apk.compose.ui.component.cards.NotificationCard
 import com.example.c001apk.compose.ui.component.cards.ProductConfigListCard
 import com.example.c001apk.compose.ui.component.cards.ProductListCard
+import com.example.c001apk.compose.ui.component.cards.PurchasePriceSummaryCard
 import com.example.c001apk.compose.ui.component.cards.TextCard
 import com.example.c001apk.compose.ui.component.cards.TitleCard
 import com.example.c001apk.compose.util.ReportType
@@ -164,6 +166,10 @@ fun FeedListEntry(
     when (val type = item.entityType) {
         "card" ->
             when (item.entityTemplate) {
+                "subTabFeedCard6" -> item.purchasePriceSummary()?.let {
+                    PurchasePriceSummaryCard(it, onViewFeed, Modifier.padding(horizontal = 12.dp))
+                }
+
                 "imageCarouselCard_1" ->
                     CarouselCard(
                         modifier = Modifier.padding(horizontal = 12.dp),

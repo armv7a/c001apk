@@ -37,6 +37,9 @@ import androidx.constraintlayout.compose.Dimension
 import com.example.c001apk.compose.R
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
+import com.example.c001apk.compose.logic.model.feedPriceDisplay
+import com.example.c001apk.compose.logic.model.tradeLink
+import com.example.c001apk.compose.util.openInBrowser
 import com.example.c001apk.compose.ui.base.LikeType
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.component.IconText
@@ -57,11 +60,11 @@ import com.example.c001apk.compose.util.ShareType
 import com.example.c001apk.compose.util.Utils.richToString
 import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.getShareText
+import com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Link
-import com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons
 import top.yukonga.miuix.kmp.squircle.squircleClip
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -80,6 +83,8 @@ fun FeedCard(
     onLike: ((String, Int, LikeType) -> Unit)? = null,
     onDelete: ((String, LikeType, String?) -> Unit)? = null,
     onBlockUser: (String) -> Unit,
+    showTradeLinkHint: Boolean = false,
+    onDismissTradeLinkHint: () -> Unit = {},
 ) {
     val horizontal = 16.dp
     Card(
@@ -114,6 +119,8 @@ fun FeedCard(
             isFeedContent = isFeedContent,
             onViewFeed = onViewFeed,
             onCopyText = onCopyText,
+            showTradeLinkHint = showTradeLinkHint,
+            onDismissTradeLinkHint = onDismissTradeLinkHint,
         )
         FeedBottomInfo(
             modifier =
@@ -244,7 +251,19 @@ fun FeedMessage(
     isFeedContent: Boolean,
     onViewFeed: (String, Boolean) -> Unit,
     onCopyText: (String?) -> Unit,
+    showTradeLinkHint: Boolean = false,
+    onDismissTradeLinkHint: () -> Unit = {},
 ) {
+    val price = remember(data.subTabId, data.purchasePrice, data.secondHandInfo, data.feedType) {
+        data.feedPriceDisplay()
+    }
+    val tradeLink = remember(data.secondHandInfo, data.feedType) { data.tradeLink() }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    FeedProductInfo(
+        price, tradeLink, isFeedContent, context::openInBrowser, modifier.padding(top = 8.dp),
+        showLinkHint = showTradeLinkHint,
+        onDismissLinkHint = onDismissTradeLinkHint,
+    )
 
     if (!data.messageTitle.isNullOrEmpty()) {
         LinkText(

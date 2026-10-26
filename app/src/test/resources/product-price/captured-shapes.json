@@ -1,0 +1,70 @@
+{
+  "data": [
+    {
+      "entityType": "card",
+      "entityTemplate": "subTabFeedCard6",
+      "extraData": "{\"final_price\": \"2508.00\", \"update_time\": \"2026-10-25 14:58\", \"feed_id\": 12345}"
+    },
+    {
+      "entityType": "feed",
+      "entityTemplate": "feed",
+      "feedType": "feed",
+      "tsubid": 6,
+      "tsubdata": "{\"final_price\":2648,\"config_id\":9324,\"config_name\":\"12GB+256GB\"}"
+    },
+    {
+      "entityType": "feed",
+      "entityTemplate": "feed",
+      "feedType": "feed",
+      "tsubid": 6,
+      "tsubdata": "{\"final_price\":3630,\"config_id\":9332,\"config_name\":\"16GB+512GB\"}"
+    },
+    {
+      "entityType": "feed",
+      "entityTemplate": "feed",
+      "feedType": "feed",
+      "tsubid": 6,
+      "tsubdata": "{\"final_price\":3581,\"config_id\":9332,\"config_name\":\"16GB+512GB\"}"
+    },
+    {
+      "entityType": "feed",
+      "entityTemplate": "feed",
+      "feedType": "feed",
+      "tsubid": 6,
+      "tsubdata": "{\"final_price\":\"3708\",\"config_name\":\"16GB+512GB\",\"config_id\":9332}"
+    },
+    {
+      "entityType": "feed",
+      "entityTemplate": "feed",
+      "feedType": "ershou",
+      "tsubid": 0,
+      "tsubdata": "",
+      "ershou_info": {
+        "product_price": 3900,
+        "product_config_data": "{\"configTitle\":\"16GB+512GB\",\"ram\":\"16GB\",\"rom\":\"512GB\"}"
+      }
+    },
+    {
+      "entityType": "feed",
+      "entityTemplate": "feed",
+      "feedType": "ershou",
+      "tsubid": 0,
+      "tsubdata": "",
+      "ershou_info": {
+        "product_price": 3950,
+        "product_config_data": "{\"configTitle\":\"16GB+512GB\",\"ram\":\"16GB\",\"rom\":\"512GB\"}"
+      }
+    },
+    {
+      "entityType": "feed",
+      "entityTemplate": "feed",
+      "feedType": "ershou",
+      "tsubid": 0,
+      "tsubdata": "",
+      "ershou_info": {
+        "product_price": 3900,
+        "product_config_data": ""
+      }
+    }
+  ]
+}

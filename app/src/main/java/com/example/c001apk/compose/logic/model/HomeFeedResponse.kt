@@ -138,6 +138,17 @@ data class HomeFeedResponse(
         val entityType: String?,
         val type: String?,
         val feedType: String?,
+        @SerializedName("tsubid")
+        val subTabId: String? = null,
+        @SerializedName("tsubdata")
+        @JsonAdapter(EmbeddedObjectAdapter::class)
+        val purchasePrice: PurchasePriceInfo? = null,
+        @SerializedName("ershou_info")
+        @JsonAdapter(EmbeddedObjectAdapter::class)
+        val secondHandInfo: SecondHandInfo? = null,
+        @SerializedName("extraData")
+        @JsonAdapter(EmbeddedObjectAdapter::class)
+        val priceSummary: PurchasePriceInfo? = null,
         val fetchType: String?,
         val entityTemplate: String?,
         var entities: MutableList<Entities>?,

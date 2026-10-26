@@ -65,12 +65,6 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Search
 
 /** Created by bggRGjQaUbCoE on 2024/6/9 */
-enum class ProductSortType {
-    REPLY,
-    HOT,
-    DATELINE,
-}
-
 @Composable
 fun TopicScreen(
     onBackClick: () -> Unit,
@@ -113,7 +107,6 @@ fun TopicScreen(
         } else null
     val scope = rememberCoroutineScope()
     var refreshState by remember { mutableStateOf(false) }
-    var sortType by rememberSaveable(tag, id) { mutableStateOf(ProductSortType.REPLY) }
     var isScrollingUp by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -305,8 +298,6 @@ fun TopicScreen(
                                 productLogo = viewModel.productLogo,
                                 productConfigRows = viewModel.productConfigRows,
                                 productSheetTopPadding = with(density) { titleBarHeight.toDp() },
-                                sortType = sortType,
-                                onSortChange = { sortType = it },
                                 onViewUser = onViewUser,
                                 onViewFeed = onViewFeed,
                                 onOpenLink = onOpenLink,

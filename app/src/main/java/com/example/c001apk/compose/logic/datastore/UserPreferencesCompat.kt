@@ -69,6 +69,7 @@ data class UserPreferencesCompat(
     val floatingNavigationBar: Boolean = false,
     val blurBars: Boolean = false,
     val collapseTabsOnScroll: Boolean = false,
+    val hideTradeLinkHint: Boolean = false,
 ) {
     constructor(
         original: UserPreferences,
@@ -130,6 +131,7 @@ data class UserPreferencesCompat(
         floatingNavigationBar = original.floatingNavigationBar,
         blurBars = original.blurBars,
         collapseTabsOnScroll = original.collapseTabsOnScroll,
+        hideTradeLinkHint = original.hideTradeLinkHint,
         followSelection =
             if (original.followSelectionConfigured) original.followSelection.coerceIn(0, 5)
             else original.followTypeValue.takeIf { it in 1..4 } ?: 1,
@@ -211,6 +213,7 @@ data class UserPreferencesCompat(
             .setFloatingNavigationBar(floatingNavigationBar)
             .setBlurBars(blurBars)
             .setCollapseTabsOnScroll(collapseTabsOnScroll)
+            .setHideTradeLinkHint(hideTradeLinkHint)
             .build()
 
     companion object {

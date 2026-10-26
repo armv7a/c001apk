@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
+import com.example.c001apk.compose.logic.model.purchasePriceSummary
 import com.example.c001apk.compose.logic.model.ProductConfigData
 import com.example.c001apk.compose.logic.model.ProductComparisonSelection
 import com.example.c001apk.compose.logic.model.ProductSpecSection
@@ -49,7 +50,10 @@ class TopicContentViewModel @AssistedInject constructor(
     var sortType = ProductSortType.REPLY
 
     fun changeSort(sort: ProductSortType, requestUrl: String, pageTitle: String) {
-        if (sortType == sort && url == requestUrl) return
+        if (url == requestUrl) {
+            sortType = sort
+            return
+        }
         cancelFetch()
         sortType = sort
         url = requestUrl
@@ -80,7 +84,8 @@ class TopicContentViewModel @AssistedInject constructor(
         networkRepo.getDataList(url, title, EMPTY_STRING, lastItem, page)
 
     override fun isAdditionalItemSupported(item: HomeFeedResponse.Data): Boolean =
-        title == "参数" && item.entityTemplate in PRODUCT_CARD_TEMPLATES
+        (title == "参数" && item.entityTemplate in PRODUCT_CARD_TEMPLATES) ||
+            item.purchasePriceSummary() != null
 
     override fun handleLoadMore(response: List<HomeFeedResponse.Data>): List<HomeFeedResponse.Data> {
         return response.distinctBy { it.entityId }

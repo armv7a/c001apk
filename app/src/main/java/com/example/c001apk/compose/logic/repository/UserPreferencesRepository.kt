@@ -28,6 +28,9 @@ constructor(
     suspend fun setCollapseTabsOnScroll(value: Boolean) =
         userPreferencesDataSource.setCollapseTabsOnScroll(value)
 
+    suspend fun setHideTradeLinkHint(value: Boolean) =
+        userPreferencesDataSource.setHideTradeLinkHint(value)
+
     suspend fun setThemeMode(value: ThemeMode) = userPreferencesDataSource.setThemeMode(value)
 
     suspend fun setMaterialYou(value: Boolean) = userPreferencesDataSource.setMaterialYou(value)

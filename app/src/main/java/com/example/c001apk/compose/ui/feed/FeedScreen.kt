@@ -452,6 +452,8 @@ fun FeedScreen(
                                     item(key = "feed") {
                                         FeedCard(
                                             isFeedContent = true,
+                                            showTradeLinkHint = !com.example.c001apk.compose.logic.providable.LocalUserPreferences.current.hideTradeLinkHint,
+                                            onDismissTradeLinkHint = viewModel::dismissTradeLinkHint,
                                             data = response,
                                             onViewUser = onViewUser,
                                             onViewFeed = { targetId, replies ->

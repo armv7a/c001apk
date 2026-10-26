@@ -5,8 +5,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
@@ -27,8 +32,6 @@ fun TopicContentScreen(
     productLogo: String?,
     productConfigRows: List<HomeFeedResponse.ProductConfig>,
     productSheetTopPadding: Dp,
-    sortType: ProductSortType,
-    onSortChange: (ProductSortType) -> Unit,
     paddingValues: PaddingValues,
     onViewUser: (String) -> Unit,
     onViewFeed: (String, Boolean) -> Unit,
@@ -48,10 +51,14 @@ fun TopicContentScreen(
     val comparisonSelections by viewModel.productComparisonSelections.collectAsStateWithLifecycle()
     val selectedComparisonIds = comparisonSelections.mapNotNullTo(linkedSetOf()) { it.config.id }
 
-    val sortable = supportsTopicSort(entityType, title, url)
+    val sortOptions = remember(url) { topicSortOptions(url) }
+    var sortType by rememberSaveable(entityType, id, url) {
+        mutableStateOf(sortOptions.firstOrNull()?.value ?: ProductSortType.REPLY)
+    }
+    val sortable = sortOptions.isNotEmpty()
     if (sortable) {
         LaunchedEffect(sortType, url) {
-            viewModel.changeSort(sortType, sortedTopicUrl(url, entityType, id, sortType), title)
+            viewModel.changeSort(sortType, sortedTopicUrl(url, sortType), title)
         }
     }
 
@@ -62,9 +69,10 @@ fun TopicContentScreen(
             resetRefreshState = resetRefreshState,
             paddingValues = paddingValues,
             needTopPadding = true,
+            listTopSpacing = if (sortable) 4.dp else 12.dp,
             listHeader =
                 if (sortable) {
-                    { TopicSortOptions(sortType, onSortChange) }
+                    { TopicSortOptions(sortOptions, sortType) { sortType = it } }
                 } else null,
             onViewUser = onViewUser,
             onViewFeed = onViewFeed,

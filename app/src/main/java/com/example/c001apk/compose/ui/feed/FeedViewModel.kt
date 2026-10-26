@@ -39,6 +39,7 @@ constructor(
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
     private val historyFavoriteRepo: HistoryFavoriteRepo,
+    private val preferences: com.example.c001apk.compose.logic.repository.UserPreferencesRepository,
 ) : BaseViewModel(networkRepo, blackListRepo) {
 
     @AssistedFactory
@@ -79,6 +80,11 @@ constructor(
 
     private var deleteJob: kotlinx.coroutines.Job? = null
     private var localFavoriteBusy = false
+
+    fun dismissTradeLinkHint() {
+        viewModelScope.launch { preferences.setHideTradeLinkHint(true) }
+    }
+
     val collections =
         FeedCollections(
             viewModelScope,

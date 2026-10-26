@@ -35,6 +35,10 @@ constructor(
         it.copy(collapseTabsOnScroll = value)
     }
 
+    suspend fun setHideTradeLinkHint(value: Boolean) = userPreferences.updateData {
+        it.copy(hideTradeLinkHint = value)
+    }
+
     suspend fun setThemeMode(value: ThemeMode) =
         withContext(Dispatchers.IO) {
             userPreferences.updateData { it.copy(themeMode = value) }
