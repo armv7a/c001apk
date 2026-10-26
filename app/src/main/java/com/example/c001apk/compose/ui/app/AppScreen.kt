@@ -66,6 +66,7 @@ import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Search
+import top.yukonga.miuix.kmp.utils.springAnimateToPage
 
 /** Created by bggRGjQaUbCoE on 2024/6/10 */
 @OptIn(ExperimentalToolbarApi::class)
@@ -271,7 +272,7 @@ fun AppScreen(
                                                 refreshState = true
                                             }
                                             scope.launch {
-                                                pagerState.animateScrollToPage(selectedIndex)
+                                                pagerState.springAnimateToPage(selectedIndex)
                                             }
                                         },
                                     )

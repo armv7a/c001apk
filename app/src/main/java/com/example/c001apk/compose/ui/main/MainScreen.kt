@@ -1,10 +1,11 @@
 package com.example.c001apk.compose.ui.main
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,13 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.c001apk.compose.logic.model.UpdateCheckItem
 import com.example.c001apk.compose.ui.component.MiuixNavigationScaffold
-import com.example.c001apk.compose.ui.component.SlideTransition
 import com.example.c001apk.compose.ui.component.WindowWidthSizeClass
 import com.example.c001apk.compose.ui.component.rememberHapticClick
 import com.example.c001apk.compose.ui.home.FollowScreen
 import com.example.c001apk.compose.ui.home.HomeScreen
 import com.example.c001apk.compose.ui.message.MessageScreen
 import com.example.c001apk.compose.util.ReportType
+import top.yukonga.miuix.kmp.utils.springAnimateToPage
 
 /** Created by bggRGjQaUbCoE on 2024/5/30 */
 @Composable
@@ -54,6 +55,8 @@ fun MainScreen(
             Router.PROFILE,
         )
 
+    val pagerState = rememberPagerState(initialPage = selectIndex, pageCount = { screens.size })
+    LaunchedEffect(selectIndex) { pagerState.springAnimateToPage(selectIndex) }
     val savableStateHolder = rememberSaveableStateHolder()
     val performHapticClick = rememberHapticClick {}
     var refreshState by remember { mutableStateOf(false) }
@@ -76,15 +79,11 @@ fun MainScreen(
             setSelectIndex(index)
         },
     ) { mainPadding ->
-        AnimatedContent(
+        HorizontalPager(
+            state = pagerState,
             modifier = Modifier.fillMaxSize(),
-            label = "home-content",
-            targetState = selectIndex,
-            transitionSpec = {
-                SlideTransition.slideLeft
-                    .enterTransition()
-                    .togetherWith(SlideTransition.slideLeft.exitTransition())
-            },
+            key = { screens[it].name },
+            userScrollEnabled = false,
         ) { page ->
             savableStateHolder.SaveableStateProvider(
                 key = page,

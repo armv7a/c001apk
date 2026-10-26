@@ -36,10 +36,10 @@
 
 最低 Android **13 / API 33，ARM64**，使用官方 miuix-blur 的 AGSL 渲染；没有低版本模糊降级分支。目标 API 35，编译平台 `android-37.0`。
 
-构建工具版本已固定：JDK 17、Gradle 9.7.1、AGP 9.4.1、Kotlin 2.4.20、KSP 2.3.12、Hilt 2.60.1、Activity / Activity Compose 1.13.0。Activity 版本提供 miuix 窗口菜单要求的 NavigationEventDispatcher。Android SDK 需安装 `platforms;android-37.0` 和 `build-tools;36.0.0`，子模块还使用 API 34/35。
+构建工具版本已固定：JDK 21（miuix-nav 内联 API 的字节码要求）、Gradle 9.7.1、AGP 9.4.1、Kotlin 2.4.20、KSP 2.3.12、Hilt 2.60.1、Activity / Activity Compose 1.13.0。Activity 版本提供 miuix 窗口菜单要求的 NavigationEventDispatcher。Android SDK 需安装 `platforms;android-37.0` 和 `build-tools;36.0.0`，子模块还使用 API 34/35。
 
 ```sh
-export JAVA_HOME=/path/to/jdk17
+export JAVA_HOME=/path/to/jdk21
 export PATH="$JAVA_HOME/bin:$PATH"
 export ANDROID_HOME=/path/to/Android/Sdk
 bash ./gradlew :app:assembleRelease

@@ -26,6 +26,7 @@ import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.ReportType
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.utils.springAnimateToPage
 
 /** Created by bggRGjQaUbCoE on 2024/6/12 */
 enum class FFFListType {
@@ -121,7 +122,7 @@ fun FFFListScreen(
                         selectedTabIndex = pagerState.currentPage,
                         onTabSelected = { index ->
                             if (pagerState.currentPage == index) refreshState = true
-                            scope.launch { pagerState.animateScrollToPage(index) }
+                            scope.launch { pagerState.springAnimateToPage(index) }
                         },
                     )
                 }

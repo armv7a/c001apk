@@ -35,6 +35,7 @@ import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.menu.WindowIconCascadingDropdownMenu
+import top.yukonga.miuix.kmp.utils.springAnimateToPage
 
 /** Created by bggRGjQaUbCoE on 2024/6/9 */
 enum class SearchType {
@@ -196,7 +197,7 @@ fun SearchResultScreen(
                         selectedTabIndex = pagerState.currentPage,
                         onTabSelected = { index ->
                             if (pagerState.currentPage == index) refreshState = true
-                            scope.launch { pagerState.animateScrollToPage(index) }
+                            scope.launch { pagerState.springAnimateToPage(index) }
                         },
                     )
                 }

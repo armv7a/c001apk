@@ -54,6 +54,7 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.Search
+import top.yukonga.miuix.kmp.utils.springAnimateToPage
 
 /** Created by bggRGjQaUbCoE on 2024/6/5 */
 enum class TabType {
@@ -219,7 +220,7 @@ fun HomeScreen(
                         onTabSelected = { index ->
                             if (pagerState.currentPage == index) onRefresh()
                             selectedTabType = tabList[index]
-                            scope.launch { pagerState.animateScrollToPage(index) }
+                            scope.launch { pagerState.springAnimateToPage(index) }
                         },
                     )
                 },

@@ -110,7 +110,7 @@
 
 ### 环境
 
-- JDK 17。
+- JDK 21（miuix-nav 的内联 API 使用 JVM 21 字节码）。
 - Android SDK：`platforms;android-34`、`platforms;android-35`、`platforms;android-37.0` 和 `build-tools;36.0.0`。
 - 使用仓库自带的 Gradle Wrapper；Gradle、AGP、Kotlin 等版本已固定在工程配置中。
 - 克隆仓库时保留 Git 历史。`versionCode` 使用提交计数生成，直接下载不含 `.git` 的源码 ZIP 无法按当前配置构建。

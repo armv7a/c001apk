@@ -13,8 +13,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.c001apk.compose.ui.main.AppNavigator
+import com.example.c001apk.compose.ui.main.AppDestination
 import com.example.c001apk.compose.logic.update.AppUpdates
 import com.example.c001apk.compose.ui.component.*
 import com.example.c001apk.compose.ui.component.settings.*
@@ -40,17 +40,16 @@ private fun Context.openUpdate(url: String, fallback: String = url) {
 }
 
 @Composable
-fun AppUpdateHost(navController: NavHostController, model: AppUpdateViewModel = hiltViewModel()) {
+fun AppUpdateHost(navigator: AppNavigator, model: AppUpdateViewModel = hiltViewModel()) {
     val state by model.updates.state.collectAsStateWithLifecycle()
     val lifecycle by LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
-    val entry by navController.currentBackStackEntryAsState()
     val context = LocalContext.current
     LaunchedEffect(Unit) { model.updates.coldStart() }
     // Queue an automatic result until the home page is in the foreground; verification activities
     // pause this host.
     if (
         !lifecycle.isAtLeast(Lifecycle.State.RESUMED) ||
-            (!state.manual && entry?.destination?.route != "MAIN")
+            (!state.manual && navigator.currentDestination != AppDestination.Main)
     )
         return
     val release = state.release

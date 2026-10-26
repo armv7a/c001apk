@@ -19,8 +19,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.logic.repository.UserPreferencesRepository
 import com.example.c001apk.compose.ui.component.currentWindowWidthSizeClass
@@ -65,7 +63,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 class MainActivity : ComponentActivity() {
 
     @Inject lateinit var userPreferencesRepository: UserPreferencesRepository
-    private lateinit var navController: NavHostController
+    private lateinit var navigator: AppNavigator
     private val viewModel by viewModels<MainViewModel>()
     private val searchViewModel by viewModels<SearchViewModel>()
     private var stableStatusBarInset: Int? = null
@@ -120,7 +118,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            navController = rememberNavController()
+            navigator = rememberAppNavigator()
 
             val userPreferences by
                 userPreferencesRepository.data.collectAsStateWithLifecycle(
@@ -198,9 +196,9 @@ class MainActivity : ComponentActivity() {
                             Modifier.fillMaxSize().background(MiuixTheme.colorScheme.background),
                     ) {
                         if (!viewModel.preparingIdentity) {
-                            com.example.c001apk.compose.ui.update.AppUpdateHost(navController)
+                            com.example.c001apk.compose.ui.update.AppUpdateHost(navigator)
                             MainNavigation(
-                                navController = navController,
+                                navigator = navigator,
                                 badge = viewModel.badge,
                                 resetBadge = viewModel::resetBadge,
                                 widthSizeClass = currentWindowWidthSizeClass(),
@@ -210,15 +208,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            LaunchedEffect(navController, viewModel.preparingIdentity, pendingLinks.size) {
+            LaunchedEffect(navigator, viewModel.preparingIdentity, pendingLinks.size) {
                 if (!viewModel.preparingIdentity) {
                     androidx.compose.runtime.withFrameNanos {}
                     while (pendingLinks.isNotEmpty()) {
                         val url = pendingLinks.first()
-                        navController.onOpenLink(
+                        navigator.onOpenLink(
                             context = this@MainActivity,
                             url = url,
-                            needConvert = true,
                             onSearch = searchViewModel::saveHistory,
                         )
                         pendingLinks.removeAt(0)

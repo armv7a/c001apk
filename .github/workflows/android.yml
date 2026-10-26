@@ -47,7 +47,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.source_ref || github.ref }}
       - uses: actions/setup-java@v6.1.0
-        with: { distribution: temurin, java-version: '17' }
+        with: { distribution: temurin, java-version: '21' }
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools

@@ -21,6 +21,7 @@ import com.example.c001apk.compose.ui.component.MiuixTabRow
 import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.util.ReportType
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.utils.springAnimateToPage
 
 /** Created by bggRGjQaUbCoE on 2024/6/12 */
 @Composable
@@ -63,7 +64,7 @@ fun DyhScreen(
                     selectedTabIndex = pagerState.currentPage,
                     onTabSelected = { index ->
                         if (pagerState.currentPage == index) refreshState = true
-                        scope.launch { pagerState.animateScrollToPage(index) }
+                        scope.launch { pagerState.springAnimateToPage(index) }
                     },
                 )
             }

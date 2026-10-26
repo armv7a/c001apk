@@ -36,6 +36,7 @@ import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.makeToast
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.utils.springAnimateToPage
 
 /** Created by bggRGjQaUbCoE on 2024/6/11 */
 @Composable
@@ -100,7 +101,7 @@ fun CarouselScreen(
                         selectedTabIndex = pagerState.currentPage,
                         onTabSelected = { index ->
                             if (pagerState.currentPage == index) refreshState = true
-                            scope.launch { pagerState.animateScrollToPage(index) }
+                            scope.launch { pagerState.springAnimateToPage(index) }
                         },
                     )
                 }
