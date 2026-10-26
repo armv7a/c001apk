@@ -1,16 +1,23 @@
 package com.example.c001apk.compose.logic.smid;
 
+import android.os.Build;
+import androidx.annotation.RequiresApi;
+
 /** Package identity adapter local to the number-union SDK; the host app keeps its own identity. */
-@android.annotation.SuppressLint({"NewApi", "MissingPermission"})
+@android.annotation.SuppressLint("MissingPermission")
 @SuppressWarnings("deprecation")
-public final class OfficialPackageManager extends android.content.pm.PackageManager {
-    private final android.content.pm.PackageManager delegate;
-    private final String hostPackage;
-    public OfficialPackageManager(android.content.pm.PackageManager delegate, String hostPackage) {
+public class OfficialPackageManager extends android.content.pm.PackageManager {
+    protected final android.content.pm.PackageManager delegate;
+    protected final String hostPackage;
+    private OfficialPackageManager(android.content.pm.PackageManager delegate, String hostPackage) {
         this.delegate = delegate;
         this.hostPackage = hostPackage;
     }
-    private android.content.pm.PackageInfo officialInfo(android.content.pm.PackageInfo source) {
+    public static OfficialPackageManager create(android.content.pm.PackageManager delegate, String hostPackage) {
+        if (Build.VERSION.SDK_INT >= 33) return new Api33(delegate, hostPackage);
+        return new OfficialPackageManager(delegate, hostPackage);
+    }
+    protected android.content.pm.PackageInfo officialInfo(android.content.pm.PackageInfo source) {
         android.os.Parcel parcel = android.os.Parcel.obtain();
         try {
             source.writeToParcel(parcel, 0);
@@ -18,14 +25,15 @@ public final class OfficialPackageManager extends android.content.pm.PackageMana
             android.content.pm.PackageInfo info = android.content.pm.PackageInfo.CREATOR.createFromParcel(parcel);
             info.packageName = SmidConfig.DIGITAL_UNION_PACKAGE_NAME;
             info.versionName = SmidConfig.VERSION_NAME;
-            info.setLongVersionCode(SmidConfig.VERSION_CODE);
+            if (Build.VERSION.SDK_INT >= 28) info.setLongVersionCode(SmidConfig.VERSION_CODE);
+            else info.versionCode = (int) SmidConfig.VERSION_CODE;
             if (info.applicationInfo != null) info.applicationInfo.packageName = info.packageName;
             return info;
         } finally {
             parcel.recycle();
         }
     }
-    private android.content.pm.ApplicationInfo officialApp(android.content.pm.ApplicationInfo source) {
+    protected android.content.pm.ApplicationInfo officialApp(android.content.pm.ApplicationInfo source) {
         android.content.pm.ApplicationInfo info = new android.content.pm.ApplicationInfo(source);
         info.packageName = SmidConfig.DIGITAL_UNION_PACKAGE_NAME;
         return info;
@@ -48,7 +56,7 @@ public final class OfficialPackageManager extends android.content.pm.PackageMana
     }
 
     @Override public boolean canRequestPackageInstalls() {
-        return delegate.canRequestPackageInstalls();
+        return Build.VERSION.SDK_INT >= 26 ? delegate.canRequestPackageInstalls() : true;
     }
 
     @Override public java.lang.String[] canonicalToCurrentPackageNames(java.lang.String[] p0) {
@@ -68,7 +76,7 @@ public final class OfficialPackageManager extends android.content.pm.PackageMana
     }
 
     @Override public void clearInstantAppCookie() {
-        delegate.clearInstantAppCookie();
+        if (Build.VERSION.SDK_INT >= 26) delegate.clearInstantAppCookie();
     }
 
     @Override public void clearPackagePreferredActivities(java.lang.String p0) {
@@ -153,7 +161,7 @@ public final class OfficialPackageManager extends android.content.pm.PackageMana
     }
 
     @Override public android.content.pm.ChangedPackages getChangedPackages(int p0) {
-        return delegate.getChangedPackages(p0);
+        return Build.VERSION.SDK_INT >= 26 ? delegate.getChangedPackages(p0) : null;
     }
 
     @Override public int getComponentEnabledSetting(android.content.ComponentName p0) {
@@ -181,11 +189,11 @@ public final class OfficialPackageManager extends android.content.pm.PackageMana
     }
 
     @Override public byte[] getInstantAppCookie() {
-        return delegate.getInstantAppCookie();
+        return Build.VERSION.SDK_INT >= 26 ? delegate.getInstantAppCookie() : new byte[0];
     }
 
     @Override public int getInstantAppCookieMaxBytes() {
-        return delegate.getInstantAppCookieMaxBytes();
+        return Build.VERSION.SDK_INT >= 26 ? delegate.getInstantAppCookieMaxBytes() : 0;
     }
 
     @Override public android.content.pm.InstrumentationInfo getInstrumentationInfo(android.content.ComponentName p0, int p1) throws android.content.pm.PackageManager.NameNotFoundException {
@@ -212,6 +220,7 @@ public final class OfficialPackageManager extends android.content.pm.PackageMana
         return delegate.getPackageGids(p0, p1);
     }
 
+    @RequiresApi(26)
     @Override public android.content.pm.PackageInfo getPackageInfo(android.content.pm.VersionedPackage p0, int p1) throws android.content.pm.PackageManager.NameNotFoundException {
         return delegate.getPackageInfo(p0, p1);
     }
@@ -278,7 +287,7 @@ public final class OfficialPackageManager extends android.content.pm.PackageMana
     }
 
     @Override public java.util.List<android.content.pm.SharedLibraryInfo> getSharedLibraries(int p0) {
-        return delegate.getSharedLibraries(p0);
+        return Build.VERSION.SDK_INT >= 26 ? delegate.getSharedLibraries(p0) : java.util.Collections.emptyList();
     }
 
     @Override public android.content.pm.FeatureInfo[] getSystemAvailableFeatures() {
@@ -318,11 +327,11 @@ public final class OfficialPackageManager extends android.content.pm.PackageMana
     }
 
     @Override public boolean isInstantApp() {
-        return delegate.isInstantApp();
+        return Build.VERSION.SDK_INT >= 26 ? delegate.isInstantApp() : false;
     }
 
     @Override public boolean isInstantApp(java.lang.String p0) {
-        return delegate.isInstantApp(p0);
+        return Build.VERSION.SDK_INT >= 26 ? delegate.isInstantApp(p0) : false;
     }
 
     @Override public boolean isPermissionRevokedByPolicy(java.lang.String p0, java.lang.String p1) {
@@ -386,7 +395,7 @@ public final class OfficialPackageManager extends android.content.pm.PackageMana
     }
 
     @Override public void setApplicationCategoryHint(java.lang.String p0, int p1) {
-        delegate.setApplicationCategoryHint(p0, p1);
+        if (Build.VERSION.SDK_INT >= 26) delegate.setApplicationCategoryHint(p0, p1);
     }
 
     @Override public void setApplicationEnabledSetting(java.lang.String p0, int p1, int p2) {
@@ -402,19 +411,26 @@ public final class OfficialPackageManager extends android.content.pm.PackageMana
     }
 
     @Override public void updateInstantAppCookie(byte[] p0) {
-        delegate.updateInstantAppCookie(p0);
+        if (Build.VERSION.SDK_INT >= 26) delegate.updateInstantAppCookie(p0);
     }
 
     @Override public void verifyPendingInstall(int p0, int p1) {
         delegate.verifyPendingInstall(p0, p1);
     }
 
-    @Override public android.content.pm.PackageInfo getPackageInfo(String name, PackageInfoFlags flags) throws NameNotFoundException {
-        if (SmidConfig.DIGITAL_UNION_PACKAGE_NAME.equals(name)) return officialInfo(delegate.getPackageInfo(hostPackage, flags));
-        return delegate.getPackageInfo(name, flags);
-    }
-    @Override public android.content.pm.ApplicationInfo getApplicationInfo(String name, ApplicationInfoFlags flags) throws NameNotFoundException {
-        if (SmidConfig.DIGITAL_UNION_PACKAGE_NAME.equals(name)) return officialApp(delegate.getApplicationInfo(hostPackage, flags));
-        return delegate.getApplicationInfo(name, flags);
+    /** Flags classes do not exist before API 33; keep their signatures off the legacy adapter. */
+    @RequiresApi(33)
+    private static final class Api33 extends OfficialPackageManager {
+        private Api33(android.content.pm.PackageManager delegate, String hostPackage) {
+            super(delegate, hostPackage);
+        }
+        @Override public android.content.pm.PackageInfo getPackageInfo(String name, PackageInfoFlags flags) throws NameNotFoundException {
+            if (SmidConfig.DIGITAL_UNION_PACKAGE_NAME.equals(name)) return officialInfo(delegate.getPackageInfo(hostPackage, flags));
+            return delegate.getPackageInfo(name, flags);
+        }
+        @Override public android.content.pm.ApplicationInfo getApplicationInfo(String name, ApplicationInfoFlags flags) throws NameNotFoundException {
+            if (SmidConfig.DIGITAL_UNION_PACKAGE_NAME.equals(name)) return officialApp(delegate.getApplicationInfo(hostPackage, flags));
+            return delegate.getApplicationInfo(name, flags);
+        }
     }
 }

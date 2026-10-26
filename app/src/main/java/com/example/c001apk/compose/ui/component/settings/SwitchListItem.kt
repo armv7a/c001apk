@@ -12,10 +12,12 @@ fun SwitchListItem(
     leadingImageVector: ImageVector,
     headlineText: String,
     supportingText: String? = null,
+    enabled: Boolean = true,
     onValueChanged: (value: Boolean) -> Unit,
 ) {
     PreferenceCard {
         SwitchPreference(
+            enabled = enabled,
             checked = value,
             onCheckedChange = onValueChanged,
             title = headlineText,

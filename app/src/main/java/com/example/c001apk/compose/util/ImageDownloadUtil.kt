@@ -9,43 +9,43 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.graphics.drawable.toBitmap
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.example.c001apk.compose.R
+import java.io.File
+import java.io.FileOutputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.io.File
-import java.io.FileOutputStream
 
-
-/**
- * Created by bggRGjQaUbCoE on 2024/6/7
- */
+/** Created by bggRGjQaUbCoE on 2024/6/7 */
 object ImageDownloadUtil {
 
-    private val downloadClient = OkHttpClient.Builder()
-        .addNetworkInterceptor(AddCookiesInterceptor)
-        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
-        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-        .build()
+    private val downloadClient =
+        OkHttpClient.Builder()
+            .addNetworkInterceptor(AddCookiesInterceptor)
+            .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
 
     suspend fun saveMotionPhoto(
         context: Context,
         source: File,
         fileName: String,
-    ): Boolean = withContext(Dispatchers.IO) {
-        if (!source.isFile) return@withContext false
-        if (SDK_INT >= 29) {
-            saveMotionPhotoAboveQ(context, source, fileName)
-        } else {
-            saveMotionPhotoBelowQ(context, source, fileName)
+    ): Boolean =
+        withContext(Dispatchers.IO) {
+            if (!source.isFile || !GalleryPermission.granted(context)) return@withContext false
+            if (SDK_INT >= 29) {
+                saveMotionPhotoAboveQ(context, source, fileName)
+            } else {
+                saveMotionPhotoBelowQ(context, source, fileName)
+            }
         }
-    }
 
     suspend fun downloadImage(
         context: Context,
@@ -55,23 +55,27 @@ object ImageDownloadUtil {
         isShare: Boolean = false,
         userAgent: String?,
     ) {
+        if (!isShare && !GalleryPermission.granted(context)) {
+            withContext(Dispatchers.Main) { context.makeToast("请允许存储权限后重试") }
+            return
+        }
         if (isGifRequest(imageUrl, fileName)) {
             CoroutineScope(Dispatchers.IO).launch {
                 val (bytes, mimeType) = downloadBytes(imageUrl, userAgent)
-                val result = if (bytes != null) {
-                    if (isShare || SDK_INT < 29) {
-                        saveBytesBelowQ(context, bytes, fileName, isShare)
+                val result =
+                    if (bytes != null) {
+                        if (isShare || SDK_INT < 29) {
+                            saveBytesBelowQ(context, bytes, fileName, isShare)
+                        } else {
+                            saveBytesAboveQ(context, bytes, fileName, mimeType)
+                        }
                     } else {
-                        saveBytesAboveQ(context, bytes, fileName, mimeType)
+                        false
                     }
-                } else {
-                    false
-                }
                 if (!isShare && isEnd) {
                     withContext(Dispatchers.Main) {
                         context.makeToast(
-                            if (result) "保存图片成功"
-                            else "保存图片失败"
+                            if (result) "保存图片成功" else "保存图片失败",
                         )
                     }
                 }
@@ -79,7 +83,7 @@ object ImageDownloadUtil {
                     ImageShowUtil.shareImage(
                         context,
                         File(context.externalCacheDir, "imageShare/$fileName"),
-                        null
+                        null,
                     )
                 }
                 if (!result) {
@@ -93,66 +97,69 @@ object ImageDownloadUtil {
 
         val imageLoader = context.imageLoader
 
-        val request = ImageRequest.Builder(context)
-            .data(imageUrl)
-            .addHeader("User-Agent", userAgent ?: "")
-            .target(
-                onSuccess = { drawable ->
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val result =
-                            if (isShare || SDK_INT < 29) {
-                                saveImageBelowQ(context, drawable, fileName, isShare)
-                            } else {
-                                saveImageAboveQ(context, drawable, fileName)
+        val request =
+            ImageRequest.Builder(context)
+                .data(imageUrl)
+                .addHeader("User-Agent", userAgent ?: "")
+                .target(
+                    onSuccess = { drawable ->
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val result =
+                                if (isShare || SDK_INT < 29) {
+                                    saveImageBelowQ(context, drawable, fileName, isShare)
+                                } else {
+                                    saveImageAboveQ(context, drawable, fileName)
+                                }
+                            if (!isShare && isEnd) {
+                                withContext(Dispatchers.Main) {
+                                    context.makeToast(
+                                        if (result) "保存图片成功" else "保存图片失败",
+                                    )
+                                }
                             }
-                        if (!isShare && isEnd) {
-                            withContext(Dispatchers.Main) {
-                                context.makeToast(
-                                    if (result) "保存图片成功"
-                                    else "保存图片失败"
+                            if (isShare && result) {
+                                ImageShowUtil.shareImage(
+                                    context,
+                                    File(context.externalCacheDir, "imageShare/$fileName"),
+                                    null,
                                 )
                             }
                         }
-                        if (isShare && result) {
-                            ImageShowUtil.shareImage(
-                                context,
-                                File(context.externalCacheDir, "imageShare/$fileName"),
-                                null
-                            )
-                        }
-                    }
-                },
-                onError = {
-                    Toast.makeText(context, "保存图片失败", Toast.LENGTH_SHORT).show()
-                }
-            )
-            .build()
+                    },
+                    onError = {
+                        Toast.makeText(context, "保存图片失败", Toast.LENGTH_SHORT).show()
+                    },
+                )
+                .build()
 
         imageLoader.enqueue(request)
     }
 
+    @RequiresApi(29)
     private fun saveImageAboveQ(
         context: Context,
         drawable: Drawable,
-        fileName: String
+        fileName: String,
     ): Boolean {
         return try {
             val resolver = context.contentResolver
-            val contentValues = ContentValues().apply {
-                put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
-                put(MediaStore.Images.Media.DESCRIPTION, fileName)
-                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                put(
-                    MediaStore.Images.Media.RELATIVE_PATH,
-                    Environment.DIRECTORY_PICTURES + "/${context.getString(R.string.app_name)}/"
-                )
-            }
-            resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-                ?.let { uri ->
-                    resolver.openOutputStream(uri)?.use { outputStream ->
-                        drawable.toBitmap().compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-                    } ?: false
+            val contentValues =
+                ContentValues().apply {
+                    put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
+                    put(MediaStore.Images.Media.DESCRIPTION, fileName)
+                    put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                    put(
+                        MediaStore.Images.Media.RELATIVE_PATH,
+                        Environment.DIRECTORY_PICTURES +
+                            "/${context.getString(R.string.app_name)}/",
+                    )
+                }
+            resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)?.let { uri
+                ->
+                resolver.openOutputStream(uri)?.use { outputStream ->
+                    drawable.toBitmap().compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
                 } ?: false
+            } ?: false
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -160,6 +167,7 @@ object ImageDownloadUtil {
         }
     }
 
+    @RequiresApi(29)
     private fun saveBytesAboveQ(
         context: Context,
         bytes: ByteArray,
@@ -168,22 +176,24 @@ object ImageDownloadUtil {
     ): Boolean {
         return try {
             val resolver = context.contentResolver
-            val contentValues = ContentValues().apply {
-                put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
-                put(MediaStore.Images.Media.DESCRIPTION, fileName)
-                put(MediaStore.Images.Media.MIME_TYPE, mimeType ?: "image/gif")
-                put(
-                    MediaStore.Images.Media.RELATIVE_PATH,
-                    Environment.DIRECTORY_PICTURES + "/${context.getString(R.string.app_name)}/"
-                )
-            }
-            resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-                ?.let { uri ->
-                    resolver.openOutputStream(uri)?.use { outputStream ->
-                        outputStream.write(bytes)
-                        outputStream.flush()
-                    } ?: false
+            val contentValues =
+                ContentValues().apply {
+                    put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
+                    put(MediaStore.Images.Media.DESCRIPTION, fileName)
+                    put(MediaStore.Images.Media.MIME_TYPE, mimeType ?: "image/gif")
+                    put(
+                        MediaStore.Images.Media.RELATIVE_PATH,
+                        Environment.DIRECTORY_PICTURES +
+                            "/${context.getString(R.string.app_name)}/",
+                    )
+                }
+            resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)?.let { uri
+                ->
+                resolver.openOutputStream(uri)?.use { outputStream ->
+                    outputStream.write(bytes)
+                    outputStream.flush()
                 } ?: false
+            } ?: false
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -191,23 +201,25 @@ object ImageDownloadUtil {
         }
     }
 
+    @RequiresApi(29)
     private fun saveMotionPhotoAboveQ(
         context: Context,
         source: File,
         fileName: String,
     ): Boolean {
         val resolver = context.contentResolver
-        val values = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(
-                MediaStore.Images.Media.RELATIVE_PATH,
-                Environment.DIRECTORY_PICTURES + "/${context.getString(R.string.app_name)}/"
-            )
-            put(MediaStore.Images.Media.IS_PENDING, 1)
-        }
-        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-            ?: return false
+        val values =
+            ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
+                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                put(
+                    MediaStore.Images.Media.RELATIVE_PATH,
+                    Environment.DIRECTORY_PICTURES + "/${context.getString(R.string.app_name)}/",
+                )
+                put(MediaStore.Images.Media.IS_PENDING, 1)
+            }
+        val uri =
+            resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return false
         return try {
             resolver.openOutputStream(uri, "w")?.use { output ->
                 source.inputStream().use { input -> input.copyTo(output) }
@@ -226,88 +238,65 @@ object ImageDownloadUtil {
         }
     }
 
-    private fun saveMotionPhotoBelowQ(
-        context: Context,
-        source: File,
-        fileName: String,
-    ): Boolean = try {
-        val directory = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-            context.getString(R.string.app_name),
-        ).apply { mkdirs() }
-        val destination = File(directory, fileName)
-        source.copyTo(destination, overwrite = true)
-        MediaScannerConnection.scanFile(
-            context,
-            arrayOf(destination.absolutePath),
-            arrayOf("image/jpeg"),
-            null,
-        )
-        true
-    } catch (error: Exception) {
-        error.printStackTrace()
-        false
-    }
+    private fun saveMotionPhotoBelowQ(context: Context, source: File, fileName: String): Boolean =
+        saveLegacyImage(context, fileName, false, "image/jpeg") { output ->
+            source.inputStream().use { it.copyTo(output) }
+        }
 
     private suspend fun saveImageBelowQ(
         context: Context,
         drawable: Drawable,
         fileName: String,
-        isShare: Boolean
-    ): Boolean {
-        return withContext(Dispatchers.IO) {
-            val imagesDir =
-                // Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                Environment.getExternalStorageDirectory().toString() +
-                        "/${context.getString(R.string.app_name)}/"
-            val imageFile =
-                if (isShare) File(context.externalCacheDir, "/imageShare/$fileName") else File(
-                    imagesDir,
-                    fileName
-                )
-            if (imageFile.parentFile?.exists() == false)
-                imageFile.parentFile?.mkdirs()
-
-            try {
-                FileOutputStream(imageFile).use { outputStream ->
-                    drawable.toBitmap().compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-                }
-                true
-            } catch (e: Exception) {
-                e.printStackTrace()
-                false
+        isShare: Boolean,
+    ): Boolean =
+        withContext(Dispatchers.IO) {
+            saveLegacyImage(context, fileName, isShare, "image/jpeg") { output ->
+                check(drawable.toBitmap().compress(Bitmap.CompressFormat.JPEG, 100, output))
             }
         }
-    }
 
     private suspend fun saveBytesBelowQ(
         context: Context,
         bytes: ByteArray,
         fileName: String,
         isShare: Boolean,
-    ): Boolean {
-        return withContext(Dispatchers.IO) {
-            val imagesDir =
-                Environment.getExternalStorageDirectory().toString() +
-                        "/${context.getString(R.string.app_name)}/"
-            val imageFile =
-                if (isShare) File(context.externalCacheDir, "/imageShare/$fileName") else File(
-                    imagesDir,
-                    fileName
-                )
-            if (imageFile.parentFile?.exists() == false)
-                imageFile.parentFile?.mkdirs()
-
-            try {
-                FileOutputStream(imageFile).use { outputStream ->
-                    outputStream.write(bytes)
-                    outputStream.flush()
-                }
-                true
-            } catch (e: Exception) {
-                e.printStackTrace()
-                false
+    ): Boolean =
+        withContext(Dispatchers.IO) {
+            saveLegacyImage(context, fileName, isShare, "image/gif") { output ->
+                output.write(bytes)
             }
+        }
+
+    private fun saveLegacyImage(
+        context: Context,
+        fileName: String,
+        isShare: Boolean,
+        mimeType: String,
+        write: (java.io.OutputStream) -> Unit,
+    ): Boolean {
+        if (!isShare && !GalleryPermission.granted(context)) return false
+        val directory =
+            if (isShare) File(context.externalCacheDir, "imageShare")
+            else
+                File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                    context.getString(R.string.app_name),
+                )
+        return try {
+            check(directory.isDirectory || directory.mkdirs())
+            val destination = File(directory, File(fileName).name)
+            FileOutputStream(destination).use(write)
+            if (!isShare)
+                MediaScannerConnection.scanFile(
+                    context,
+                    arrayOf(destination.absolutePath),
+                    arrayOf(mimeType),
+                    null,
+                )
+            true
+        } catch (error: Exception) {
+            error.printStackTrace()
+            false
         }
     }
 
@@ -315,7 +304,7 @@ object ImageDownloadUtil {
         val cleanUrl = imageUrl.substringBefore('?').substringBefore('#')
         val cleanName = fileName.substringBefore('?').substringBefore('#')
         return cleanUrl.endsWith(".gif", ignoreCase = true) ||
-                cleanName.endsWith(".gif", ignoreCase = true)
+            cleanName.endsWith(".gif", ignoreCase = true)
     }
 
     private suspend fun downloadBytes(
@@ -325,17 +314,15 @@ object ImageDownloadUtil {
         return withContext(Dispatchers.IO) {
             try {
                 val client = downloadClient
-                val request = Request.Builder()
-                    .url(imageUrl)
-                    .header("User-Agent", userAgent ?: "")
-                    .build()
+                val request =
+                    Request.Builder().url(imageUrl).header("User-Agent", userAgent ?: "").build()
                 client.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) {
                         return@withContext null to null
                     }
                     val body = response.body ?: return@withContext null to null
                     require(body.contentLength() <= 64 * 1024 * 1024)
-                    val bytes = body.byteStream().readNBytes(64 * 1024 * 1024 + 1)
+                    val bytes = body.byteStream().readAtMost(64 * 1024 * 1024 + 1)
                     require(bytes.size <= 64 * 1024 * 1024)
                     val contentType = response.header("Content-Type")
                     bytes to contentType
@@ -346,5 +333,4 @@ object ImageDownloadUtil {
             }
         }
     }
-
 }

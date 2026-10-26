@@ -9,6 +9,7 @@ import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.logic.repository.BlackListRepo
 import com.example.c001apk.compose.logic.repository.NetworkRepo
 import com.example.c001apk.compose.logic.state.LoadingState
+import com.example.c001apk.compose.util.readAtMost
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import java.util.Base64
@@ -178,7 +179,7 @@ constructor(
             snapshot.data
                 .toFile()
                 .inputStream()
-                .use { it.readNBytes(8 * 1024 * 1024 + 1) }
+                .use { it.readAtMost(8 * 1024 * 1024 + 1) }
                 .takeIf { it.size <= 8 * 1024 * 1024 }
         }
     }
@@ -200,7 +201,7 @@ constructor(
                                 check(it.isSuccessful)
                                 val body = it.body ?: error("Empty image")
                                 require(body.contentLength() <= 8 * 1024 * 1024)
-                                body.byteStream().readNBytes(8 * 1024 * 1024 + 1).also { raw ->
+                                body.byteStream().readAtMost(8 * 1024 * 1024 + 1).also { raw ->
                                     require(raw.size <= 8 * 1024 * 1024)
                                 }
                             }

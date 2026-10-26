@@ -10,6 +10,7 @@ import com.example.c001apk.compose.logic.model.OSSUploadPrepareModel
 import com.example.c001apk.compose.logic.repository.NetworkRepo
 import com.example.c001apk.compose.util.OSSUtil
 import com.example.c001apk.compose.util.OSSUtil.toHex
+import com.example.c001apk.compose.util.readAtMost
 import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -24,7 +25,7 @@ constructor(@ApplicationContext private val context: Context, private val networ
     suspend fun upload(uri: Uri, uid: String, active: () -> Boolean): String =
         withContext(Dispatchers.IO) {
             context.contentResolver.openInputStream(uri)?.use {
-                require(it.readNBytes(20 * 1024 * 1024 + 1).size <= 20 * 1024 * 1024) {
+                require(it.readAtMost(20 * 1024 * 1024 + 1).size <= 20 * 1024 * 1024) {
                     "图片不能超过 20 MiB"
                 }
             } ?: error("图片无法读取")

@@ -12,7 +12,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** One backdrop per page, shared by its bars. Nested main/page backdrops are independent. */
@@ -30,16 +29,18 @@ fun MiuixScaffold(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     // WebView's hardware compositor must draw once, outside the backdrop recording pass.
-    val backdrop = if (blurBars) rememberBarBackdrop() else null
+    val backdrop = rememberBarBackdrop(blurBars)
     val collapseTabs = LocalUserPreferences.current.collapseTabsOnScroll
     val tabScrollThreshold = with(LocalDensity.current) { 12.dp.toPx() }
-    val tabState = remember(collapseTabs, tabScrollThreshold) {
-        if (collapseTabs) CollapsingTabsState(tabScrollThreshold) else null
-    }
+    val tabState =
+        remember(collapseTabs, tabScrollThreshold) {
+            if (collapseTabs) CollapsingTabsState(tabScrollThreshold) else null
+        }
     CompositionLocalProvider(LocalCollapsingTabs provides tabState) {
         Scaffold(
             modifier =
-                modifier.then(if (tabState != null) Modifier.nestedScroll(tabState) else Modifier)
+                modifier
+                    .then(if (tabState != null) Modifier.nestedScroll(tabState) else Modifier)
                     .windowInsetsPadding(
                         WindowInsets.displayCutout
                             .union(WindowInsets.navigationBars)
@@ -62,7 +63,8 @@ fun MiuixScaffold(
             bottomBar = {
                 if (bottomBar != null) {
                     if (floatingBottomBar)
-                        // The floating bar draws its own rounded surface; keep the outer gaps clear.
+                        // The floating bar draws its own rounded surface; keep the outer gaps
+                        // clear.
                         CompositionLocalProvider(LocalBarBackdrop provides backdrop) {
                             CompactBar { bottomBar() }
                         }
@@ -86,7 +88,7 @@ fun MiuixScaffold(
             Box(
                 Modifier.fillMaxSize()
                     .then(
-                        if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier,
+                        backdrop?.recordModifier() ?: Modifier,
                     ),
             ) {
                 content(padding)

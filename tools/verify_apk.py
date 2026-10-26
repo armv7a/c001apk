@@ -31,15 +31,15 @@ def verify(apk, sdk, expected_certificate=None):
         raise ValueError("APK signing certificate does not match the expected certificate")
     verified_v2 = bool(re.search(r"Verified using v2 scheme.*:\s*true", signature))
     verified_v3 = bool(re.search(r"Verified using v3(?:\.1)? scheme.*:\s*true", signature))
-    if not (verified_v2 or verified_v3):
-        raise ValueError("APK has no verified v2 or v3 signature")
+    if not verified_v2:
+        raise ValueError("APK has no verified v2 signature required for Android 7")
     run("zipalign", "-c", "-P", "16", "-v", "4", apk)
     badging = run("aapt2", "dump", "badging", apk)
     package = re.search(r"package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'", badging)
     if not package or package[1] != "com.example.c001apk.compose":
         raise ValueError("Unexpected application ID")
-    if not re.search(r"(?m)^(?:minSdkVersion|sdkVersion):'33'$", badging):
-        raise ValueError("Expected Android 13 minimum SDK")
+    if not re.search(r"(?m)^(?:minSdkVersion|sdkVersion):'24'$", badging):
+        raise ValueError("Expected Android 7 minimum SDK")
     with zipfile.ZipFile(apk) as archive:
         for required in ("okhttp3/internal/publicsuffix/publicsuffixes.gz", "org/commonmark/internal/util/entities.txt"):
             if required not in archive.namelist():
@@ -52,7 +52,7 @@ def verify(apk, sdk, expected_certificate=None):
         if any(item.compress_type != zipfile.ZIP_DEFLATED for item in native):
             raise ValueError("Expected compressed native libraries")
     return {"apk": str(apk), "package": package[1], "versionCode": int(package[2]), "versionName": package[3],
-            "minSdk": 33, "abi": "arm64-v8a", "certificateSha256": digest,
+            "minSdk": 24, "abi": "arm64-v8a", "certificateSha256": digest,
             "sha256": hashlib.sha256(apk.read_bytes()).hexdigest(), "bytes": apk.stat().st_size,
             "verifiedV2": verified_v2, "verifiedV3": verified_v3, "zipalign16KiB": True, "compressedNativeLibraries": True}
 

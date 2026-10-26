@@ -1,6 +1,7 @@
 package com.example.c001apk.compose.ui.theme
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
@@ -69,11 +70,15 @@ fun C001apkComposeTheme(
             @Suppress("DEPRECATION")
             window.statusBarColor = Color.Transparent.toArgb()
             @Suppress("DEPRECATION")
-            window.navigationBarColor = Color.Transparent.toArgb()
-            @Suppress("DEPRECATION")
-            window.isStatusBarContrastEnforced = false
-            @Suppress("DEPRECATION")
-            window.isNavigationBarContrastEnforced = false
+            window.navigationBarColor =
+                if (Build.VERSION.SDK_INT < 26 && !darkTheme) Color(0xFF202020).toArgb()
+                else Color.Transparent.toArgb()
+            if (Build.VERSION.SDK_INT >= 29) {
+                @Suppress("DEPRECATION")
+                window.isStatusBarContrastEnforced = false
+                @Suppress("DEPRECATION")
+                window.isNavigationBarContrastEnforced = false
+            }
             WindowCompat.getInsetsController(window, view).apply {
                 isAppearanceLightStatusBars = !darkTheme
                 isAppearanceLightNavigationBars = !darkTheme

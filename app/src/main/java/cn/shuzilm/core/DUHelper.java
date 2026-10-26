@@ -469,7 +469,7 @@ public class DUHelper extends PhoneStateListener {
 
         @Override
         public android.content.pm.PackageManager getPackageManager() {
-            return new com.example.c001apk.compose.logic.smid.OfficialPackageManager(
+            return com.example.c001apk.compose.logic.smid.OfficialPackageManager.create(
                     getBaseContext().getPackageManager(), getBaseContext().getPackageName());
         }
 

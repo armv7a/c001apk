@@ -92,7 +92,7 @@
 
 ## 下载安装
 
-当前源码版本为 **1.3.9**，支持 **Android 13 / API 33 及以上的 ARM64 设备**。
+当前源码支持 **Android 7 / API 24 及以上的 ARM64 设备**。模糊效果需要 Android 13 及以上；旧系统的顶部栏、标签栏和底部栏使用主题纯色。
 
 正式 APK 请前往 [GitHub Releases](https://github.com/KiritoXDone/c001apk/releases/latest) 下载，每个版本同时提供签名校验报告与 SHA256SUMS。也可按下方步骤自行构建；配置签名并手动运行 [Android 工作流](.github/workflows/android.yml) 后，可从 Actions 的 Artifacts 获取构建产物。
 

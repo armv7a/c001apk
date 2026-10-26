@@ -40,7 +40,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.c001apk.compose"
-        minSdk = 33
+        minSdk = 24
         ndk { abiFilters += "arm64-v8a" }
         targetSdk = 35
         versionCode = gitCommitCount
@@ -100,6 +100,7 @@ android {
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
@@ -162,6 +163,7 @@ protobuf {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk)
     implementation(libs.miuix.ui)
     implementation(libs.miuix.blur)
     implementation(libs.miuix.preference)

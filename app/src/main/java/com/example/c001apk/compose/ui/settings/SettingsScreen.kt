@@ -316,10 +316,13 @@ fun SettingsScreen(
                                         viewModel.setFloatingNavigationBar(it)
                                     }
                                     SwitchListItem(
-                                        value = prefs.blurBars,
+                                        value = prefs.blurBars && Build.VERSION.SDK_INT >= 33,
+                                        enabled = Build.VERSION.SDK_INT >= 33,
                                         leadingImageVector = MiuixIcons.Theme,
                                         headlineText = "模糊效果",
-                                        supportingText = "模糊顶部栏和底部栏后方的内容",
+                                        supportingText =
+                                            if (Build.VERSION.SDK_INT >= 33) "模糊顶部栏和底部栏后方的内容"
+                                            else "需要 Android 13 及以上",
                                     ) {
                                         viewModel.setBlurBars(it)
                                     }

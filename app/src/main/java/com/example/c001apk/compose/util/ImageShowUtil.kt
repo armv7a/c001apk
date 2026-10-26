@@ -6,7 +6,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
-import android.os.Build.VERSION.SDK_INT
 import android.os.Environment
 import android.util.Log
 import android.view.View
@@ -402,6 +401,19 @@ object ImageShowUtil {
         mediaFactory: MojitoMediaImageFactory?,
         action: SaveImageAction,
     ) {
+        if (
+            action in
+                listOf(
+                    SaveImageAction.SAVE_IMAGE,
+                    SaveImageAction.SAVE_ALL,
+                    SaveImageAction.SAVE_LIVE_PHOTO,
+                ) && !GalleryPermission.granted(context)
+        ) {
+            GalleryPermission.request(context) {
+                handleSaveDialogAction(context, url, urlList, userAgent, mediaFactory, action)
+            }
+            return
+        }
         when (action) {
             SaveImageAction.SAVE_IMAGE ->
                 CoroutineScope(Dispatchers.IO).launch {
@@ -510,12 +522,10 @@ object ImageShowUtil {
         val filename = url.substring(url.lastIndexOf('/') + 1)
         val path = "${context.getString(R.string.app_name)}/$filename"
         val imageFile =
-            if (SDK_INT >= 29)
-                File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                    path,
-                )
-            else File(Environment.getExternalStorageDirectory().toString(), path)
+            File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                path,
+            )
         if (imageFile.exists()) {
             if (isEnd)
                 withContext(Dispatchers.Main) {

@@ -3,6 +3,7 @@ package com.example.c001apk.compose.logic.update
 import android.content.Context
 import android.os.Build
 import com.example.c001apk.compose.BuildConfig
+import com.example.c001apk.compose.util.readAtMost
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -169,7 +170,7 @@ class AppUpdates @Inject constructor(@param:ApplicationContext context: Context)
                                         },
                                     )
                                 val bytes =
-                                    it.body?.byteStream()?.readNBytes(1024 * 1024 + 1)
+                                    it.body?.byteStream()?.readAtMost(1024 * 1024 + 1)
                                         ?: error("Empty release")
                                 require(bytes.size <= 1024 * 1024)
                                 bytes.toString(Charsets.UTF_8)
