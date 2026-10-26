@@ -55,7 +55,7 @@ bash ./gradlew :app:connectedDebugAndroidTest
 
 根据用户提供的 `smid.zip` 接入 `cn.shuzilm.core` Java 包装层、配置资源和 ARM64 `libdu.so`。SDK 使用资料中的官方身份 `com.coolapk.market` / `16.1.3` / `2604022`；应用安装包继续使用现有独立包名与正常应用版本号。身份适配仅作用于 SDK 的 Context / PackageManager，不改动系统包管理器或官方客户端。
 
-首次进入时异步获取并等待 native 注册完成，最长等待 35 秒；已经保存的 ID 直接复用。设置中的“数字联盟 ID”可以重新获取或手动填写。保存 ID 时在同一 DataStore 事务内更新设备请求头和旧协议默认参数，保留账号、主题以及用户自定义参数。重新获取失败不会覆盖已保存的 ID。SDK 回调、超时和重复操作由仓库层统一处理；日志只记录成功与否，不输出 ID、Cookie 或 token。
+首次进入时异步获取并等待 native 注册完成，最长等待 35 秒；已经保存的 ID 直接复用。先尝试 SDK 默认地址，未取得有效 ID 或超时后使用 `https://global-auni.checktrustworthiness.com` 回退地址；每个地址最多轮询 4 次、最多等待 17.5 秒。地址随单次查询传入 native 配置，不改写全局默认地址。设置中的“数字联盟 ID”可以重新获取或手动填写。保存 ID 时在同一 DataStore 事务内更新设备请求头和旧协议默认参数，保留账号、主题以及用户自定义参数。重新获取失败不会覆盖已保存的 ID。SDK 回调、超时和重复操作由仓库层统一处理；不输出 ID、Cookie 或 token。
 
 保留参考实现的 `pkglist`、`operation`、`cdlmt` 禁用配置。SDK 初始化仅在需要获取 ID 时进行，未增加电话、位置等运行时权限。此集成使用用户提供的二进制，不能据此推断其全部内部行为。数盟获取和酷安接口是否可用，以交付验证记录中的实机结果为准。
 

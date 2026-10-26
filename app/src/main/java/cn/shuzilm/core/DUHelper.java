@@ -124,6 +124,11 @@ public class DUHelper extends PhoneStateListener {
 
     public static Map<String, String> getQueryID(Context context, String storeValue, String customValue,
                                                  boolean legacyMode, int mode, Listener listener, int type) {
+        return getQueryID(context, storeValue, customValue, legacyMode, mode, listener, type, null);
+    }
+
+    public static Map<String, String> getQueryID(Context context, String storeValue, String customValue,
+                                                 boolean legacyMode, int mode, Listener listener, int type, String url) {
         String disabled = "0";
         String enabled = "1";
         if (legacyMode) {
@@ -138,14 +143,14 @@ public class DUHelper extends PhoneStateListener {
             Context appContext = appContext(context);
             INSTANCE.queryType = type;
             if (mode == MAIN_DU_ASYNCHRONOUS) {
-                INSTANCE.requestQueryAsync(appContext, storeValue, customValue, listener, type);
+                INSTANCE.requestQueryAsync(appContext, storeValue, customValue, listener, type, url);
                 return null;
             }
 
             if (!QUERY_LOCK.tryLock()) {
                 String fallback = INSTANCE.readCachedQueryId(appContext);
                 if (fallback == null) {
-                    INSTANCE.requestQueryAsync(appContext, storeValue, customValue, listener, type);
+                    INSTANCE.requestQueryAsync(appContext, storeValue, customValue, listener, type, url);
                 }
                 result.put(PREF_DEVICE_ID, fallback);
                 result.put(VALID, disabled);
@@ -153,7 +158,7 @@ public class DUHelper extends PhoneStateListener {
             }
 
             try {
-                String queryId = INSTANCE.queryIdInternal(appContext, storeValue, customValue, type);
+                String queryId = INSTANCE.queryIdInternal(appContext, storeValue, customValue, type, url);
                 if (queryId != null) {
                     cachedQueryId = queryId;
                     disabled = enabled;
@@ -265,15 +270,15 @@ public class DUHelper extends PhoneStateListener {
     }
 
     private void requestQueryAsync(final Context context, final String storeValue, final String customValue,
-                                   final Listener listener, final int type) {
+                                   final Listener listener, final int type, final String url) {
         try {
-            EXECUTOR.execute(new AsyncQueryTask(this, context, storeValue, customValue, type, listener));
+            EXECUTOR.execute(new AsyncQueryTask(this, context, storeValue, customValue, type, listener, url));
         } catch (Exception exception) {
             exception.printStackTrace();
         }
     }
 
-    private String queryIdInternal(Context context, String storeValue, String customValue, int type) {
+    private String queryIdInternal(Context context, String storeValue, String customValue, int type, String url) {
         try {
             if (!isNetworkAvailable(context)) {
                 Log.e(TAG, "network is unavailable.");
@@ -282,7 +287,11 @@ public class DUHelper extends PhoneStateListener {
             setConfig(CONFIG_API_KEY, apiKey);
             fillBaseConfig(context, CONFIG_DATA, storeValue);
             putCustom(CUSTOM_DATA, customValue);
-            String configJson = CONFIG_DATA.toString();
+            // Snapshot the endpoint per queued query; a late primary query must not adopt
+            // the fallback URL, and subsequent attempts must retain the SDK's default.
+            JSONObject queryConfig = new JSONObject(CONFIG_DATA.toString());
+            if (url != null) queryConfig.put(CONFIG_URL, url);
+            String configJson = queryConfig.toString();
             String customJson = CUSTOM_DATA.toString();
             String queryId = query(context, configJson, customJson, type);
 
@@ -518,20 +527,22 @@ public class DUHelper extends PhoneStateListener {
         private final String customValue;
         private final int type;
         private final Listener listener;
+        private final String url;
 
-        private AsyncQueryTask(DUHelper helper, Context context, String storeValue, String customValue, int type, Listener listener) {
+        private AsyncQueryTask(DUHelper helper, Context context, String storeValue, String customValue, int type, Listener listener, String url) {
             this.helper = helper;
             this.context = context;
             this.storeValue = storeValue;
             this.customValue = customValue;
             this.type = type;
             this.listener = listener;
+            this.url = url;
         }
 
         @Override
         public void run() {
             try {
-                String queryId = helper.queryIdInternal(context, storeValue, customValue, type);
+                String queryId = helper.queryIdInternal(context, storeValue, customValue, type, url);
                 if (listener != null) {
                     listener.handler(queryId);
                 }

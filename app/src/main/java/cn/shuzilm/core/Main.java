@@ -40,6 +40,12 @@ public final class Main {
         DUHelper.getQueryID(context, store, custom, legacyMode, DUHelper.MAIN_DU_ASYNCHRONOUS, listener, 2);
     }
 
+    public static void getQueryID(Context context, String store, String custom, boolean legacyMode,
+                                  String url, Listener listener) {
+        storeValue = store;
+        DUHelper.getQueryID(context, store, custom, legacyMode, DUHelper.MAIN_DU_ASYNCHRONOUS, listener, 2, url);
+    }
+
     public static void init(Context context, String apiKey) {
         init(context, apiKey, true);
     }

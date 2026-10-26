@@ -10,13 +10,11 @@ import javax.inject.Singleton
 import kotlin.coroutines.resume
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 
 @Singleton
 class DigitalUnionRepository
@@ -48,29 +46,12 @@ constructor(
                 }
             }
             val id =
-                withTimeoutOrNull(35_000) {
-                    // Native query can start registration and return empty before its worker
-                    // finishes.
-                    var result: String? = null
-                    repeat(8) { attempt ->
-                        if (attempt > 0) delay(2500)
-                        result =
-                            suspendCancellableCoroutine<String?> { continuation ->
-                                    Shuzilm.getQueryID(context, null, "", false) { value ->
-                                        if (continuation.isActive) continuation.resume(value)
-                                    }
-                                }
-                                ?.trim()
-                                ?.takeIf { it.length >= 16 && it != "null" }
-                        if (com.example.c001apk.compose.BuildConfig.DEBUG) {
-                            android.util.Log.d(
-                                "DigitalUnion",
-                                "Query ${attempt + 1}: idAvailable=${result != null}",
-                            )
+                queryDigitalUnionId { url ->
+                    suspendCancellableCoroutine { continuation ->
+                        Shuzilm.getQueryID(context, null, "", false, url) { value ->
+                            if (continuation.isActive) continuation.resume(value)
                         }
-                        if (result != null) return@withTimeoutOrNull result
                     }
-                    result
                 } ?: return@withLock Result.failure(IOException("暂时无法获取数盟 ID，请检查网络后重试"))
             preferences.setSZLMId(id)
             Result.success(id)
