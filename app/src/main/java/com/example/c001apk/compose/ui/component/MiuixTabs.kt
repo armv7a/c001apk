@@ -17,37 +17,49 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.TabRowDefaults
+import top.yukonga.miuix.kmp.basic.TabRowWithContour
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** Inset the list's initial content, allowing scrolled items to pass beneath the tab bar. */
 internal val LocalTabContentPadding = staticCompositionLocalOf { PaddingValues() }
 
-/** The enclosing bar provides the blur; the native tab surfaces must let it show through. */
+/** Shared collapse behavior for native tab styles hosted in the page header. */
 @Composable
 fun MiuixTabRow(
     tabs: List<String>,
     selectedTabIndex: Int,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+    withContour: Boolean = false,
 ) {
     AnimatedVisibility(
         visible = LocalCollapsingTabs.current?.visible ?: true,
         enter = expandVertically(expandFrom = Alignment.Top),
         exit = shrinkVertically(shrinkTowards = Alignment.Top),
     ) {
-        TabRow(
-            tabs = tabs,
-            selectedTabIndex = selectedTabIndex,
-            onTabSelected = onTabSelected,
-            modifier = modifier,
-            indication = LocalIndication.current,
-            colors =
-                TabRowDefaults.tabRowColors(
-                    backgroundColor = Color.Transparent,
-                    selectedBackgroundColor =
-                        MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.55f),
-                ),
-        )
+        if (withContour) {
+            TabRowWithContour(
+                tabs = tabs,
+                selectedTabIndex = selectedTabIndex,
+                onTabSelected = onTabSelected,
+                modifier = modifier,
+                indication = LocalIndication.current,
+            )
+        } else {
+            TabRow(
+                tabs = tabs,
+                selectedTabIndex = selectedTabIndex,
+                onTabSelected = onTabSelected,
+                modifier = modifier,
+                indication = LocalIndication.current,
+                colors =
+                    TabRowDefaults.tabRowColors(
+                        backgroundColor = Color.Transparent,
+                        selectedBackgroundColor =
+                            MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.55f),
+                    ),
+            )
+        }
     }
 }
 

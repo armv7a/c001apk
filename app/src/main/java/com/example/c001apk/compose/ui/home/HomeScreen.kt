@@ -212,7 +212,8 @@ fun HomeScreen(
                 color = com.example.c001apk.compose.ui.component.LocalBarColor.current,
                 bottomContent = {
                     MiuixTabRow(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
+                        withContour = true,
                         tabs = tabList.map(::tabTitle),
                         selectedTabIndex = selectedTabIndex,
                         onTabSelected = { index ->
