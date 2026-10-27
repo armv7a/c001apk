@@ -63,6 +63,7 @@ class SketchContentLoaderImpl : ContentLoader, LifecycleObserver {
             FrameLayout.LayoutParams.MATCH_PARENT
         )
         sketchImageView.isZoomEnabled = true
+        sketchImageView.scaleType = ImageView.ScaleType.FIT_CENTER
         sketchImageView.options.isDecodeGifImage = true
         frameLayout.addView(sketchImageView)
         screenHeight = if (mojitoConfig().transparentNavigationBar()) ScreenUtils.getScreenHeight(context) else ScreenUtils.getAppScreenHeight(context)
@@ -136,7 +137,7 @@ class SketchContentLoaderImpl : ContentLoader, LifecycleObserver {
                 if (zoomer == null) {
                     return false
                 }
-                val baseScale = max(zoomer.fullZoomScale, zoomer.fillZoomScale)
+                val baseScale = zoomer.minZoomScale
                 val delta = zoomer.zoomScale - baseScale
                 val result = delta > 0.05f
                 result
@@ -153,7 +154,7 @@ class SketchContentLoaderImpl : ContentLoader, LifecycleObserver {
 
         } else {
             if (isResetSize) {
-                sketchImageView.scaleType = ImageView.ScaleType.CENTER_CROP
+                sketchImageView.scaleType = ImageView.ScaleType.FIT_CENTER
             }
         }
     }
@@ -190,7 +191,9 @@ class SketchContentLoaderImpl : ContentLoader, LifecycleObserver {
         if (isLongHeightImage || isLongWidthImage) {
 
         } else {
-            sketchImageView.scaleType = ImageView.ScaleType.CENTER_CROP
+            // Original-image and orientation callbacks can arrive after the opening animation.
+            // Keep both the initial and minimum scale at the complete-image fit in every order.
+            sketchImageView.scaleType = ImageView.ScaleType.FIT_CENTER
         }
         return isLongHeightImage || isLongWidthImage
     }
@@ -260,7 +263,10 @@ class SketchContentLoaderImpl : ContentLoader, LifecycleObserver {
 
         sketchImageView.setOnTouchListener { _, event ->
             val zoomer = sketchImageView.zoomer
-            val baseScale = if (zoomer == null) 1f else max(zoomer.fullZoomScale, zoomer.fillZoomScale)
+            val baseScale = zoomer?.let {
+                if (isLongHeightImage || isLongWidthImage) max(it.fullZoomScale, it.fillZoomScale)
+                else it.minZoomScale
+            } ?: 1f
             isZoomed = zoomer != null && zoomer.zoomScale - baseScale > 0.02f
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
