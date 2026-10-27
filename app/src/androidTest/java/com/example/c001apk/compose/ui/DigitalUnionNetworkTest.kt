@@ -16,6 +16,12 @@ class DigitalUnionNetworkTest {
     fun nativeSdkGeneratesAndPersistsAnId() = runBlocking {
         assumeTrue(InstrumentationRegistry.getArguments().getString("smidNetwork") == "true")
         val context = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext
+        // Keep the opt-in query visible so HyperOS does not freeze the SDK worker.
+        InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(
+            "am start -W -n ${context.packageName}/androidx.activity.ComponentActivity",
+        ).use { descriptor ->
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor).use { it.readBytes() }
+        }
         val repository =
             EntryPointAccessors.fromApplication(context, DigitalUnionDebugEntryPoint::class.java)
                 .digitalUnion()
