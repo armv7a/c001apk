@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,9 +26,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -72,14 +71,9 @@ fun SearchScreen(
             mutableStateOf(TextFieldValue())
         }
 
-    val focusRequest = remember { FocusRequester() }
-    LaunchedEffect(Unit) {
-        try {
-            focusRequest.requestFocus()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var searchExpanded by rememberSaveable { mutableStateOf(true) }
     val textStyle = MiuixTheme.textStyles.main
     var showClearDialog by remember { mutableStateOf(false) }
     val layoutDirection = LocalLayoutDirection.current
@@ -87,6 +81,9 @@ fun SearchScreen(
     fun onCheckSearch(keyword: String = textInput.text) {
         with(keyword) {
             if (this.isNotEmpty()) {
+                focusManager.clearFocus()
+                keyboardController?.hide()
+                searchExpanded = false
                 viewModel.saveHistory(this)
                 onSearch(this)
             }
@@ -107,14 +104,14 @@ fun SearchScreen(
             ) {
                 BackButton(onBackClick)
                 InputField(
-                    modifier = Modifier.weight(1f).focusRequester(focusRequest),
+                    modifier = Modifier.weight(1f),
                     query = textInput.text,
                     onQueryChange = {
                         textInput = TextFieldValue(it, selection = TextRange(it.length))
                     },
                     onSearch = { onCheckSearch() },
-                    expanded = true,
-                    onExpandedChange = {},
+                    expanded = searchExpanded,
+                    onExpandedChange = { searchExpanded = it },
                     label =
                         if (!title.isNullOrEmpty()) stringResource(R.string.search_hint_in, title)
                         else stringResource(R.string.search_hint),
