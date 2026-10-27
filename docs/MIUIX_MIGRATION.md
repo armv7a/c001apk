@@ -67,7 +67,7 @@ bash ./gradlew :app:connectedDebugAndroidTest
 
 保留参考实现的 `pkglist`、`operation`、`cdlmt` 禁用配置。SDK 初始化仅在需要获取 ID 时进行，未增加电话、位置等运行时权限。此集成使用用户提供的二进制，不能据此推断其全部内部行为。数盟获取和酷安接口是否可用，以交付验证记录中的实机结果为准。
 
-`libdu.so` SHA-256：`3f37818d7aa8af50ad13956cfb3acfd72a447f721b77d3216043f710d57044ea`。
+`libdu.so` 已接入用户提供的 `atoifix` 栈越界补丁，保留栈保护检查。SHA-256：`f03cb88122cfb3ad23e3554f93d8f98cede1625c661711428badb80dcb9c7be5`。补丁来源、指令范围及可复现校验见 [原生库修复说明](DIGITAL_UNION_NATIVE_PATCH.md)。
 
 数盟网络仪器测试需显式启用，普通测试不会请求数盟服务：
 
