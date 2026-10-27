@@ -27,12 +27,15 @@ import net.mikaelzero.mojito.view.sketch.core.decode.ImageSizeCalculator;
 
 
 /**
- * 根据预览图尺寸、原始图尺寸和 ImageView 尺寸计算出两级缩放比例
+ * 根据图片和 ImageView 尺寸计算完整显示比例及缩放的数值安全边界
  */
 public class AdaptiveTwoLevelScales implements ZoomScales {
 
     private static final float DEFAULT_MAXIMIZE_SCALE = 1.75f;
     private static final float DEFAULT_MINIMUM_SCALE = 1.0f;
+    // Keep transformed coordinates precise enough for float matrices and integer scroll bounds.
+    // This is a numerical guard, not a limit based on the image's resolution or screen ratio.
+    private static final float MAX_RENDERED_DIMENSION = 1_048_576f;
     private static final float[] DEFAULT_DOUBLE_CLICK_ZOOM_SCALES = new float[]{DEFAULT_MINIMUM_SCALE, DEFAULT_MAXIMIZE_SCALE};
 
     private float minZoomScale = DEFAULT_MINIMUM_SCALE;
@@ -70,51 +73,47 @@ public class AdaptiveTwoLevelScales implements ZoomScales {
         initZoomScale = getInitScale(context, sizes, finalScaleType, rotateDegrees, readMode);
 
         ImageSizeCalculator sizeCalculator = Sketch.with(context).getConfiguration().getSizeCalculator();
+        float doubleClickMaxScale;
         if (readMode && sizeCalculator.canUseReadModeByHeight(imageWidth, imageHeight)) {
             // 阅读模式下保证阅读效果最重要
             minZoomScale = fullZoomScale;
-            maxZoomScale = Math.max(originZoomScale, fillZoomScale);
+            doubleClickMaxScale = Math.max(originZoomScale, fillZoomScale);
         } else if (readMode && sizeCalculator.canUseReadModeByWidth(imageWidth, imageHeight)) {
             // 阅读模式下保证阅读效果最重要
             minZoomScale = fullZoomScale;
-            maxZoomScale = Math.max(originZoomScale, fillZoomScale);
+            doubleClickMaxScale = Math.max(originZoomScale, fillZoomScale);
         } else if (finalScaleType == ScaleType.CENTER) {
             minZoomScale = 1.0f;
-            maxZoomScale = Math.max(originZoomScale, fillZoomScale);
+            doubleClickMaxScale = Math.max(originZoomScale, fillZoomScale);
         } else if (finalScaleType == ScaleType.CENTER_CROP) {
             minZoomScale = fillZoomScale;
-            // 由于CENTER_CROP的时候最小缩放比例就是充满比例，所以最大缩放比例一定要比充满比例大的多
-            maxZoomScale = Math.max(originZoomScale, fillZoomScale * 1.5f);
+            doubleClickMaxScale = Math.max(originZoomScale, fillZoomScale * 1.5f);
         } else if (finalScaleType == ScaleType.FIT_START || finalScaleType == ScaleType.FIT_CENTER || finalScaleType == ScaleType.FIT_END) {
             minZoomScale = fullZoomScale;
-
-            // 如果原始比例仅仅比充满比例大一点点，还是用充满比例作为最大缩放比例比较好，否则谁大用谁
-            if (originZoomScale > fillZoomScale && (fillZoomScale * 1.2f) >= originZoomScale) {
-                maxZoomScale = fillZoomScale;
+            if (originZoomScale > fillZoomScale && fillZoomScale * 1.2f >= originZoomScale) {
+                doubleClickMaxScale = fillZoomScale;
             } else {
-                maxZoomScale = Math.max(originZoomScale, fillZoomScale);
+                doubleClickMaxScale = Math.max(originZoomScale, fillZoomScale);
             }
-
-            // 最大缩放比例和最小缩放比例的差距不能太小，最小得是最小缩放比例的1.5倍
-            maxZoomScale = Math.max(maxZoomScale, minZoomScale * 1.5f);
+            doubleClickMaxScale = Math.max(doubleClickMaxScale, minZoomScale * 1.5f);
         } else if (finalScaleType == ScaleType.FIT_XY) {
             minZoomScale = fullZoomScale;
             maxZoomScale = fullZoomScale;
+            doubleClickMaxScale = fullZoomScale;
         } else {
             // 基本不会走到这儿
             minZoomScale = fullZoomScale;
             maxZoomScale = fullZoomScale;
+            doubleClickMaxScale = fullZoomScale;
         }
 
-        // 这样的情况基本不会出现，不过还是加层保险
-        if (minZoomScale > maxZoomScale) {
-            minZoomScale = minZoomScale + maxZoomScale;
-            maxZoomScale = minZoomScale - maxZoomScale;
-            minZoomScale = minZoomScale - maxZoomScale;
+        if (finalScaleType != ScaleType.FIT_XY) {
+            maxZoomScale = Math.max(minZoomScale,
+                    MAX_RENDERED_DIMENSION / Math.max(drawableWidth, drawableHeight));
         }
 
-        // 双击缩放比例始终由最小缩放比例和最大缩放比例组成
-        doubleClickZoomScales = new float[]{minZoomScale, maxZoomScale};
+        // Preserve adaptive double-tap zoom independently of the free-pinch safety limit.
+        doubleClickZoomScales = new float[]{minZoomScale, Math.min(doubleClickMaxScale, maxZoomScale)};
     }
 
     private float getInitScale(@NonNull final Context context, @NonNull final Sizes sizes, @NonNull final ScaleType scaleType, final float rotateDegrees, final boolean readMode) {

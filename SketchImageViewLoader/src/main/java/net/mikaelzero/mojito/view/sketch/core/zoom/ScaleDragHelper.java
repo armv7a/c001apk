@@ -223,6 +223,11 @@ class ScaleDragHelper implements ScaleDragGestureDetector.OnScaleDragGestureList
 
     @Override
     public void onScale(float scaleFactor, float focusX, float focusY) {
+        if (!(scaleFactor > 0f) || Float.isInfinite(scaleFactor)
+                || Float.isNaN(focusX) || Float.isInfinite(focusX)
+                || Float.isNaN(focusY) || Float.isInfinite(focusY)) {
+            return;
+        }
         if (SLog.isLoggable(SLog.LEVEL_DEBUG | SLog.TYPE_ZOOM)) {
             SLog.d(NAME, "scale. scaleFactor: %s, dx: %s, dy: %s", scaleFactor, focusX, focusY);
         }
@@ -230,30 +235,15 @@ class ScaleDragHelper implements ScaleDragGestureDetector.OnScaleDragGestureList
         tempLastScaleFocusX = focusX;
         tempLastScaleFocusY = focusY;
 
-        float oldSuppScale = getSupportZoomScale();
-        float newSuppScale = oldSuppScale * scaleFactor;
-
-        if (scaleFactor > 1.0f) {
-            // 放大的时候，如果当前已经超过最大缩放比例，就调慢缩放速度
-            // 这样就能模拟出超过最大缩放比例时很难再继续放大有种拉橡皮筋的感觉
-            float maxSuppScale = imageZoomer.getMaxZoomScale() / SketchUtils.getMatrixScale(baseMatrix);
-            if (oldSuppScale >= maxSuppScale) {
-                float addScale = newSuppScale - oldSuppScale;
-                addScale *= 0.4;
-                newSuppScale = oldSuppScale + addScale;
-                scaleFactor = newSuppScale / oldSuppScale;
-            }
-        } else if (scaleFactor < 1.0f) {
-            // 缩小的时候，如果当前已经小于最小缩放比例，就调慢缩放速度
-            // 这样就能模拟出小于最小缩放比例时很难再继续缩小有种拉橡皮筋的感觉
-            float minSuppScale = imageZoomer.getMinZoomScale() / SketchUtils.getMatrixScale(baseMatrix);
-            if (oldSuppScale <= minSuppScale) {
-                float addScale = newSuppScale - oldSuppScale;
-                addScale *= 0.4;
-                newSuppScale = oldSuppScale + addScale;
-                scaleFactor = newSuppScale / oldSuppScale;
-            }
+        float currentScale = getZoomScale();
+        if (!(currentScale > 0f) || Float.isInfinite(currentScale)) {
+            return;
         }
+        // Use double for the product so even an extreme finite gesture cannot overflow.
+        // Clamp before applying the matrix: no upper rubber band or release-time snapback.
+        float targetScale = (float) Math.max(imageZoomer.getMinZoomScale(),
+                Math.min(imageZoomer.getMaxZoomScale(), (double) currentScale * scaleFactor));
+        scaleFactor = targetScale / currentScale;
 
         supportMatrix.postScale(scaleFactor, scaleFactor, focusX, focusY);
         checkAndApplyMatrix();
@@ -502,11 +492,12 @@ class ScaleDragHelper implements ScaleDragGestureDetector.OnScaleDragGestureList
         final int imageViewWidth = imageViewSize.getWidth();
         final int imageViewHeight = imageViewSize.getHeight();
 
-        // 充满的时候是无法移动的，因此先放到最大
+        // Use a useful viewing scale for location, never the numerical zoom guard.
         final float scale = SketchUtils.formatFloat(getZoomScale(), 2);
         final float fullZoomScale = SketchUtils.formatFloat(imageZoomer.getFullZoomScale(), 2);
         if (scale == fullZoomScale) {
-            zoom(imageZoomer.getMaxZoomScale(), x, y, false);
+            float locationScale = Math.max(imageZoomer.getFillZoomScale(), fullZoomScale * 1.5f);
+            zoom(Math.min(locationScale, imageZoomer.getMaxZoomScale()), x, y, false);
         }
 
         RectF drawRectF = new RectF();

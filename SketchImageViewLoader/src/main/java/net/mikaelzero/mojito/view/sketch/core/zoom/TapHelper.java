@@ -93,14 +93,14 @@ class TapHelper extends GestureDetector.SimpleOnGestureListener {
         try {
             ZoomScales scales = imageZoomer.getZoomScales();
             float initialScale = scales.getInitZoomScale();
+            float[] doubleClickScales = scales.getZoomScales();
             float finalScale = imageZoomer.getZoomScale() > initialScale + 0.01f
-                    ? initialScale : scales.getMaxZoomScale();
-            // Focus on the tapped content; a second double tap also resets a pinch zoom.
+                    ? initialScale : doubleClickScales[doubleClickScales.length - 1];
+            // Use the adaptive double-tap target, never the free-pinch numerical guard.
             imageZoomer.zoom(finalScale, ev.getX(), ev.getY(), true);
         } catch (ArrayIndexOutOfBoundsException e) {
-            // Can sometimes happen when getX() and getY() is called
+            // Can sometimes happen when getX() and getY() is called.
         }
-
         return true;
     }
 }

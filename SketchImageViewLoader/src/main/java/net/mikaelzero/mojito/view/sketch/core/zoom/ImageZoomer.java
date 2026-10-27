@@ -243,7 +243,10 @@ public class ImageZoomer {
             return false;
         }
 
-        if (scale < zoomScales.getMinZoomScale() || scale > zoomScales.getMaxZoomScale()) {
+        if (Float.isNaN(scale) || Float.isInfinite(scale)
+                || Float.isNaN(focalX) || Float.isInfinite(focalX)
+                || Float.isNaN(focalY) || Float.isInfinite(focalY)
+                || scale < zoomScales.getMinZoomScale() || scale > zoomScales.getMaxZoomScale()) {
             SLog.w(NAME, "Scale must be within the range of %s(minScale) and %s(maxScale). %s",
                     zoomScales.getMinZoomScale(), zoomScales.getMaxZoomScale(), scale);
             return false;
