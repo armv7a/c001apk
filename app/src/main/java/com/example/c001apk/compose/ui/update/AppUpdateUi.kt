@@ -65,6 +65,7 @@ fun AppUpdateHost(navigator: AppNavigator, model: AppUpdateViewModel = hiltViewM
                         text = release.notes.ifBlank { "该版本未提供更新说明。" },
                         explicit = true,
                         coolapk = false,
+                        selectable = true,
                         onOpenLink = { url, _ -> context.openUpdate(url) },
                     )
                     Button(onClick = { context.openUpdate(release.page) }) { Text("查看发布页") }

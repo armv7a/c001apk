@@ -44,13 +44,14 @@ fun RichPostText(
     preview: Boolean = false,
     explicit: Boolean = false,
     coolapk: Boolean = true,
+    selectable: Boolean = false,
     onOpenLink: ((String, String?) -> Unit)? = null,
 ) {
     val source = text.orEmpty()
     val content =
         remember(source, explicit, coolapk) { MarkdownContent.parse(source, explicit, coolapk) }
     if (LocalMarkdownRaw.current) {
-        SelectionContainer(modifier) { Text(source, fontSize = textSize.sp) }
+        TextSelection(selectable, modifier) { Text(source, fontSize = textSize.sp) }
     } else if (!content.isMarkdown) {
         LinkText(
             text = if (coolapk) source.replace("<!--break-->", "") else source,
@@ -69,7 +70,7 @@ fun RichPostText(
             overflow = TextOverflow.Ellipsis,
         )
     } else {
-        MarkdownBody(content, modifier, textSize, onOpenLink)
+        MarkdownBody(content, modifier, textSize, onOpenLink, selectable)
     }
 }
 
@@ -79,6 +80,7 @@ fun MarkdownBody(
     modifier: Modifier = Modifier,
     textSize: Float = 16f,
     onOpenLink: ((String, String?) -> Unit)? = null,
+    selectable: Boolean = false,
 ) {
     val scope = rememberCoroutineScope()
     val requesters =
@@ -95,7 +97,7 @@ fun MarkdownBody(
             onOpenLink?.invoke(resolved, null)
         }
     }
-    SelectionContainer(modifier) {
+    TextSelection(selectable, modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             content.document?.let { document ->
                 MarkdownContent.children(document).forEach {
@@ -104,6 +106,18 @@ fun MarkdownBody(
             } ?: Text(content.source)
         }
     }
+}
+
+@Composable
+private fun TextSelection(
+    enabled: Boolean,
+    modifier: Modifier,
+    content: @Composable () -> Unit,
+) {
+    // Post cards own long press and open CopyTextScreen. Registering selection here as well
+    // lets the same gesture show a floating toolbar while that page is opening.
+    if (enabled) SelectionContainer(modifier, content = content)
+    else Box(modifier) { content() }
 }
 
 @Composable
