@@ -26,6 +26,7 @@ fun MiuixNavigationScaffold(
     wide: Boolean,
     unreadCount: Int,
     onSelect: (Int) -> Unit,
+    showRail: Boolean = true,
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val floating = !wide && LocalUserPreferences.current.floatingNavigationBar
@@ -33,18 +34,8 @@ fun MiuixNavigationScaffold(
         if (unreadCount > 0) Badge { Text(if (unreadCount > 99) "99+" else unreadCount.toString()) }
     }
     Row(Modifier.fillMaxSize()) {
-        if (wide)
-            NavigationRail {
-                items.forEachIndexed { index, item ->
-                    NavigationRailItem(
-                        selected = selectedIndex == index,
-                        onClick = { onSelect(index) },
-                        icon = item.first,
-                        label = item.second,
-                        badge = if (index == 2) badge else null,
-                    )
-                }
-            }
+        if (wide && showRail)
+            MiuixNavigationRail(items, selectedIndex, unreadCount, onSelect)
         Scaffold(
             modifier = Modifier.weight(1f),
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -89,6 +80,28 @@ fun MiuixNavigationScaffold(
             },
         ) { padding ->
             Box(Modifier.fillMaxSize().consumeWindowInsets(padding)) { content(padding) }
+        }
+    }
+}
+
+@Composable
+fun MiuixNavigationRail(
+    items: List<Pair<ImageVector, String>>,
+    selectedIndex: Int,
+    unreadCount: Int,
+    onSelect: (Int) -> Unit,
+) {
+    NavigationRail {
+        items.forEachIndexed { index, item ->
+            NavigationRailItem(
+                selected = selectedIndex == index,
+                onClick = { onSelect(index) },
+                icon = item.first,
+                label = item.second,
+                badge = if (index == 2 && unreadCount > 0) {
+                    { Badge { Text(if (unreadCount > 99) "99+" else unreadCount.toString()) } }
+                } else null,
+            )
         }
     }
 }

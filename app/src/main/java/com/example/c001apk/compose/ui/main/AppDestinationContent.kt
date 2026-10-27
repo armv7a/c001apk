@@ -44,10 +44,9 @@ import kotlin.math.min
 internal fun AppDestinationContent(
     route: AppDestination,
     navigator: AppNavigator,
-    selectedMainPage: Int,
+    mainPageState: MainPageState,
     onMainPageSelected: (Int) -> Unit,
     badge: Int,
-    resetBadge: () -> Unit,
     widthSizeClass: WindowWidthSizeClass,
     onViewFeed: (String, Boolean) -> Unit,
     onOpenLink: (String, String?) -> Unit,
@@ -57,12 +56,9 @@ internal fun AppDestinationContent(
     when (route) {
         AppDestination.Main -> {
             MainScreen(
-                selectIndex = selectedMainPage,
-                setSelectIndex = {
-                    onMainPageSelected(it)
-                },
+                pageState = mainPageState,
+                onSelect = onMainPageSelected,
                 badge = badge,
-                resetBadge = resetBadge,
                 widthSizeClass = widthSizeClass,
                 onSettingsClick = { navigator.navigate(AppDestination.Settings()) },
                 onAccountsClick = { navigator.navigate(AppDestination.Accounts) },

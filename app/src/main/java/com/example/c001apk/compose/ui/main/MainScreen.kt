@@ -6,17 +6,11 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import com.example.c001apk.compose.logic.model.UpdateCheckItem
 import com.example.c001apk.compose.ui.component.MiuixNavigationScaffold
 import com.example.c001apk.compose.ui.component.WindowWidthSizeClass
-import com.example.c001apk.compose.ui.component.rememberHapticClick
 import com.example.c001apk.compose.ui.home.FollowScreen
 import com.example.c001apk.compose.ui.home.HomeScreen
 import com.example.c001apk.compose.ui.message.MessageScreen
@@ -25,11 +19,10 @@ import top.yukonga.miuix.kmp.utils.springAnimateToPage
 
 /** Created by bggRGjQaUbCoE on 2024/5/30 */
 @Composable
-fun MainScreen(
-    selectIndex: Int,
-    setSelectIndex: (Int) -> Unit,
+internal fun MainScreen(
+    pageState: MainPageState,
+    onSelect: (Int) -> Unit,
     badge: Int,
-    resetBadge: () -> Unit,
     onSettingsClick: () -> Unit,
     onAccountsClick: () -> Unit,
     onLocalFollowsClick: () -> Unit,
@@ -55,29 +48,18 @@ fun MainScreen(
             Router.PROFILE,
         )
 
+    val selectIndex = pageState.selectedIndex
     val pagerState = rememberPagerState(initialPage = selectIndex, pageCount = { screens.size })
     LaunchedEffect(selectIndex) { pagerState.springAnimateToPage(selectIndex) }
     val savableStateHolder = rememberSaveableStateHolder()
-    val performHapticClick = rememberHapticClick {}
-    var refreshState by remember { mutableStateOf(false) }
-    var followRefreshState by remember { mutableStateOf(false) }
 
     MiuixNavigationScaffold(
-        items =
-            screens.mapIndexed { index, screen ->
-                (if (selectIndex == index) screen.selectedIcon!! else screen.unselectedIcon!!) to
-                    stringResource(screen.stringId!!)
-            },
+        items = mainNavigationItems(selectIndex),
         selectedIndex = selectIndex,
         wide = widthSizeClass != WindowWidthSizeClass.Compact,
         unreadCount = badge,
-        onSelect = { index ->
-            performHapticClick()
-            if (selectIndex == 0 && index == 0) refreshState = true
-            if (selectIndex == 1 && index == 1) followRefreshState = true
-            if (index == 2 && badge != 0) resetBadge()
-            setSelectIndex(index)
-        },
+        onSelect = onSelect,
+        showRail = false,
     ) { mainPadding ->
         HorizontalPager(
             state = pagerState,
@@ -92,12 +74,12 @@ fun MainScreen(
                         0 ->
                             HomeScreen(
                                 bottomPadding = mainPadding.calculateBottomPadding(),
-                                refreshState = refreshState,
+                                refreshState = pageState.homeRefreshing,
                                 onRefresh = {
-                                    refreshState = true
+                                    pageState.homeRefreshing = true
                                 },
                                 resetRefreshState = {
-                                    refreshState = false
+                                    pageState.homeRefreshing = false
                                 },
                                 onViewUser = onViewUser,
                                 onViewFeed = onViewFeed,
@@ -113,8 +95,8 @@ fun MainScreen(
                             FollowScreen(
                                 onManage = onLocalFollowsClick,
                                 bottomPadding = mainPadding.calculateBottomPadding(),
-                                refreshState = followRefreshState,
-                                resetRefreshState = { followRefreshState = false },
+                                refreshState = pageState.followRefreshing,
+                                resetRefreshState = { pageState.followRefreshing = false },
                                 onSearch = onSearch,
                                 onLogin = onLogin,
                                 onViewUser = onViewUser,
@@ -146,6 +128,6 @@ fun MainScreen(
     }
 
     BackHandler(enabled = selectIndex != 0) {
-        setSelectIndex(0)
+        pageState.selectedIndex = 0
     }
 }

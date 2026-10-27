@@ -1,6 +1,7 @@
 package com.example.c001apk.compose.ui.main
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -20,11 +20,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
+import com.example.c001apk.compose.ui.component.MiuixNavigationRail
 import com.example.c001apk.compose.ui.component.ReadingLayout
 import com.example.c001apk.compose.ui.component.WindowWidthSizeClass
 import com.example.c001apk.compose.ui.component.currentWindowSize
+import com.example.c001apk.compose.ui.component.rememberHapticClick
 import com.example.c001apk.compose.ui.feed.FeedScreen
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.getReportUrl
@@ -37,7 +40,13 @@ fun MainNavigation(
     widthSizeClass: WindowWidthSizeClass,
 ) {
     val context = LocalContext.current
-    var selectedMainPage by rememberSaveable { mutableIntStateOf(0) }
+    val mainPageState = rememberMainPageState()
+    val performHapticClick = rememberHapticClick {}
+    val onMainPageSelected: (Int) -> Unit = { index ->
+        performHapticClick()
+        mainPageState.select(index)
+        if (index == 2 && badge != 0) resetBadge()
+    }
     val preferences = LocalUserPreferences.current
     val accountRevision = preferences.accountRevision
     var displayedAccountRevision by rememberSaveable { mutableStateOf(accountRevision) }
@@ -48,7 +57,9 @@ fun MainNavigation(
     LaunchedEffect(accountRevision) {
         if (displayedAccountRevision != accountRevision) {
             displayedAccountRevision = accountRevision
-            selectedMainPage = 2
+            mainPageState.selectedIndex = 2
+            mainPageState.homeRefreshing = false
+            mainPageState.followRefreshing = false
             detailParent = null
             detailExiting = false
             detailNavigator.reset(AppDestination.DetailPlaceholder)
@@ -95,66 +106,101 @@ fun MainNavigation(
         }
     }
 
-    Box(Modifier.fillMaxSize()) {
-        AppNavHost(
-            navigator = navigator,
-            pane = split,
-            active = !paneVisible || split,
-            gesturesEnabled = !paneVisible,
-            modifier = (if (split) Modifier.width(windowSize.width - detailWidth) else Modifier.fillMaxWidth())
-                .fillMaxHeight()
-                .align(Alignment.CenterEnd)
-                .then(
+    val showRail = widthSizeClass != WindowWidthSizeClass.Compact &&
+        navigator.currentDestination == AppDestination.Main && (!paneVisible || split)
+    MainNavigationLayout(
+        split = split,
+        detailWidth = if (paneAttached && (paneVisible || detailExiting)) detailWidth else 0.dp,
+        rail = {
+            if (showRail) {
+                MiuixNavigationRail(
+                    items = mainNavigationItems(mainPageState.selectedIndex),
+                    selectedIndex = mainPageState.selectedIndex,
+                    unreadCount = badge,
+                    onSelect = onMainPageSelected,
+                )
+            }
+        },
+        main = { paneModifier ->
+            AppNavHost(
+                navigator = navigator,
+                pane = split || showRail,
+                active = !paneVisible || split,
+                gesturesEnabled = !paneVisible,
+                modifier = paneModifier.then(
                     if (paneVisible && !split) Modifier.alpha(0f).clearAndSetSemantics {}
                     else Modifier,
                 ),
-        ) { entry ->
-            AppDestinationContent(
-                route = entry.destination,
-                navigator = navigator,
-                selectedMainPage = selectedMainPage,
-                onMainPageSelected = { selectedMainPage = it },
-                badge = badge,
-                resetBadge = resetBadge,
-                widthSizeClass = widthSizeClass,
-                onViewFeed = ::onViewFeed,
-                onOpenLink = ::onOpenLink,
-                onReport = ::onReport,
-            )
-        }
-        // Keep the native host alive across parent navigation and posture changes. Hidden panes
-        // retain their state, but have no hit area and cannot consume back or resume their pages.
-        AppNavHost(
-            navigator = detailNavigator,
-            pane = canSplit,
-            transparentRoot = true,
-            active = paneAttached && (paneVisible || detailExiting),
-            modifier = Modifier.width(if (paneAttached && (paneVisible || detailExiting)) detailWidth else 0.dp)
-                .fillMaxHeight().align(Alignment.CenterStart),
-            onBack = ::closeDetail,
-        ) { entry ->
-            val feed = entry.destination as? AppDestination.Feed
-            if (feed != null) {
-                DisposableEffect(entry.id) {
-                    onDispose {
-                        if (!detailNavigator.canGoBack) {
-                            detailExiting = false
-                            detailParent = null
-                        }
-                    }
-                }
-                FeedScreen(
-                    isCompat = false,
-                    onBackClick = ::closeDetail,
-                    id = feed.id,
-                    isViewReply = feed.isViewReply,
-                    onViewUser = navigator::navigateToUser,
+            ) { entry ->
+                AppDestinationContent(
+                    route = entry.destination,
+                    navigator = navigator,
+                    mainPageState = mainPageState,
+                    onMainPageSelected = onMainPageSelected,
+                    badge = badge,
+                    widthSizeClass = widthSizeClass,
                     onViewFeed = ::onViewFeed,
                     onOpenLink = ::onOpenLink,
-                    onCopyText = navigator::navigateToCopyText,
                     onReport = ::onReport,
                 )
             }
+        },
+        detail = { paneModifier ->
+            // Keep the native host alive across parent navigation and posture changes. Hidden panes
+            // retain their state, but have no hit area and cannot consume back or resume their pages.
+            AppNavHost(
+                navigator = detailNavigator,
+                pane = canSplit,
+                transparentRoot = true,
+                active = paneAttached && (paneVisible || detailExiting),
+                modifier = paneModifier,
+                onBack = ::closeDetail,
+            ) { entry ->
+                val feed = entry.destination as? AppDestination.Feed
+                if (feed != null) {
+                    DisposableEffect(entry.id) {
+                        onDispose {
+                            if (!detailNavigator.canGoBack) {
+                                detailExiting = false
+                                detailParent = null
+                            }
+                        }
+                    }
+                    FeedScreen(
+                        isCompat = false,
+                        onBackClick = ::closeDetail,
+                        id = feed.id,
+                        isViewReply = feed.isViewReply,
+                        onViewUser = navigator::navigateToUser,
+                        onViewFeed = ::onViewFeed,
+                        onOpenLink = ::onOpenLink,
+                        onCopyText = navigator::navigateToCopyText,
+                        onReport = ::onReport,
+                    )
+                }
+            }
+        },
+    )
+}
+
+/** The rail belongs to the whole reading surface, outside both navigation hosts. */
+@Composable
+internal fun MainNavigationLayout(
+    split: Boolean,
+    detailWidth: Dp,
+    rail: @Composable () -> Unit,
+    main: @Composable (Modifier) -> Unit,
+    detail: @Composable (Modifier) -> Unit,
+) {
+    Row(Modifier.fillMaxSize()) {
+        rail()
+        BoxWithConstraints(Modifier.weight(1f).fillMaxHeight()) {
+            val paneWidth = detailWidth.coerceIn(0.dp, maxWidth)
+            main(
+                (if (split) Modifier.width(maxWidth - paneWidth) else Modifier.fillMaxWidth())
+                    .fillMaxHeight().align(Alignment.CenterEnd),
+            )
+            detail(Modifier.width(paneWidth).fillMaxHeight().align(Alignment.CenterStart))
         }
     }
 }
