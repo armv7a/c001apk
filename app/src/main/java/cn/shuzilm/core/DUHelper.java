@@ -242,7 +242,9 @@ public class DUHelper extends PhoneStateListener {
             setConfig(CONFIG_API_KEY, apiKey);
             INSTANCE.fillBaseConfig(appContext, CONFIG_DATA, storeValue);
             INSTANCE.putCustom(CUSTOM_DATA, customValue);
-            String configJson = CONFIG_DATA.toString();
+            JSONObject queryConfig = new JSONObject(CONFIG_DATA.toString());
+            normalizeEndpoint(queryConfig);
+            String configJson = queryConfig.toString();
             String customJson = CUSTOM_DATA.toString();
             String raw = query(appContext, configJson, customJson, type);
 
@@ -291,6 +293,7 @@ public class DUHelper extends PhoneStateListener {
             // the fallback URL, and subsequent attempts must retain the SDK's default.
             JSONObject queryConfig = new JSONObject(CONFIG_DATA.toString());
             if (url != null) queryConfig.put(CONFIG_URL, url);
+            normalizeEndpoint(queryConfig);
             String configJson = queryConfig.toString();
             String customJson = CUSTOM_DATA.toString();
             String queryId = query(context, configJson, customJson, type);
@@ -309,6 +312,11 @@ public class DUHelper extends PhoneStateListener {
             throwable.printStackTrace();
             return null;
         }
+    }
+
+    private static void normalizeEndpoint(JSONObject config) throws JSONException {
+        String endpoint = config.optString(CONFIG_URL, null);
+        if (endpoint != null) config.put(CONFIG_URL, DigitalUnionEndpoint.toNativeAuthority(endpoint));
     }
 
     private void fillBaseConfig(Context context, JSONObject jsonObject, String storeValue) {

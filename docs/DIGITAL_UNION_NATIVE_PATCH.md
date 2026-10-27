@@ -1,4 +1,4 @@
-# 数盟原生库栈越界修复
+# 数盟原生库越界与回退地址修复
 
 ## 来源与范围
 
@@ -12,6 +12,10 @@ ARM64 `libdu.so` 大小仍为 724768 字节，只有 21 字节不同，范围为
 
 补丁直接对原字符串的冒号后缀调用 `atoi`，消除中间栈复制；原有栈保护检查、主机提取及其他原生代码保持不变。
 
+本项目额外在 JNI 边界将 HTTP(S) 基础地址规范化为 `host:port`。例如 `https://global-auni.checktrustworthiness.com` 转换为 `global-auni.checktrustworthiness.com:443`，而不是仅删除协议后隐式使用 SDK 默认端口。非根路径、查询参数、片段、凭据、IPv6 字面量和非法端口不传入原生库。已有原生 `host[:port]` 配置继续支持。
+
+默认地址和回退地址分别在新进程中查询。SDK 原生线程不能由协程取消；主进程在超时、异常或取消后清理旧进程，再决定是否切换地址。仅最终有效 ID 写入应用设置。
+
 ## 可复现验证
 
 ```sh
@@ -20,6 +24,16 @@ python3 tools/patch_libdu_atoi.py app/src/main/jniLibs/arm64-v8a/libdu.so --chec
 # 对原始库副本应用补丁；拒绝未知版本，重复应用无副作用。
 python3 tools/patch_libdu_atoi.py /path/to/original-libdu.so
 python3 -m unittest discover -s tools -p 'test_*.py'
+```
+
+`DigitalUnionEndpointTest` 覆盖地址规范化与非法输入；`DigitalUnionQueryTest` 覆盖有界轮询、超时、异常、取消和后续请求恢复默认地址；`DigitalUnionProcessTest` 覆盖真实进程死亡及卡死后的自动回退。
+
+真实回退测试需在独立测试包内显式运行，且清空该测试包数据，防止本地 native ID 缓存掩盖地址问题。不要清空用户正式应用的数据：
+
+```sh
+adb shell am instrument -w -e smidFallbackNetwork true \
+  -e class com.example.c001apk.compose.ui.DigitalUnionNetworkTest#fallbackEndpointGeneratesAnIdWithoutPrimary \
+  <verification-package>.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
 原生补丁修复已定位的栈复制；不代表消除第三方二进制中的所有问题，因此仍保留独立进程隔离。

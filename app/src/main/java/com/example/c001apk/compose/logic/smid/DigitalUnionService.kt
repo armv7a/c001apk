@@ -24,6 +24,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 class DigitalUnionService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var requested = false
+    private var endpoint: String? = null
     private val messenger = Messenger(Handler(Looper.getMainLooper()) { message ->
         val reply = message.replyTo
         if (message.what == QUERY && reply != null && !requested) {
@@ -36,9 +37,9 @@ class DigitalUnionService : Service() {
                     listOf("pkglist", "operation", "cdlmt").forEach {
                         Shuzilm.setConfig(it, SmidConfig.DIGITAL_UNION_DISABLE)
                     }
-                    val id = queryDigitalUnionId { url ->
+                    val id = pollDigitalUnionId {
                         suspendCancellableCoroutine { continuation ->
-                            Shuzilm.getQueryID(this@DigitalUnionService, null, "", false, url) {
+                            Shuzilm.getQueryID(this@DigitalUnionService, null, "", false, endpoint) {
                                 if (continuation.isActive) continuation.resume(it)
                             }
                         }
@@ -63,7 +64,10 @@ class DigitalUnionService : Service() {
         true
     })
 
-    override fun onBind(intent: Intent): IBinder = messenger.binder
+    override fun onBind(intent: Intent): IBinder {
+        endpoint = intent.getStringExtra(ENDPOINT)
+        return messenger.binder
+    }
 
     override fun onDestroy() {
         scope.cancel()
@@ -78,5 +82,6 @@ class DigitalUnionService : Service() {
         const val RESULT = 2
         const val ID = "id"
         const val ERROR = "error"
+        const val ENDPOINT = "endpoint"
     }
 }

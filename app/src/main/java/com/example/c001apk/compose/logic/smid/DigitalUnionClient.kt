@@ -23,7 +23,13 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 /** One bounded IPC request; native process death is a recoverable failure for the caller. */
 class DigitalUnionClient @Inject constructor(@ApplicationContext private val context: Context) {
-    suspend fun query(): String = request(Intent(context, DigitalUnionService::class.java))
+    suspend fun query(): String = queryDigitalUnionId { endpoint -> queryEndpoint(endpoint) }
+        ?: throw IOException("暂时无法获取数盟 ID，请检查网络后重试，或手动导入")
+
+    internal suspend fun queryEndpoint(endpoint: String?): String = request(
+        Intent(context, DigitalUnionService::class.java).putExtra(DigitalUnionService.ENDPOINT, endpoint),
+        timeoutMillis = DIGITAL_UNION_ENDPOINT_TIMEOUT_MILLIS,
+    )
 
     internal suspend fun request(intent: Intent, timeoutMillis: Long = 35_000): String =
         withContext(Dispatchers.Main.immediate) {
@@ -40,8 +46,7 @@ class DigitalUnionClient @Inject constructor(@ApplicationContext private val con
                         }
                         val reply = Messenger(Handler(Looper.getMainLooper()) { message ->
                             if (message.what == DigitalUnionService.RESULT && continuation.isActive) {
-                                val id = message.data.getString(DigitalUnionService.ID)
-                                    ?.trim()?.takeIf { it.length >= 16 && it != "null" }
+                                val id = validDigitalUnionId(message.data.getString(DigitalUnionService.ID))
                                 if (id != null) continuation.resume(id)
                                 else fail(message.data.getString(DigitalUnionService.ERROR)
                                     ?: "获取数盟 ID 失败，请稍后重试")

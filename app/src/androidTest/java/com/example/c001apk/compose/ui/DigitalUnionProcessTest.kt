@@ -6,6 +6,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.example.c001apk.compose.logic.smid.DigitalUnionClient
 import com.example.c001apk.compose.logic.smid.DigitalUnionFixtureService
 import com.example.c001apk.compose.logic.smid.DigitalUnionService
+import com.example.c001apk.compose.logic.smid.DIGITAL_UNION_FALLBACK_ENDPOINT
+import com.example.c001apk.compose.logic.smid.queryDigitalUnionId
 import java.io.IOException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -70,5 +72,28 @@ class DigitalUnionProcessTest {
             assertTrue(pending.isCancelled)
             assertTrue(client.request(request("success")).startsWith("fixture-device-id-"))
         }
+    }
+
+    @Test
+    fun primaryWorkerDeathAutomaticallyFallsBack() = runBlocking {
+        val endpoints = mutableListOf<String?>()
+        val id = queryDigitalUnionId { endpoint ->
+            endpoints += endpoint
+            client.request(request(if (endpoint == null) "die" else "success"), 5_000)
+        }
+        assertTrue(id.orEmpty().startsWith("fixture-device-id-"))
+        assertEquals(listOf(null, DIGITAL_UNION_FALLBACK_ENDPOINT), endpoints)
+    }
+
+    @Test
+    fun primaryTimeoutTearsDownBeforeFallbackStarts() = runBlocking {
+        val endpoints = mutableListOf<String?>()
+        val id = queryDigitalUnionId { endpoint ->
+            endpoints += endpoint
+            if (endpoint == null) client.request(request("hang"), 1_000)
+            else client.request(request("success"), 5_000)
+        }
+        assertTrue(id.orEmpty().startsWith("fixture-device-id-"))
+        assertEquals(listOf(null, DIGITAL_UNION_FALLBACK_ENDPOINT), endpoints)
     }
 }
