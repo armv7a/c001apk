@@ -9,7 +9,7 @@ import com.example.c001apk.compose.logic.repository.UserPreferencesRepository
 import com.example.c001apk.compose.logic.smid.DigitalUnionRepository
 import com.example.c001apk.compose.ui.base.PrefsViewModel
 import com.example.c001apk.compose.util.CookieUtil
-import com.example.c001apk.compose.util.encode
+import com.example.c001apk.compose.util.encodeCookieValue
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.collectLatest
@@ -69,7 +69,7 @@ constructor(
                             CookieUtil.notification = login.notifyCount.notification
                             accounts.refreshProfile(
                                 revision,
-                                username = login.username.encode,
+                                username = encodeCookieValue(login.username),
                                 avatar = login.userAvatar,
                             )
                         }

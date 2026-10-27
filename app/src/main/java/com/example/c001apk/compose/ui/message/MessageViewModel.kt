@@ -15,7 +15,7 @@ import com.example.c001apk.compose.util.CookieUtil.feedlike
 import com.example.c001apk.compose.util.CookieUtil.isLogin
 import com.example.c001apk.compose.util.CookieUtil.message
 import com.example.c001apk.compose.util.CookieUtil
-import com.example.c001apk.compose.util.encode
+import com.example.c001apk.compose.util.encodeCookieValue
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -66,7 +66,7 @@ constructor(
                 accounts.refreshProfile(
                     session.revision,
                     avatar = data.data.userAvatar,
-                    username = data.data.username.encode,
+                    username = encodeCookieValue(data.data.username),
                     level = data.data.level,
                     experience = data.data.experience,
                     nextLevelExperience = data.data.nextLevelExperience,

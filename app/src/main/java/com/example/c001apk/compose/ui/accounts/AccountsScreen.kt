@@ -16,7 +16,7 @@ import com.example.c001apk.compose.logic.accounts.SavedAccount
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.ui.component.*
 import com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons
-import com.example.c001apk.compose.util.decode
+import com.example.c001apk.compose.util.decodeCookieValue
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -81,7 +81,7 @@ fun AccountsScreen(onBack: () -> Unit, onLogin: () -> Unit) {
             }
             items(prefs.savedAccounts, key = { it.uid }) { account ->
                 BasicComponent(
-                    title = account.username.decode.ifBlank { "酷安用户" },
+                    title = decodeCookieValue(account.username).ifBlank { "酷安用户" },
                     summary =
                         when {
                             account.needsLogin -> "登录已失效，点击重新登录"

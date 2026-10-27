@@ -27,9 +27,6 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
-import com.example.c001apk.compose.constant.Constants.UTF8
-import java.net.URLDecoder
-import java.net.URLEncoder
 import java.util.regex.Pattern
 import org.jsoup.nodes.Document
 
@@ -175,11 +172,6 @@ fun LazyListState.isScrollingUp(): Boolean {
         }
         .value
 }
-
-inline val String?.encode: String
-    get() = URLEncoder.encode(this?.replace("%", "%25")?.replace("+", "%2B"), UTF8)
-inline val String.decode: String
-    get() = URLDecoder.decode(this, UTF8)
 
 fun Context.openInBrowser(url: String) {
     try {

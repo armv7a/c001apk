@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.ui.component.CoilLoader
 import com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons
 import com.example.c001apk.compose.util.CookieUtil
-import com.example.c001apk.compose.util.decode
+import com.example.c001apk.compose.util.decodeCookieValue
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.squircle.squircleBackground
 import top.yukonga.miuix.kmp.squircle.squircleClip
@@ -58,7 +58,7 @@ fun MessageHeaderCard(
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    if (isLogin) userName.decode else "登录酷安",
+                    if (isLogin) decodeCookieValue(userName) else "登录酷安",
                     style = MiuixTheme.textStyles.title3,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
