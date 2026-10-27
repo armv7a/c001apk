@@ -209,7 +209,20 @@ fun FeedScreen(
             Scaffold(
                 modifier = modifier.fillMaxSize(),
                 topBar = {
-                    TopAppBar(
+                    FeedTopBar(
+                        onTitleClick = {
+                            scope.launch {
+                                lazyListState.scrollToItem(
+                                    if (shouldShowSortCard || viewReply) {
+                                        viewReply = false
+                                        0
+                                    } else {
+                                        viewReply = true
+                                        viewModel.itemSize
+                                    },
+                                )
+                            }
+                        },
                         windowInsets =
                             WindowInsets.systemBars.only(
                                 WindowInsetsSides.Top +
@@ -231,20 +244,6 @@ fun FeedScreen(
                                 )
                                     " · 公开内容"
                                 else "",
-                        modifier =
-                            Modifier.noRippleClickable {
-                                scope.launch {
-                                    lazyListState.scrollToItem(
-                                        if (shouldShowSortCard || viewReply) {
-                                            viewReply = false
-                                            0
-                                        } else {
-                                            viewReply = true
-                                            viewModel.itemSize
-                                        },
-                                    )
-                                }
-                            },
                         actions = {
                             if (viewModel.feedState is LoadingState.Success) {
                                 FeedExportAction(
