@@ -173,7 +173,7 @@ git push origin v1.4.4
 
 ### 应用更新
 
-自更新从配置的 GitHub 仓库读取正式 Release，可在设置中填写 `owner/repo`，或在构建时传入：
+在“设置 → 关于 → 应用更新”中可手动检查更新、开关自动检查。应用固定使用构建时配置的 GitHub 仓库读取正式 Release，不提供自定义来源入口，也不读取旧的自定义来源配置。开发者构建 fork 时可传入：
 
 ```sh
 bash ./gradlew :app:assembleRelease -PupdateRepository=owner/repo

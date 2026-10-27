@@ -38,15 +38,6 @@ data class ReleaseInfo(
     val download: String?,
 ) {
     companion object {
-        fun repository(value: String): String? {
-            val raw =
-                value.trim().removePrefix("https://github.com/").trimEnd('/').removeSuffix(".git")
-            return raw.takeIf {
-                Regex("[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9_.-]{1,100}").matches(it) &&
-                    it.substringAfter('/') !in setOf(".", "..")
-            }
-        }
-
         private fun validUrl(value: String, repository: String, prefix: String): Boolean =
             runCatching {
                 val uri = URI(value)

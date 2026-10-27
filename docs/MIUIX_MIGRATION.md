@@ -87,7 +87,7 @@ CI 支持手动构建；推送 `vMAJOR.MINOR.PATCH` 标签会执行测试、Lint
 
 完整范围和 33 条 TG-Twilight 提交对应关系见 [移植跟踪](TWILIGHT_PORT.md)。默认分享使用 `www.coolapk1s.com`，官方链接仍能打开；数盟继续使用 native SDK。公告小助手和独立 announcements 分支按用户要求排除。
 
-应用自更新默认读取 `KiritoXDone/c001apk` 的正式 Release；可在设置填写 `owner/repo`，或构建时传入 `-PupdateRepository=owner/repo`。CI 默认使用当前 GitHub 仓库。
+应用自更新默认读取 `KiritoXDone/c001apk` 的正式 Release，自动检查开关和手动检查入口统一位于“设置 → 关于 → 应用更新”。应用内不提供自定义更新来源，旧来源配置不再读取；开发者构建时可传入 `-PupdateRepository=owner/repo`，CI 默认使用当前 GitHub 仓库。
 
 ## 我的页面恢复
 

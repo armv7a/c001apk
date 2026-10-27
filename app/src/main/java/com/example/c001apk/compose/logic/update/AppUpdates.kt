@@ -18,7 +18,7 @@ import okhttp3.*
 
 @Singleton
 class AppUpdates @Inject constructor(@param:ApplicationContext context: Context) {
-    data class Preferences(val automatic: Boolean, val repository: String)
+    data class Preferences(val automatic: Boolean)
 
     data class State(
         val checking: Boolean = false,
@@ -28,12 +28,10 @@ class AppUpdates @Inject constructor(@param:ApplicationContext context: Context)
     )
 
     private val storage = context.getSharedPreferences("miuix_app_updates", Context.MODE_PRIVATE)
+    private val repository = BuildConfig.UPDATE_REPOSITORY
     private val _preferences =
         MutableStateFlow(
-            Preferences(
-                storage.getBoolean("automatic", true),
-                storage.getString("repository", BuildConfig.UPDATE_REPOSITORY).orEmpty(),
-            ),
+            Preferences(storage.getBoolean("automatic", true)),
         )
     val preferences = _preferences.asStateFlow()
     private val _state = MutableStateFlow(State())
@@ -59,30 +57,15 @@ class AppUpdates @Inject constructor(@param:ApplicationContext context: Context)
         }
     }
 
-    fun setRepository(value: String): Boolean {
-        val repo = if (value.isBlank()) "" else ReleaseInfo.repository(value) ?: return false
-        job?.cancel()
-        storage.edit().putString("repository", repo).remove("skipped").apply()
-        _preferences.value = preferences.value.copy(repository = repo)
-        _state.value = State()
-        return true
-    }
-
     fun coldStart() {
         if (coldChecked) return
         coldChecked = true
-        if (preferences.value.automatic && preferences.value.repository.isNotEmpty())
-            check(manual = false)
+        if (preferences.value.automatic) check(manual = false)
     }
 
     fun check(manual: Boolean = true) {
         if (job?.isActive == true) {
             manualRequested = manualRequested || manual
-            return
-        }
-        val repository = preferences.value.repository
-        if (repository.isBlank()) {
-            if (manual) _state.value = State(message = "请先设置此应用的发布仓库。", manual = true)
             return
         }
         manualRequested = manual
@@ -94,7 +77,6 @@ class AppUpdates @Inject constructor(@param:ApplicationContext context: Context)
                     withContext(Dispatchers.Default) {
                         ReleaseInfo.parse(json, repository, Build.SUPPORTED_ABIS.toList())
                     }
-                if (repository != preferences.value.repository) return@launch
                 val current =
                     AppVersion.parse(BuildConfig.APP_VERSION) ?: error("Invalid local version")
                 val skipped = storage.getString("skipped", "") == "$repository:${release.version}"
@@ -109,19 +91,18 @@ class AppUpdates @Inject constructor(@param:ApplicationContext context: Context)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (repository == preferences.value.repository)
-                    _state.value =
-                        State(
-                            message =
-                                if (manualRequested)
-                                    when (e) {
-                                        is ReleaseFailure -> e.message
-                                        is IOException -> "无法连接更新服务，请检查网络后重试"
-                                        else -> "发布信息格式不受支持，请查看发布页"
-                                    }
-                                else null,
-                            manual = manualRequested,
-                        )
+                _state.value =
+                    State(
+                        message =
+                            if (manualRequested)
+                                when (e) {
+                                    is ReleaseFailure -> e.message
+                                    is IOException -> "无法连接更新服务，请检查网络后重试"
+                                    else -> "发布信息格式不受支持，请查看发布页"
+                                }
+                            else null,
+                        manual = manualRequested,
+                    )
             }
         }
     }
@@ -131,7 +112,7 @@ class AppUpdates @Inject constructor(@param:ApplicationContext context: Context)
             state.value.release?.let {
                 storage
                     .edit()
-                    .putString("skipped", "${preferences.value.repository}:${it.version}")
+                    .putString("skipped", "$repository:${it.version}")
                     .apply()
             }
         _state.value = State()

@@ -108,64 +108,20 @@ fun AppUpdateHost(navigator: AppNavigator, model: AppUpdateViewModel = hiltViewM
 }
 
 @Composable
-fun AppUpdateSettings(compact: Boolean = false, model: AppUpdateViewModel = hiltViewModel()) {
+fun AppUpdateSettings(model: AppUpdateViewModel = hiltViewModel()) {
     val prefs by model.updates.preferences.collectAsStateWithLifecycle()
     val state by model.updates.state.collectAsStateWithLifecycle()
-    var configure by remember { mutableStateOf(false) }
-    var repository by remember(prefs.repository) { mutableStateOf(prefs.repository) }
-    var invalid by remember { mutableStateOf(false) }
-    if (!compact)
-        SwitchListItem(
-            value = prefs.automatic,
-            leadingImageVector = MiuixIcons.Update,
-            headlineText = "自动检查 c001apk 更新",
-            supportingText = "每次启动检查一次正式版本",
-            onValueChanged = model.updates::setAutomatic,
-        )
+    SwitchListItem(
+        value = prefs.automatic,
+        leadingImageVector = MiuixIcons.Update,
+        headlineText = "自动检查更新",
+        supportingText = "每次启动检查一次正式版本",
+        onValueChanged = model.updates::setAutomatic,
+    )
     BasicListItem(
-        headlineText = if (state.checking) "正在检查 c001apk 更新…" else "检查 c001apk 更新",
+        headlineText = if (state.checking) "正在检查更新…" else "检查更新",
         leadingImageVector = MiuixIcons.Update,
         enabled = !state.checking,
-        supportingText = if (prefs.repository.isBlank()) "设置此应用的发布仓库" else prefs.repository,
-        onClick = { if (prefs.repository.isBlank()) configure = true else model.updates.check() },
+        onClick = { model.updates.check() },
     )
-    if (!compact)
-        BasicListItem(
-            headlineText = "更新来源",
-            supportingText = prefs.repository.ifBlank { "尚未设置" },
-            onClick = { configure = true },
-        )
-    if (configure)
-        MiuixAlertDialog(
-            onDismissRequest = { configure = false },
-            title = { Text("更新来源") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("填写此应用的 GitHub 发布仓库。酷安账号与设备标识不会发送给更新服务。")
-                    TextField(
-                        value = repository,
-                        onValueChange = {
-                            repository = it
-                            invalid = false
-                        },
-                        label = "用户名/仓库名",
-                        useLabelAsPlaceholder = true,
-                    )
-                    if (invalid) Text("请输入有效的 GitHub 仓库地址或 用户名/仓库名")
-                }
-            },
-            dismissButton = { MiuixDialogButton(onClick = { configure = false }) { Text("取消") } },
-            confirmButton = {
-                MiuixDialogButton(
-                    onClick = {
-                        if (model.updates.setRepository(repository)) {
-                            configure = false
-                            if (repository.isNotBlank()) model.updates.check()
-                        } else invalid = true
-                    },
-                ) {
-                    Text("保存")
-                }
-            },
-        )
 }

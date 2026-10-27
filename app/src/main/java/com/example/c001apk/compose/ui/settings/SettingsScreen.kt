@@ -83,7 +83,7 @@ private enum class SettingsSection(val title: String, val summary: String) {
     Appearance("外观与字号", "主题、字号、分栏与触感"),
     Content("关注与内容", "首页板块、本地关注和屏蔽"),
     Privacy("浏览与隐私", "图片、链接和浏览记录"),
-    Storage("存储与更新", "图片缓存与应用更新"),
+    Storage("存储与应用", "图片缓存与已安装应用更新"),
     Device("协议与设备", "数盟 ID、设备和接口参数"),
 }
 
@@ -486,11 +486,6 @@ fun SettingsScreen(
                                     ) {
                                         viewModel.setCheckUpdate(it)
                                     }
-                                }
-                            }
-                            item(key = "Storage_1") {
-                                PreferenceGroup(title = "c001apk 更新") {
-                                    com.example.c001apk.compose.ui.update.AppUpdateSettings()
                                 }
                             }
                         }

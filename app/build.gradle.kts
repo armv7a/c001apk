@@ -30,7 +30,7 @@ val updateRepository =
     providers.gradleProperty("updateRepository").orElse("KiritoXDone/c001apk").get()
 
 require(
-    updateRepository.isEmpty() || Regex("[A-Za-z0-9-]+/[A-Za-z0-9_.-]+").matches(updateRepository),
+    Regex("[A-Za-z0-9-]+/[A-Za-z0-9_.-]+").matches(updateRepository),
 )
 
 android {

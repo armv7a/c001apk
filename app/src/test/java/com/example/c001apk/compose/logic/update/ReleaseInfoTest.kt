@@ -60,7 +60,7 @@ class ReleaseInfoTest {
     }
 
     @Test
-    fun rejectsPrereleasesAndMalformedRepositoryNames() {
+    fun rejectsPrereleases() {
         assertTrue(
             runCatching {
                 ReleaseInfo.parse(
@@ -71,8 +71,5 @@ class ReleaseInfoTest {
             }
                 .isFailure,
         )
-        assertEquals("owner/miuix", ReleaseInfo.repository("https://github.com/owner/miuix/"))
-        assertNull(ReleaseInfo.repository("owner/repo?token=secret"))
-        assertNull(ReleaseInfo.repository("owner/../repo"))
     }
 }

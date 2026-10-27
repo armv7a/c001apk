@@ -14,6 +14,6 @@ CommonMark 0.30.0 与 GFM 表格、删除线、任务列表扩展遵循 BSD 3-Cl
 
 ## 本版本更新渠道
 
-应用版本采用语义版本 `1.3.7`；可用 Gradle `-PappVersion=x.y.z` 设置版本，`-PupdateRepository=KiritoXDone/仓库名` 配置默认发布源，也可在设置中修改。默认更新源为 `KiritoXDone/c001apk`，不请求 TG-Twilight 或 Compose 基线的 APK。自动检查默认开启，每进程冷启动仅检查一次；当前仅发布源码，尚无正式 APK Release。
+应用版本采用语义版本；可用 Gradle `-PappVersion=x.y.z` 设置版本，`-PupdateRepository=KiritoXDone/仓库名` 配置构建产物的发布源。应用内不提供自定义来源，也不读取旧来源配置。默认更新源为 `KiritoXDone/c001apk`，不请求 TG-Twilight 或 Compose 基线的 APK。自动检查默认开启，每进程冷启动仅检查一次；自动检查开关和手动检查入口统一位于“设置 → 关于 → 应用更新”。
 
 仅使用 GitHub Latest 正式 Release、语义版本比较和设备 ABI 选择；更新说明通过同一安全 Markdown 渲染。浏览器负责下载，不自动安装、不向 GitHub 携带酷安认证信息。接口依据 [GitHub Releases REST API](https://docs.github.com/en/rest/releases/releases#get-the-latest-release)。

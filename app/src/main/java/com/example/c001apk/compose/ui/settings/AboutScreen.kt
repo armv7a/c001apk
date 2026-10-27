@@ -84,7 +84,9 @@ fun AboutScreen(
                     headlineText = "版本",
                     supportingText = "${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
                 )
-                com.example.c001apk.compose.ui.update.AppUpdateSettings(compact = true)
+            }
+            PreferenceGroup(title = "应用更新") {
+                com.example.c001apk.compose.ui.update.AppUpdateSettings()
             }
             PreferenceGroup(title = "开源") {
                 BasicListItem(
