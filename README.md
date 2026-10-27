@@ -163,8 +163,8 @@ python3 tools/verify_apk.py /path/to/app.apk \
 先更新 `CHANGELOG.md`，提交代码后创建并推送版本标签：
 
 ```sh
-git tag v1.4.4
-git push origin v1.4.4
+git tag v1.4.5
+git push origin v1.4.5
 ```
 
 [发布工作流](.github/workflows/release.yml) 从标签读取版本号，依次执行单元测试、Lint、Release 构建和签名校验。全部成功后才发布 Release，并使用对应版本的更新记录作为说明；重新运行同一标签时更新已有资产。正式签名已配置在本仓库的 Actions Secrets，私钥不存入 Git。其他 fork 需要自行配置签名 Secrets。
