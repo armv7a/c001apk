@@ -2,7 +2,6 @@ package com.example.c001apk.compose.ui.main
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.example.c001apk.compose.logic.repository.NetworkRepo
@@ -28,17 +27,14 @@ constructor(
     private val accounts: com.example.c001apk.compose.logic.accounts.AccountStore,
 ) : PrefsViewModel(userPreferencesRepository) {
 
-    var preparingIdentity by mutableStateOf(true)
-        private set
+    internal val startup = MainStartupState()
 
     init {
         viewModelScope.launch {
-            try {
-                accounts.initialize()
-                digitalUnion.ensureId()
-            } finally {
-                preparingIdentity = false
-            }
+            startup.prepare(
+                initializeAccount = { accounts.initialize() },
+                ensureId = { digitalUnion.ensureId() },
+            )
             getCheckLoginInfo()
         }
     }

@@ -30,7 +30,7 @@
 - 主要图标使用 MiuixIcons。点赞、表情、退格等少量社区动作保留独立 AOSP 矢量源码，附原始 Apache 2.0 许可头，不依赖 Material 图标库；Swatch 保留上游署名。机型名称使用本地绘制的现代手机轮廓，动态与评论操作菜单使用三点 More 图标。
 - 删除直接 Material 3、Material Components、Material 图标库及旧 MaterialKolor Compose 配色依赖。miuix 自身内部使用的颜色算法和窗口尺寸分类工具由 miuix 管理。折叠工具栏库未使用 Material API，已排除其发布时附带的 Material 和预览工具依赖。
 
-- 启动页采用 Android 原生 AnimatedVectorDrawable，无穷符号展开后回到原图标。参考 TG-Twilight/c001apk 的系统启动画面形式，沿用本项目现有图标路径，自行实现展开、回弹和淡入动画；数盟初始化期间保留系统启动画面，删除中间的“正在准备连接”页面。缓存 ID 的后续启动直接进入首页。
+- 启动页采用 Android 原生 AnimatedVectorDrawable，无穷符号展开后回到原图标。参考 TG-Twilight/c001apk 的系统启动画面形式，沿用本项目现有图标路径，自行实现展开、回弹和淡入动画；系统启动画面仅等待本地账号恢复，数盟 ID 在后台获取，不阻塞首页或深链导航；主地址和回退地址均失败时，前台仅提示一次 Toast，引导前往“设置 → 协议与设备 → 数字联盟 ID”手动填写。已有 ID 或用户已手动填写时不提示，不显示额外加载页面。
 
 ## 构建
 

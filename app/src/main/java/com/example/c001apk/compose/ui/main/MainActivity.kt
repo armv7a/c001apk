@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
@@ -49,6 +50,7 @@ import com.example.c001apk.compose.util.CookieUtil.userAgent
 import com.example.c001apk.compose.util.CookieUtil.versionCode
 import com.example.c001apk.compose.util.CookieUtil.versionName
 import com.example.c001apk.compose.util.CookieUtil.xAppDevice
+import com.example.c001apk.compose.util.makeToast
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.delay
@@ -100,13 +102,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setupStableStatusBarInsets()
 
-        // Keep Android's animated launch icon while the initial device identity is prepared.
-        // Subsequent launches reuse the cached identity; no extra Compose loading page is shown.
+        // Restore the local account before navigation; network registration never holds the splash.
         val contentView = findViewById<View>(android.R.id.content)
         contentView.viewTreeObserver.addOnPreDrawListener(
             object : ViewTreeObserver.OnPreDrawListener {
                 override fun onPreDraw(): Boolean {
-                    if (viewModel.preparingIdentity) return false
+                    if (viewModel.startup.preparingAccount) return false
                     contentView.viewTreeObserver.removeOnPreDrawListener(this)
                     return true
                 }
@@ -132,6 +133,17 @@ class MainActivity : ComponentActivity() {
                 } else {
                     checkNotNull(userPreferences)
                 }
+
+            val currentId by rememberUpdatedState(preferences.szlmId)
+            LaunchedEffect(viewModel) {
+                lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
+                    viewModel.startup.identityFailures.collect {
+                        if (currentId.isBlank()) {
+                            makeToast("数盟 ID 获取失败，请在设置中手动填写")
+                        }
+                    }
+                }
+            }
 
             LaunchedEffect(
                 preferences.accountRevision,
@@ -195,7 +207,7 @@ class MainActivity : ComponentActivity() {
                         modifier =
                             Modifier.fillMaxSize().background(MiuixTheme.colorScheme.background),
                     ) {
-                        if (!viewModel.preparingIdentity) {
+                        if (!viewModel.startup.preparingAccount) {
                             com.example.c001apk.compose.ui.update.AppUpdateHost(navigator)
                             MainNavigation(
                                 navigator = navigator,
@@ -208,8 +220,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            LaunchedEffect(navigator, viewModel.preparingIdentity, pendingLinks.size) {
-                if (!viewModel.preparingIdentity) {
+            LaunchedEffect(navigator, viewModel.startup.preparingAccount, pendingLinks.size) {
+                if (!viewModel.startup.preparingAccount) {
                     androidx.compose.runtime.withFrameNanos {}
                     while (pendingLinks.isNotEmpty()) {
                         val url = pendingLinks.first()
