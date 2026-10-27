@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.logic.model.TopicBean
+import com.example.c001apk.compose.logic.model.productCategories
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.carousel.CarouselContentScreen
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
@@ -90,6 +91,19 @@ fun HomeTopicScreen(
             }
 
             is LoadingState.Success -> {
+                if (type == TabType.PRODUCT) {
+                    ProductCategoryScreen(
+                        categories = productCategories(
+                            (viewModel.loadingState as LoadingState.Success).response,
+                        ),
+                        paddingValues = paddingValues,
+                        onViewUser = onViewUser,
+                        onViewFeed = onViewFeed,
+                        onOpenLink = onOpenLink,
+                        onCopyText = onCopyText,
+                    )
+                    return@Box
+                }
 
                 tabList =
                     when (type) {
@@ -100,14 +114,6 @@ fun HomeTopicScreen(
                                 .getOrNull(0)
                                 ?.entities
                                 ?.map {
-                                    TopicBean(it.url.orEmpty(), it.title.orEmpty())
-                                }
-
-                        TabType.PRODUCT ->
-                            (viewModel.loadingState
-                                    as LoadingState.Success<List<HomeFeedResponse.Data>>)
-                                .response
-                                .map {
                                     TopicBean(it.url.orEmpty(), it.title.orEmpty())
                                 }
 
