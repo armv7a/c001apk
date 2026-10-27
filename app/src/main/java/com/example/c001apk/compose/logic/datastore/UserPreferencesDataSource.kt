@@ -86,6 +86,14 @@ constructor(
             userPreferences.updateData { it.copy(openInBrowser = value) }
         }
 
+    suspend fun setShowHomeCarousel(value: Boolean) = userPreferences.updateData {
+        it.copy(showHomeCarousel = value)
+    }
+
+    suspend fun setShowHomeChannels(value: Boolean) = userPreferences.updateData {
+        it.copy(showHomeChannels = value)
+    }
+
     suspend fun setShowSquare(value: Boolean) =
         withContext(Dispatchers.IO) {
             userPreferences.updateData { it.copy(showSquare = value) }

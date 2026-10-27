@@ -70,6 +70,8 @@ data class UserPreferencesCompat(
     val blurBars: Boolean = false,
     val collapseTabsOnScroll: Boolean = false,
     val hideTradeLinkHint: Boolean = false,
+    val showHomeCarousel: Boolean = true,
+    val showHomeChannels: Boolean = true,
 ) {
     constructor(
         original: UserPreferences,
@@ -132,6 +134,8 @@ data class UserPreferencesCompat(
         blurBars = original.blurBars,
         collapseTabsOnScroll = original.collapseTabsOnScroll,
         hideTradeLinkHint = original.hideTradeLinkHint,
+        showHomeCarousel = !original.hideHomeCarousel,
+        showHomeChannels = !original.hideHomeChannels,
         followSelection =
             if (original.followSelectionConfigured) original.followSelection.coerceIn(0, 5)
             else original.followTypeValue.takeIf { it in 1..4 } ?: 1,
@@ -214,6 +218,8 @@ data class UserPreferencesCompat(
             .setBlurBars(blurBars)
             .setCollapseTabsOnScroll(collapseTabsOnScroll)
             .setHideTradeLinkHint(hideTradeLinkHint)
+            .setHideHomeCarousel(!showHomeCarousel)
+            .setHideHomeChannels(!showHomeChannels)
             .build()
 
     companion object {

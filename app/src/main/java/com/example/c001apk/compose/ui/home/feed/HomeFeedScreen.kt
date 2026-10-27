@@ -1,11 +1,14 @@
 package com.example.c001apk.compose.ui.home.feed
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.FollowType
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
+import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.component.CommonScreen
 import com.example.c001apk.compose.ui.home.TabType
 import com.example.c001apk.compose.util.ReportType
@@ -81,7 +84,26 @@ fun HomeFeedScreen(
             )
         }
 
+    val sourceState = viewModel.loadingState
+    val displayState = remember(
+        sourceState, type, prefs.showHomeCarousel, prefs.showHomeChannels, prefs.showSquare,
+    ) {
+        if (type == TabType.FEED) sourceState.withHomeFeedHeaders(
+            showCarousel = prefs.showHomeCarousel,
+            showChannels = prefs.showHomeChannels,
+            showTopics = prefs.showSquare,
+        ) else sourceState
+    }
+    // A page containing only hidden headers must still advance to actual posts.
+    LaunchedEffect(sourceState, displayState) {
+        if (sourceState is LoadingState.Success && sourceState.response.isNotEmpty() &&
+            displayState is LoadingState.Success && displayState.response.isEmpty() &&
+            !viewModel.isEnd
+        ) viewModel.loadMore()
+    }
+
     CommonScreen(
+        displayState = displayState,
         paddingValues = paddingValues,
         needTopPadding = true,
         viewModel = viewModel,

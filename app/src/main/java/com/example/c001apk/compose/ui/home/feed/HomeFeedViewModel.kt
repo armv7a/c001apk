@@ -63,6 +63,10 @@ constructor(
         super.refresh()
     }
 
+    // Home visibility is applied to the displayed list, not to the fetched data.
+    override fun isAdditionalItemSupported(item: HomeFeedResponse.Data): Boolean =
+        type == TabType.FEED && item.homeFeedHeader() != null
+
     override fun handleResponse(
         response: List<HomeFeedResponse.Data>,
     ): List<HomeFeedResponse.Data>? {

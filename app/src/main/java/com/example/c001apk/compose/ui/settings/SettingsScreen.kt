@@ -42,7 +42,6 @@ import com.example.c001apk.compose.ui.component.MiuixAlertDialog as AlertDialog
 import com.example.c001apk.compose.ui.component.MiuixDialogButton as TextButton
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.currentWindowSize
-import com.example.c001apk.compose.ui.component.icons.EmojiEmotions
 import com.example.c001apk.compose.ui.component.icons.Smartphone
 import com.example.c001apk.compose.ui.component.icons.Swatch
 import com.example.c001apk.compose.ui.component.rememberHapticClick
@@ -62,12 +61,10 @@ import top.yukonga.miuix.kmp.basic.SmallTopAppBar as TopAppBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.All
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.Blocklist
 import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.icon.extended.Image
-import top.yukonga.miuix.kmp.icon.extended.Notes
 import top.yukonga.miuix.kmp.icon.extended.Photos
 import top.yukonga.miuix.kmp.icon.extended.Recent
 import top.yukonga.miuix.kmp.icon.extended.Rename
@@ -379,28 +376,17 @@ fun SettingsScreen(
                         }
                         SettingsSection.Content -> {
                             item(key = "Content_0") {
-                                PreferenceGroup(title = "首页内容") {
-                                    BasicListItem(
-                                        leadingImageVector = MiuixIcons.All,
-                                        headlineText = "首页板块",
-                                        supportingText = "选择首页显示的内容 Tab",
-                                        onClick = onHomeTabsClick,
-                                    )
-                                    SwitchListItem(
-                                        value = prefs.showSquare,
-                                        leadingImageVector = MiuixIcons.Notes,
-                                        headlineText = "头条显示广场",
-                                    ) {
-                                        viewModel.setShowSquare(it)
-                                    }
-                                    SwitchListItem(
-                                        value = prefs.showEmoji,
-                                        leadingImageVector = MiuixIcons.EmojiEmotions,
-                                        headlineText = "显示表情",
-                                    ) {
-                                        viewModel.setShowEmoji(it)
-                                    }
-                                }
+                                HomeContentPreferences(
+                                    showCarousel = prefs.showHomeCarousel,
+                                    showChannels = prefs.showHomeChannels,
+                                    showTopics = prefs.showSquare,
+                                    showEmoji = prefs.showEmoji,
+                                    onHomeTabsClick = onHomeTabsClick,
+                                    onShowCarousel = viewModel::setShowHomeCarousel,
+                                    onShowChannels = viewModel::setShowHomeChannels,
+                                    onShowTopics = viewModel::setShowSquare,
+                                    onShowEmoji = viewModel::setShowEmoji,
+                                )
                             }
                             item(key = "Content_1") {
                                 PreferenceGroup(title = "关注") {

@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.view.isVisible
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
+import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.base.BaseViewModel
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.isScrollingUp
@@ -52,6 +53,7 @@ fun CommonScreen(
     onShowGlobalProductComparison: (() -> Unit)? = null,
     onToggleProductEntityComparison: ((HomeFeedResponse.Entities) -> Unit)? = null,
     listModifier: Modifier = Modifier,
+    displayState: LoadingState<List<HomeFeedResponse.Data>> = viewModel.loadingState,
 ) {
 
     val view = LocalView.current
@@ -110,7 +112,7 @@ fun CommonScreen(
                     item(key = "listHeader", span = StaggeredGridItemSpan.FullLine) { listHeader() }
                 }
                 GridItemCard(
-                    loadingState = viewModel.loadingState,
+                    loadingState = displayState,
                     loadMore = viewModel::loadMore,
                     isEnd = viewModel.isEnd,
                     onViewUser = onViewUser,

@@ -65,6 +65,10 @@ constructor(
 
     suspend fun setOpenInBrowser(value: Boolean) = userPreferencesDataSource.setOpenInBrowser(value)
 
+    suspend fun setShowHomeCarousel(value: Boolean) = userPreferencesDataSource.setShowHomeCarousel(value)
+
+    suspend fun setShowHomeChannels(value: Boolean) = userPreferencesDataSource.setShowHomeChannels(value)
+
     suspend fun setShowSquare(value: Boolean) = userPreferencesDataSource.setShowSquare(value)
 
     suspend fun setRecordHistory(value: Boolean) = userPreferencesDataSource.setRecordHistory(value)

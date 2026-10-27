@@ -122,6 +122,14 @@ constructor(
         }
     }
 
+    fun setShowHomeCarousel(value: Boolean) {
+        viewModelScope.launch { userPreferencesRepository.setShowHomeCarousel(value) }
+    }
+
+    fun setShowHomeChannels(value: Boolean) {
+        viewModelScope.launch { userPreferencesRepository.setShowHomeChannels(value) }
+    }
+
     fun setShowSquare(value: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setShowSquare(value)
