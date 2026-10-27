@@ -91,7 +91,13 @@ internal fun AppDestinationContent(
         }
 
         is AppDestination.Settings -> {
-            SettingsScreen(
+            // Restore old saved account-category routes directly into account management.
+            if (route.section == "Accounts") {
+                com.example.c001apk.compose.ui.accounts.AccountsScreen(
+                    onBack = { navigator.popBackStack() },
+                    onLogin = { navigator.navigate(AppDestination.Login) },
+                )
+            } else SettingsScreen(
                 section = route.section,
                 onSectionClick = { section ->
                     navigator.navigate(AppDestination.Settings(section))

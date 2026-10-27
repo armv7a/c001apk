@@ -1,17 +1,13 @@
 package com.example.c001apk.compose.ui.settings
 
 import android.os.Build
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,25 +29,17 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.res.ResourcesCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.BuildConfig
 import com.example.c001apk.compose.R
 import com.example.c001apk.compose.ThemeMode
 import com.example.c001apk.compose.ThemeType
-import com.example.c001apk.compose.constant.Constants.URL_PROJECT
-import com.example.c001apk.compose.constant.Constants.URL_SOURCE_CODE
-import com.example.c001apk.compose.constant.Constants.URL_SOURCE_CODE_FORK
 import com.example.c001apk.compose.logic.model.HapticStrength
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.ui.blacklist.BlackListType
-import com.example.c001apk.compose.ui.component.HtmlText
 import com.example.c001apk.compose.ui.component.MiuixAlertDialog as AlertDialog
 import com.example.c001apk.compose.ui.component.MiuixDialogButton as TextButton
-import com.example.c001apk.compose.ui.component.MiuixMenu as DropdownMenu
-import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuItem
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
-import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.ui.component.currentWindowSize
 import com.example.c001apk.compose.ui.component.icons.EmojiEmotions
 import com.example.c001apk.compose.ui.component.icons.Smartphone
@@ -65,8 +53,6 @@ import com.example.c001apk.compose.ui.component.settings.StateDropdownListItem
 import com.example.c001apk.compose.ui.component.settings.SwitchListItem
 import com.example.c001apk.compose.util.CacheDataManager.clearAllCache
 import com.example.c001apk.compose.util.CacheDataManager.getTotalCacheSize
-import com.example.c001apk.compose.util.openInBrowser
-import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import java.util.Formatter
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -97,7 +83,6 @@ private enum class SettingsSection(val title: String, val summary: String) {
     Privacy("浏览与隐私", "图片、链接和浏览记录"),
     Storage("存储与更新", "图片缓存与应用更新"),
     Device("协议与设备", "数盟 ID、设备和接口参数"),
-    Accounts("账号", "多账号管理与游客模式"),
 }
 
 /** Created by bggRGjQaUbCoE on 2024/5/30 */
@@ -132,8 +117,6 @@ fun SettingsScreen(
     val themeList by lazy { listOf("跟随系统", "总是开启", "总是关闭") }
     val hapticStrengthList by lazy { HapticStrength.options.map { it.label } }
 
-    var dropdownMenuExpanded by remember { mutableStateOf(false) }
-    var showAboutDialog by remember { mutableStateOf(false) }
     var showSZLMIDDialog by remember { mutableStateOf(false) }
     var showFontScaleDialog by remember { mutableStateOf(false) }
     var showContentScaleDialog by remember { mutableStateOf(false) }
@@ -154,37 +137,6 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(MiuixIcons.Back, contentDescription = "返回")
-                    }
-                },
-                actions = {
-                    Box(Modifier.wrapContentSize(Alignment.TopEnd)) {
-                        MoreMenuButton { dropdownMenuExpanded = true }
-
-                        DropdownMenu(
-                            expanded = dropdownMenuExpanded,
-                            onDismissRequest = { dropdownMenuExpanded = false },
-                        ) {
-                            listOf(
-                                    stringResource(id = R.string.menu_feedback),
-                                    stringResource(id = R.string.menu_about),
-                                )
-                                .forEachIndexed { index, menu ->
-                                    DropdownMenuItem(
-                                        text = { Text(menu) },
-                                        onClick = {
-                                            dropdownMenuExpanded = false
-                                            when (index) {
-                                                0 ->
-                                                    context.openInBrowser(
-                                                        "$URL_PROJECT/issues",
-                                                    )
-
-                                                1 -> showAboutDialog = true
-                                            }
-                                        },
-                                    )
-                                }
-                        }
                     }
                 },
             )
@@ -210,6 +162,13 @@ fun SettingsScreen(
                                 },
                             )
                         }
+                    }
+                    item(key = "accounts") {
+                        BasicListItem(
+                            headlineText = "账号管理",
+                            supportingText = "切换账号、添加账号与游客模式",
+                            onClick = onAccountsClick,
+                        )
                     }
                     item(key = "about") {
                         BasicListItem(
@@ -547,45 +506,12 @@ fun SettingsScreen(
                                 }
                             }
                         }
-                        SettingsSection.Accounts -> {
-                            item(key = "Accounts_0") {
-                                PreferenceGroup(title = "账号") {
-                                    BasicListItem(
-                                        headlineText = "账号管理",
-                                        supportingText = "切换账号、添加账号与游客模式",
-                                        leadingImageVector =
-                                            com.example.c001apk.compose.ui.component.icons
-                                                .FlutterProfileIcons
-                                                .Account,
-                                        onClick = onAccountsClick,
-                                    )
-                                }
-                            }
-                            item(key = "Accounts_1") {
-                                PreferenceGroup(title = "应用信息") {
-                                    BasicListItem(
-                                        leadingImageVector = MiuixIcons.All,
-                                        headlineText = "关于",
-                                        supportingText =
-                                            "${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
-                                    ) {
-                                        onAboutClick()
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
         }
 
         when {
-            showAboutDialog -> {
-                AboutDialog {
-                    showAboutDialog = false
-                }
-            }
-
             showThemeTypeDialog -> {
                 EditTextDialog(
                     hint = "6650A4",
@@ -883,43 +809,6 @@ fun SliderDialog(
                 )
             }
         },
-    )
-}
-
-@Composable
-fun AboutDialog(onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.app_name)) },
-        icon = {
-            val drawable =
-                ResourcesCompat.getDrawable(context.resources, R.mipmap.ic_launcher, context.theme)
-            Image(rememberDrawablePainter(drawable), null, Modifier.size(56.dp))
-        },
-        text = {
-            Column(
-                verticalArrangement =
-                    androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
-            ) {
-                Text("${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-                HtmlText(
-                    html =
-                        stringResource(
-                            R.string.about_source_code,
-                            "<b><a href=\"${URL_SOURCE_CODE}\">GitHub</a></b>",
-                        ),
-                )
-                HtmlText(
-                    html =
-                        stringResource(
-                            R.string.about_source_code_fork,
-                            "<b><a href=\"${URL_SOURCE_CODE_FORK}\">GitHub</a></b>",
-                        ),
-                )
-            }
-        },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("知道了") } },
     )
 }
 
