@@ -13,9 +13,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.basic.TabRow
+import top.yukonga.miuix.kmp.basic.TabRowDefaults
 import top.yukonga.miuix.kmp.basic.TabRowWithContour
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** Inset the list's initial content, allowing scrolled items to pass beneath the tab bar. */
 internal val LocalTabContentPadding = staticCompositionLocalOf { PaddingValues() }
@@ -29,6 +32,11 @@ fun MiuixTabRow(
     modifier: Modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
     withContour: Boolean = false,
 ) {
+    // Let the host's backdrop show through without changing individual tab colors.
+    val colors = TabRowDefaults.tabRowColors(
+        backgroundColor = if (LocalBarBackdrop.current != null) Color.Transparent
+            else MiuixTheme.colorScheme.surface,
+    )
     AnimatedVisibility(
         visible = LocalCollapsingTabs.current?.visible ?: true,
         enter = expandVertically(expandFrom = Alignment.Top),
@@ -41,6 +49,7 @@ fun MiuixTabRow(
                 onTabSelected = onTabSelected,
                 modifier = modifier,
                 indication = LocalIndication.current,
+                colors = colors,
             )
         } else {
             TabRow(
@@ -49,6 +58,7 @@ fun MiuixTabRow(
                 onTabSelected = onTabSelected,
                 modifier = modifier,
                 indication = LocalIndication.current,
+                colors = colors,
             )
         }
     }

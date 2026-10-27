@@ -50,12 +50,18 @@ fun MiuixScaffold(
                 if (topBar != null) {
                     if (backdrop != null)
                         BlurredBar(backdrop) {
-                            CompositionLocalProvider(LocalBarColor provides Color.Transparent) {
+                            CompositionLocalProvider(
+                                LocalBarColor provides Color.Transparent,
+                                LocalBarBackdrop provides backdrop,
+                            ) {
                                 CompactBar { topBar() }
                             }
                         }
                     else
-                        CompositionLocalProvider(LocalBarColor provides containerColor) {
+                        CompositionLocalProvider(
+                            LocalBarColor provides containerColor,
+                            LocalBarBackdrop provides null,
+                        ) {
                             Box(Modifier.background(containerColor)) { CompactBar { topBar() } }
                         }
                 }
@@ -70,12 +76,18 @@ fun MiuixScaffold(
                         }
                     else if (backdrop != null)
                         BlurredBar(backdrop) {
-                            CompositionLocalProvider(LocalBarColor provides Color.Transparent) {
+                            CompositionLocalProvider(
+                                LocalBarColor provides Color.Transparent,
+                                LocalBarBackdrop provides backdrop,
+                            ) {
                                 CompactBar { bottomBar() }
                             }
                         }
                     else
-                        CompositionLocalProvider(LocalBarColor provides containerColor) {
+                        CompositionLocalProvider(
+                            LocalBarColor provides containerColor,
+                            LocalBarBackdrop provides null,
+                        ) {
                             Box(Modifier.background(containerColor)) { CompactBar { bottomBar() } }
                         }
                 }
