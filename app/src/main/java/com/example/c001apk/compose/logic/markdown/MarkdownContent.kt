@@ -1,6 +1,7 @@
 package com.example.c001apk.compose.logic.markdown
 
 import java.net.URI
+import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.IdentityHashMap
 import org.commonmark.ext.gfm.strikethrough.Strikethrough
@@ -63,6 +64,17 @@ class MarkdownContent(
                         plainText(it)
                     }
             }
+
+        /** Fragments use percent encoding, not form encoding: a literal '+' stays a '+'. */
+        internal fun anchorKey(url: String): String? {
+            if (!url.startsWith("#")) return null
+            return try {
+                val anchor = URLDecoder.decode(url.substring(1).replace("+", "%2B"), "UTF-8")
+                URLEncoder.encode(anchor, "UTF-8").replace("+", "%20")
+            } catch (_: IllegalArgumentException) {
+                null
+            }
+        }
 
         fun allowsUrl(value: String, image: Boolean = false): Boolean {
             if (value.isBlank() || value.any { it.code <= 32 || it.code == 127 || it == '\\' })

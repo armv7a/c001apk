@@ -85,11 +85,8 @@ fun MarkdownBody(
         remember(content) { content.headings.values.associateWith { BringIntoViewRequester() } }
     val open: (String) -> Unit = { url ->
         if (url.startsWith("#")) {
-            val anchor = url.removePrefix("#")
-            val encoded =
-                java.net.URLEncoder.encode(java.net.URLDecoder.decode(anchor, "UTF-8"), "UTF-8")
-                    .replace("+", "%20")
-            requesters[encoded]?.let { scope.launch { it.bringIntoView() } }
+            MarkdownContent.anchorKey(url)?.let { requesters[it] }
+                ?.let { scope.launch { it.bringIntoView() } }
         } else if (MarkdownContent.allowsUrl(url)) {
             val resolved =
                 if (java.net.URI(url).scheme == null)

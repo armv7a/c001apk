@@ -5,6 +5,7 @@ The application uses `miuix-nav` 0.9.4 for page navigation, entry state and View
 ## Routes and state
 
 - `AppDestination` contains typed, serializable page arguments. URLs, query text, nullable values, and update items are passed directly rather than encoded into route strings.
+- Destination screens must not URL-decode these arguments again. Post text and search terms retain literal `%`, `+`, and `%20`; WebView and carousel URLs retain their encoded components. External-link query decoding happens once in `CoolapkLink`. Cookie usernames use the separate cookie codec, with malformed values preserved for display; Markdown fragments reject invalid escapes without crashing.
 - `AppNavEntry` adds a unique visit ID used as the native content key. Returning to an entry restores its state; revisiting the same destination later creates a distinct entry. Repeated taps on the current destination do not add duplicate entries.
 - `AppNavigator` wraps Miuix's controller and persisted back stack. Popping keeps the root. Account changes replace the root identity and clear the detail stack so old account screens cannot be restored.
 - `AppNavigationActions` retains the existing Coolapk link parsing and external-browser behavior.

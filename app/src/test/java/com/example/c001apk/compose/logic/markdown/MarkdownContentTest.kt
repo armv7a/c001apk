@@ -5,6 +5,28 @@ import org.junit.Test
 
 class MarkdownContentTest {
     @Test
+    fun encodedAndUnicodeFragmentsResolveToTheSameHeading() {
+        val heading = MarkdownContent.parse("# 中文标题").headings.values.single()
+        assertEquals(heading, MarkdownContent.anchorKey("#中文标题"))
+        assertEquals(heading, MarkdownContent.anchorKey("#$heading"))
+    }
+
+    @Test
+    fun fragmentsKeepLiteralPlusAndDecodeOnlyOnce() {
+        assertEquals("a%2Bb", MarkdownContent.anchorKey("#a+b"))
+        assertEquals("a%2Bb", MarkdownContent.anchorKey("#a%2Bb"))
+        assertEquals("a%20b", MarkdownContent.anchorKey("#a%20b"))
+        assertEquals("a%2520b", MarkdownContent.anchorKey("#a%2520b"))
+    }
+
+    @Test
+    fun malformedFragmentsAreIgnoredWithoutThrowing() {
+        for (url in listOf("#%s%d", "#%", "#%2", "#%GG", "https://example.com/#title")) {
+            assertNull(url, MarkdownContent.anchorKey(url))
+        }
+    }
+
+    @Test
     fun ordinaryCoolapkTextIsNotMisidentified() {
         listOf("#酷安话题#", "POCO_X3_GT", "1. 单独的序号", "今天聊一下新手机").forEach {
             assertFalse(it, MarkdownContent.parse(it).isMarkdown)
