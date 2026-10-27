@@ -4,16 +4,13 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -21,12 +18,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.c001apk.compose.ui.component.BackButton
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.MiuixTabRow
-import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.util.ReportType
-import com.example.c001apk.compose.util.noRippleClickable
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
@@ -118,7 +113,9 @@ fun SearchResultScreen(
     updateInitPage: (Int) -> Unit,
     onReport: (String, ReportType) -> Unit,
 ) {
-
+    var query by rememberSaveable(keyword) { mutableStateOf(keyword) }
+    var submittedKeyword by rememberSaveable(keyword) { mutableStateOf(keyword) }
+    val searchViewModel = hiltViewModel<SearchViewModel>()
     val tabList = SearchType.entries
     val pagerState =
         rememberPagerState(
@@ -164,16 +161,17 @@ fun SearchResultScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             Column {
-                TopAppBar(
-                    windowInsets =
-                        WindowInsets.systemBars.only(
-                            WindowInsetsSides.Start + WindowInsetsSides.Top,
-                        ),
-                    navigationIcon = { BackButton(onBackClick) },
-                    title = keyword,
+                SearchResultHeader(
+                    query = query,
+                    onQueryChange = { query = it },
+                    onSearch = { value ->
+                        refreshState = value == submittedKeyword
+                        submittedKeyword = value
+                        searchViewModel.saveHistory(value)
+                    },
+                    onBackClick = onBackClick,
                     subtitle =
                         if (!title.isNullOrEmpty()) "${pageTypeTitle(pageType)}: $title" else "",
-                    modifier = Modifier.noRippleClickable(onClick = onBackClick),
                     actions = {
                         AnimatedVisibility(
                             visible = pagerState.currentPage == 0,
@@ -204,23 +202,25 @@ fun SearchResultScreen(
         },
     ) { paddingValues ->
         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { index ->
-            SearchContentScreen(
-                searchType = tabList[index],
-                keyword = keyword,
-                pageType = pageType,
-                pageParam = pageParam,
-                refreshState = refreshState,
-                resetRefreshState = { refreshState = false },
-                feedType = feedType,
-                orderType = orderType,
-                paddingValues = paddingValues,
-                onViewUser = onViewUser,
-                onViewFeed = onViewFeed,
-                onOpenLink = onOpenLink,
-                onCopyText = onCopyText,
-                updateInitPage = { updateInitPage(pagerState.currentPage) },
-                onReport = onReport,
-            )
+            key(submittedKeyword) {
+                SearchContentScreen(
+                    searchType = tabList[index],
+                    keyword = submittedKeyword,
+                    pageType = pageType,
+                    pageParam = pageParam,
+                    refreshState = refreshState,
+                    resetRefreshState = { refreshState = false },
+                    feedType = feedType,
+                    orderType = orderType,
+                    paddingValues = paddingValues,
+                    onViewUser = onViewUser,
+                    onViewFeed = onViewFeed,
+                    onOpenLink = onOpenLink,
+                    onCopyText = onCopyText,
+                    updateInitPage = { updateInitPage(pagerState.currentPage) },
+                    onReport = onReport,
+                )
+            }
         }
     }
 }
