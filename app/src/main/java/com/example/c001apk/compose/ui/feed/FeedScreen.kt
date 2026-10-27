@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -70,6 +71,7 @@ import com.example.c001apk.compose.ui.component.rememberHapticClick
 import com.example.c001apk.compose.ui.feed.reply.ReplyActivity
 import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.CookieUtil.isLogin
+import com.example.c001apk.compose.util.initialClick
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.ShareType
 import com.example.c001apk.compose.util.Utils.richToString
@@ -209,7 +211,22 @@ fun FeedScreen(
             Scaffold(
                 modifier = modifier.fillMaxSize(),
                 topBar = {
-                    TopAppBar(
+                    Box(
+                        Modifier.fillMaxWidth().initialClick {
+                            scope.launch {
+                                lazyListState.scrollToItem(
+                                    if (shouldShowSortCard || viewReply) {
+                                        viewReply = false
+                                        0
+                                    } else {
+                                        viewReply = true
+                                        viewModel.itemSize
+                                    },
+                                )
+                            }
+                        },
+                    ) {
+                        TopAppBar(
                         windowInsets =
                             WindowInsets.systemBars.only(
                                 WindowInsetsSides.Top +
@@ -231,20 +248,7 @@ fun FeedScreen(
                                 )
                                     " · 公开内容"
                                 else "",
-                        modifier =
-                            Modifier.noRippleClickable {
-                                scope.launch {
-                                    lazyListState.scrollToItem(
-                                        if (shouldShowSortCard || viewReply) {
-                                            viewReply = false
-                                            0
-                                        } else {
-                                            viewReply = true
-                                            viewModel.itemSize
-                                        },
-                                    )
-                                }
-                            },
+                        modifier = Modifier,
                         actions = {
                             if (viewModel.feedState is LoadingState.Success) {
                                 FeedExportAction(
@@ -340,7 +344,8 @@ fun FeedScreen(
                                 }
                             }
                         },
-                    )
+                        )
+                    }
                 },
                 floatingActionButton = {
                     if (isLogin && viewModel.feedState is LoadingState.Success) {
