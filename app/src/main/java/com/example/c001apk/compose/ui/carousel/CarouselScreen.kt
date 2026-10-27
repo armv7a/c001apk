@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.logic.model.TopicBean
+import com.example.c001apk.compose.logic.model.productCatalogContent
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.component.BackButton
 import com.example.c001apk.compose.ui.component.CommonScreen
@@ -108,7 +109,24 @@ fun CarouselScreen(
             }
         },
     ) { paddingValues ->
-        when (viewModel.loadingState) {
+        if (pagerState == null && !viewModel.catalogHeader.isEmpty) {
+            CommonScreen(
+                viewModel = viewModel,
+                refreshState = null,
+                resetRefreshState = {},
+                paddingValues = paddingValues,
+                needTopPadding = true,
+                displayState = productCatalogContent(viewModel.loadingState),
+                listHeader = {
+                    ProductCatalogHeader(viewModel.catalogHeader, onOpenLink, viewModel::selectCatalogSort)
+                },
+                onViewUser = onViewUser,
+                onViewFeed = onViewFeed,
+                onOpenLink = onOpenLink,
+                onCopyText = onCopyText,
+                onReport = onReport,
+            )
+        } else when (viewModel.loadingState) {
             LoadingState.Loading,
             LoadingState.Empty,
             is LoadingState.Error -> {

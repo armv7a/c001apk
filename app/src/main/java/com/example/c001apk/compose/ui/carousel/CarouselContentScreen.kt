@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.c001apk.compose.logic.model.productCatalogContent
 import com.example.c001apk.compose.ui.component.CommonScreen
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.makeToast
@@ -36,6 +37,10 @@ fun CarouselContentScreen(
         resetRefreshState = resetRefreshState,
         paddingValues = paddingValues,
         needTopPadding = true,
+        displayState = productCatalogContent(viewModel.loadingState),
+        listHeader = if (viewModel.catalogHeader.isEmpty) null else {
+            { ProductCatalogHeader(viewModel.catalogHeader, onOpenLink, viewModel::selectCatalogSort) }
+        },
         onViewUser = onViewUser,
         onViewFeed = onViewFeed,
         onOpenLink = onOpenLink,

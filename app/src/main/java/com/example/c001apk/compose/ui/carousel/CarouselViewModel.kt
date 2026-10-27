@@ -7,9 +7,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.c001apk.compose.constant.Constants.entityTemplateList
 import com.example.c001apk.compose.constant.Constants.entityTypeList
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
+import com.example.c001apk.compose.logic.model.ProductCatalogHeader
+import com.example.c001apk.compose.logic.model.TopicBean
+import com.example.c001apk.compose.logic.model.isProductCatalogHeader
+import com.example.c001apk.compose.logic.model.productCatalogHeader
 import com.example.c001apk.compose.logic.repository.BlackListRepo
 import com.example.c001apk.compose.logic.repository.NetworkRepo
 import com.example.c001apk.compose.logic.state.LoadingState
+import com.example.c001apk.compose.logic.state.FooterState
 import com.example.c001apk.compose.ui.base.BaseViewModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -39,15 +44,16 @@ class CarouselViewModel @AssistedInject constructor(
         ): CarouselViewModel
     }
 
-    init {
-        if (isInit)
-            preFetchData()
-        else
-            fetchData()
-    }
-
-    var pageTitle by mutableStateOf("")
+    var pageTitle by mutableStateOf(title)
         private set
+
+    internal var catalogHeader by mutableStateOf(ProductCatalogHeader())
+        private set
+    private var requestUrl = url
+
+    init {
+        if (isInit) preFetchData() else fetchData()
+    }
 
     private fun preFetchData() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -57,8 +63,10 @@ class CarouselViewModel @AssistedInject constructor(
                         page++
                         pageTitle = state.response.lastOrNull()?.extraDataArr?.pageTitle ?: title
                         val response = state.response.filter {
-                            it.entityType in entityTypeList || it.entityTemplate in entityTemplateList
+                            it.entityType in entityTypeList || it.entityTemplate in entityTemplateList ||
+                                isAdditionalItemSupported(it)
                         } // TODO
+                        catalogHeader = productCatalogHeader(response, requestUrl)
                         firstItem = response.firstOrNull()?.id
                         lastItem = response.lastOrNull()?.id
                         LoadingState.Success(response)
@@ -68,7 +76,32 @@ class CarouselViewModel @AssistedInject constructor(
     }
 
     override suspend fun customFetchData() =
-        networkRepo.getDataList(url, title, null, lastItem, page)
+        networkRepo.getDataList(requestUrl, title, null, lastItem, page)
+
+    override fun isAdditionalItemSupported(item: HomeFeedResponse.Data): Boolean =
+        item.isProductCatalogHeader()
+
+    override fun handleResponse(response: List<HomeFeedResponse.Data>): List<HomeFeedResponse.Data> {
+        // BaseViewModel increments page before this hook. Later pages must retain the controls.
+        if (page == 2) catalogHeader = productCatalogHeader(response, requestUrl, catalogHeader)
+        return response
+    }
+
+    internal fun selectCatalogSort(option: TopicBean) {
+        if (option !in catalogHeader.sorts || option.url == catalogHeader.selectedSort) return
+        cancelFetch()
+        requestUrl = option.url
+        catalogHeader = catalogHeader.copy(selectedSort = option.url)
+        page = 1
+        firstItem = null
+        lastItem = null
+        isEnd = false
+        isLoadMore = false
+        isRefreshing = false
+        loadingState = LoadingState.Loading
+        footerState = FooterState.Success
+        fetchData()
+    }
 
     override fun handleLoadMore(response: List<HomeFeedResponse.Data>): List<HomeFeedResponse.Data> {
         return response.distinctBy { it.entityId }
