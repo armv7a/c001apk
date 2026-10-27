@@ -4,18 +4,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
-import com.example.c001apk.compose.ui.component.MiuixAlertDialog as AlertDialog
-import com.example.c001apk.compose.ui.component.MiuixDialogButton as TextButton
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.cards.MessageFFFCard
 import com.example.c001apk.compose.ui.component.cards.MessageHeaderCard
@@ -27,7 +21,6 @@ import com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons
 import com.example.c001apk.compose.ui.notification.NoticeType
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.makeToast
-import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Text
 
 /** Created by bggRGjQaUbCoE on 2024/6/2 */
@@ -58,7 +51,6 @@ fun MessageScreen(
     androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
         if (prefs.isLogin) viewModel.refreshSilently()
     }
-    var showInboxDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -150,19 +142,20 @@ fun MessageScreen(
                             )
                         }
                         item(key = "messagesTitle") { ProfileSectionTitle("消息") }
-                        items(5, key = { "message_$it" }) { index ->
+                        items(titleList.size, key = { "message_$it" }) { index ->
                             MessageListCard(
                                 modifier =
                                     Modifier.padding(horizontal = 12.dp)
-                                        .padding(bottom = if (index == 4) 12.dp else 0.dp),
+                                        .padding(
+                                            bottom = if (index == titleList.lastIndex) 12.dp else 0.dp,
+                                        ),
                                 imageVector = iconList[index],
                                 title = titleList[index],
                                 count = viewModel.badgeList.getOrNull(index),
                                 first = index == 0,
-                                last = index == 4,
+                                last = index == titleList.lastIndex,
                                 onViewNotice = {
                                     if (!prefs.isLogin) onLogin()
-                                    else if (index == 4) showInboxDialog = true
                                     else {
                                         viewModel.clearBadge(index)
                                         onViewNotice(NoticeType.entries[index].name)
@@ -173,42 +166,6 @@ fun MessageScreen(
                     }
                 }
             }
-        }
-    }
-
-    when {
-        showInboxDialog -> {
-            AlertDialog(
-                onDismissRequest = { showInboxDialog = false },
-                title = { Text("私信与信息") },
-                text = {
-                    Column {
-                        BasicComponent(
-                            title = "私信",
-                            onClick = {
-                                showInboxDialog = false
-                                viewModel.clearBadge(4)
-                                onViewNotice(NoticeType.MESSAGE.name)
-                            },
-                        )
-                        BasicComponent(
-                            title = "酷安小秘书",
-                            summary =
-                                if (com.example.c001apk.compose.util.CookieUtil.notification > 0)
-                                    "${com.example.c001apk.compose.util.CookieUtil.notification} 条系统通知"
-                                else "系统通知与信息",
-                            onClick = {
-                                showInboxDialog = false
-                                com.example.c001apk.compose.util.CookieUtil.notification = 0
-                                onViewNotice(NoticeType.NOTIFICATION.name)
-                            },
-                        )
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = { showInboxDialog = false }) { Text("取消") }
-                },
-            )
         }
     }
 

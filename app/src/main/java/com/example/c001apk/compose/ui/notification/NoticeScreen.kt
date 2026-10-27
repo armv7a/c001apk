@@ -103,7 +103,7 @@ fun NoticeScreen(
                                 NoticeType.LIKE.name -> "我收到的赞"
                                 NoticeType.FOLLOW.name -> "好友关注"
                                 NoticeType.MESSAGE.name -> "私信"
-                                NoticeType.NOTIFICATION.name -> "酷安小秘书"
+                                NoticeType.NOTIFICATION.name -> "信息"
                                 else -> throw IllegalArgumentException("invalid type: $type")
                             },
                         maxLines = 1,
