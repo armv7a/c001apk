@@ -40,7 +40,7 @@
         <activity
             android:name="net.mikaelzero.mojito.ui.ImageMojitoActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:theme="@style/AppThemeTranslucent"
+            android:theme="@style/Theme.C001apkCompose.ImagePreview"
             tools:replace="android:theme" />
 
         <activity android:name=".ui.captcha.CaptchaActivity" android:exported="false" />
