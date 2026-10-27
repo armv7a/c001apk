@@ -8,6 +8,7 @@ import com.example.c001apk.compose.logic.repository.BlackListRepo
 import com.example.c001apk.compose.logic.repository.NetworkRepo
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.base.BaseViewModel
+import com.example.c001apk.compose.ui.notification.NoticeType
 import com.example.c001apk.compose.util.CookieUtil.atcommentme
 import com.example.c001apk.compose.util.CookieUtil.atme
 import com.example.c001apk.compose.util.CookieUtil.contacts_follow
@@ -38,7 +39,10 @@ constructor(
     var fffList by mutableStateOf<List<String>>(emptyList())
         private set
 
-    var badgeList by mutableStateOf(listOf(atme, atcommentme, feedlike, contacts_follow, message))
+    var badgeList by
+        mutableStateOf(
+            listOf(atme, atcommentme, feedlike, contacts_follow, message, CookieUtil.notification),
+        )
         private set
 
     init {
@@ -88,7 +92,8 @@ constructor(
                         it.atcommentme,
                         it.feedlike,
                         it.contactsFollow,
-                        it.message + it.notification,
+                        it.message,
+                        it.notification,
                     )
             }
         }
@@ -119,6 +124,7 @@ constructor(
     }
 
     fun clearBadge(index: Int) {
+        if (index == NoticeType.NOTIFICATION.ordinal) CookieUtil.notification = 0
         badgeList = badgeList.mapIndexed { i, count -> if (index == i) null else count }
     }
 }
