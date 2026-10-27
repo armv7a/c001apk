@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.util.Utils.richToString
-import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.getAllLinkAndText
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -28,7 +27,7 @@ fun CopyTextScreen(text: String) {
         SelectionContainer {
             Box(modifier = Modifier.fillMaxSize()) {
                 Text(
-                    text = text.decode.getAllLinkAndText.replace("\n", "<br/>").richToString(),
+                    text = text.getAllLinkAndText.replace("\n", "<br/>").richToString(),
                     style =
                         MiuixTheme.textStyles.title3.copy(
                             fontSize = 20.sp,

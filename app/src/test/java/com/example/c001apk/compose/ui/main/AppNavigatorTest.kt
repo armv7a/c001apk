@@ -14,7 +14,7 @@ class AppNavigatorTest {
 
     @Test
     fun allDestinationsRoundTripWithStableVisitIdsAndUnescapedArguments() {
-        val special = "中文 / null ?q=a&b=%23 #片段"
+        val special = "中文 / null ?q=a&b=%23 #片段 user_tag:%s%d C++ 100% %20 %"
         val destinations = listOf(
             AppDestination.Main, AppDestination.DetailPlaceholder, AppDestination.Settings(special),
             AppDestination.LocalFollows, AppDestination.Accounts, AppDestination.TabEditor,

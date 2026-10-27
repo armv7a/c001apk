@@ -26,7 +26,6 @@ import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.MiuixTabRow
 import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.util.ReportType
-import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.noRippleClickable
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.DropdownEntry
@@ -171,7 +170,7 @@ fun SearchResultScreen(
                             WindowInsetsSides.Start + WindowInsetsSides.Top,
                         ),
                     navigationIcon = { BackButton(onBackClick) },
-                    title = keyword.decode,
+                    title = keyword,
                     subtitle =
                         if (!title.isNullOrEmpty()) "${pageTypeTitle(pageType)}: $title" else "",
                     modifier = Modifier.noRippleClickable(onClick = onBackClick),
@@ -207,7 +206,7 @@ fun SearchResultScreen(
         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { index ->
             SearchContentScreen(
                 searchType = tabList[index],
-                keyword = keyword.decode,
+                keyword = keyword,
                 pageType = pageType,
                 pageParam = pageParam,
                 refreshState = refreshState,

@@ -5,6 +5,14 @@ import org.junit.Test
 
 class CoolapkLinkTest {
     @Test
+    fun queryDecodingKeepsLiteralPercentAndPlusForTypedRoutes() {
+        val link = CoolapkLink.parse("coolmarket://search?searchValue=user_tag%3A%25s%25d%20C%2B%2B%20%2520")!!
+        assertEquals("user_tag:%s%d C++ %20", link.query["searchValue"])
+        val carousel = CoolapkLink.parse("/page?url=%2Ffeed%3Fq%3Da%2526b%252Bc")!!
+        assertEquals("/feed?q=a%26b%2Bc", carousel.query["url"])
+    }
+
+    @Test
     fun acceptsBothCoolapkAndCoolapk1s() {
         for (host in CoolapkLink.hosts) for (scheme in listOf("http", "https")) {
             val link = CoolapkLink.parse("$scheme://$host/feed/123?shareUid=999#comments")!!

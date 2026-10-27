@@ -32,7 +32,6 @@ import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.MiuixTabRow
 import com.example.c001apk.compose.ui.component.cards.LoadingCard
 import com.example.c001apk.compose.util.ReportType
-import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.makeToast
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Text
@@ -54,7 +53,7 @@ fun CarouselScreen(
     val viewModel =
         hiltViewModel<CarouselViewModel, CarouselViewModel.ViewModelFactory>(key = url + title) {
             factory ->
-            factory.create(isInit = true, url = url.decode, title = title)
+            factory.create(isInit = true, url = url, title = title)
         }
 
     val scope = rememberCoroutineScope()

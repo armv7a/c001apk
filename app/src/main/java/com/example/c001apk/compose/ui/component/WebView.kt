@@ -27,7 +27,6 @@ import com.example.c001apk.compose.constant.Constants.UTF8
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.ui.webview.ActionType
 import com.example.c001apk.compose.util.copyText
-import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.openInBrowser
 import java.net.URISyntaxException
@@ -131,7 +130,7 @@ fun WebView(
                 }
 
                 setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
-                    val fileName = URLUtil.guessFileName(url, contentDisposition, mimetype).decode
+                    val fileName = URLUtil.guessFileName(url, contentDisposition, mimetype)
                     MiuixViewDialogBuilder(context).apply {
                         setTitle("确定下载文件吗？")
                         setMessage(fileName)

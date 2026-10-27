@@ -39,7 +39,6 @@ import com.example.c001apk.compose.ui.component.MiuixMenuItem as DropdownMenuIte
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.MoreMenuButton
 import com.example.c001apk.compose.ui.component.WebView
-import com.example.c001apk.compose.util.decode
 import com.example.c001apk.compose.util.makeToast
 import com.example.c001apk.compose.util.openInBrowser
 import kotlinx.coroutines.launch
@@ -150,7 +149,7 @@ fun WebViewScreen(
                     ),
         ) {
             WebView(
-                url = url.decode,
+                url = url,
                 isLogin = isLogin,
                 onFinishLogin = { cookie ->
                     if (cookie.isNotEmpty()) {
