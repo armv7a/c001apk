@@ -1,0 +1,104 @@
+{
+  "data": [
+    {
+      "id": 0,
+      "title": "热门",
+      "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D0%26showMode%3D0",
+      "logo": "http://image.coolapk.com/image/2019/1212/18/1576147525_5183-0-o_1drsrd763sgkcbv2ub16m81ie2i-uid-427832@320x320.png"
+    },
+    {
+      "id": 1000,
+      "title": "手机",
+      "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1000%26showMode%3D0",
+      "logo": "http://image.coolapk.com/product_logo/2019/1211/11/0_5991_8577@320x320.png"
+    },
+    {
+      "id": 1006,
+      "title": "数码配件",
+      "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1006%26showMode%3D0",
+      "logo": "http://image.coolapk.com/product_logo/2019/1230/14/0_7605_0819@300x300.jpg",
+      "secondCategoryRows": [
+        {
+          "id": 1021,
+          "title": "充电宝",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2024/0102/16/0_3718_9746_310@200x200.png"
+        },
+        {
+          "id": 1022,
+          "title": "充电器",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1022%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2024/0102/16/0_4032_7383_796@800x800.jpg"
+        },
+        {
+          "id": 1057,
+          "title": "插座",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1057%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2024/0530/11/0_9882_1205_843@512x512.png"
+        },
+        {
+          "id": 1060,
+          "title": "随身WiFi",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1060%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": ""
+        },
+        {
+          "id": 1058,
+          "title": "触控笔",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1058%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2024/0530/11/0_9902_408_473@512x512.png"
+        },
+        {
+          "id": 1059,
+          "title": "散热器",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1059%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": ""
+        },
+        {
+          "id": 1006,
+          "title": "其他",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1006%26filterOther%3Dtrue%26showMode%3D0",
+          "logo": ""
+        }
+      ]
+    },
+    {
+      "id": 1009,
+      "title": "其他",
+      "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1009%26showMode%3D0",
+      "logo": "http://image.coolapk.com/product_logo/2019/1213/11/0_7342_7801@320x320.png",
+      "secondCategoryRows": [
+        {
+          "id": 1010,
+          "title": "电纸书",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1010%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2020/0104/11/0_8668_3354@120x120.jpg"
+        },
+        {
+          "id": 1082,
+          "title": "3D打印机",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1082%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": ""
+        },
+        {
+          "id": 1074,
+          "title": "播放器",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1074%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": ""
+        },
+        {
+          "id": 1092,
+          "title": "手持风扇",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1092%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": ""
+        },
+        {
+          "id": 1009,
+          "title": "其他",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Ftype%3Dcategory%26id%3D1009%26filterOther%3Dtrue%26showMode%3D0",
+          "logo": ""
+        }
+      ]
+    }
+  ]
+}

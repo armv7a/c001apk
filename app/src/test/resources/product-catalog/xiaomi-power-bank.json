@@ -1,0 +1,27 @@
+{
+  "data": [
+    {
+      "entityType": "card",
+      "entityTemplate": "sortSelectCard",
+      "entityId": "productSeriesSortSelect",
+      "title": "排序规则",
+      "extraDataArr": {
+        "selectedTab": "最新"
+      },
+      "entities": [
+        {
+          "title": "热度",
+          "url": "/page?url=%2Fproduct%2FseriesList%3Fid%3D1016%26category_id%3D1021%26type%3Dbrand%26showTab%3D1%26isSecondCategory%3D1%26showMode%3D0%26sortField%3Dhot_num"
+        },
+        {
+          "title": "评分",
+          "url": "/page?url=%2Fproduct%2FseriesList%3Fid%3D1016%26category_id%3D1021%26type%3Dbrand%26showTab%3D1%26isSecondCategory%3D1%26showMode%3D0%26sortField%3Dstar_average_score%26limitField%3Dstar_total_count-80"
+        },
+        {
+          "title": "最新",
+          "url": "/page?url=%2Fproduct%2FseriesList%3Fid%3D1016%26category_id%3D1021%26type%3Dbrand%26showTab%3D1%26isSecondCategory%3D1%26showMode%3D0%26sortField%3Drelease_time"
+        }
+      ]
+    }
+  ]
+}

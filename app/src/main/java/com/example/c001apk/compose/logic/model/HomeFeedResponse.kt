@@ -16,6 +16,7 @@ data class HomeFeedResponse(
 
     @Parcelize
     data class Data(
+        val secondCategoryRows: List<Entities>? = null,
         val isStickTop: Int?,
         val likeUserInfo: UserInfo?,
         val ukey: String?,
@@ -295,6 +296,7 @@ data class HomeFeedResponse(
     data class ExtraDataArr(
         val pageTitle: String?,
         val cardPageName: String?,
+        val selectedTab: String? = null,
     ) : Parcelable
 
     @Parcelize

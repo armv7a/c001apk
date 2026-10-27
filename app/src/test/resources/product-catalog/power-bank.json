@@ -1,0 +1,146 @@
+{
+  "data": [
+    {
+      "entityType": "card",
+      "entityTemplate": "iconGridHorizonCard",
+      "entityId": "category-detail",
+      "title": "品牌",
+      "entities": [
+        {
+          "id": 1016,
+          "title": "小米",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1016%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2025/0427/16/0_3140_2957_310@1000x500.png"
+        },
+        {
+          "id": 1247,
+          "title": "酷态科",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1247%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2023/1013/16/0_6955_5414_241@512x256.png"
+        },
+        {
+          "id": 1000,
+          "title": "OPPO",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1000%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2026/0403/14/0_9499_7941_208@580x326.jpg"
+        },
+        {
+          "id": 1002,
+          "title": "华为",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1002%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2019/1226/10/0_8718_7917@182x90.jpg"
+        },
+        {
+          "id": 1171,
+          "title": "ANKER",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1171%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2020/0108/14/0_5277_1968@186x83.jpg"
+        },
+        {
+          "id": 1007,
+          "title": "努比亚",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1007%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2020/0721/13/0_0776_7054@801x801.jpg"
+        },
+        {
+          "id": 1167,
+          "title": "绿联",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1167%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2020/0107/10/0_5384_1573@196x96.jpg"
+        },
+        {
+          "id": 1001,
+          "title": "vivo",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1001%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2019/1226/10/0_9017_754@160x80.jpg"
+        },
+        {
+          "id": 1006,
+          "title": "一加",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1006%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2021/0414/11/0_9424_1131@322x161.jpg"
+        },
+        {
+          "id": 1401,
+          "title": "米物",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1401%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2025/1118/14/0_5786_2053_735@1000x500.png"
+        },
+        {
+          "id": 1160,
+          "title": "罗马仕",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1160%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2020/0104/14/0_8770_5957@199x99.jpg"
+        },
+        {
+          "id": 1418,
+          "title": "iQOO",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1418%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2026/0817/16/0_4093_4058_983@1000x500.png"
+        },
+        {
+          "id": 1312,
+          "title": "闪极",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1312%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2024/0530/21/0_4264_723_535@1000x500.png"
+        },
+        {
+          "id": 1005,
+          "title": "苹果",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1005%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2019/1226/11/0_9917_482@500x250.jpg"
+        },
+        {
+          "id": 1201,
+          "title": "真我",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1201%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2021/0218/10/0_6325_7204@512x256.jpg"
+        },
+        {
+          "id": 1143,
+          "title": "ZMI",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1143%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2020/0104/10/0_3258_8124@160x79.jpg"
+        },
+        {
+          "id": 1051,
+          "title": "黑鲨",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1051%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2019/0102/14/0_1546411520_273@160x80.jpg"
+        },
+        {
+          "id": 1009,
+          "title": "联想",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1009%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2020/0104/10/0_4117_1142@718x359.jpg"
+        },
+        {
+          "id": 1412,
+          "title": "品丘",
+          "url": "/page?url=%2Fproduct%2FseriesList%3FshowTab%3D1%26type%3Dbrand%26id%3D1412%26category_id%3D1021%26isSecondCategory%3D1%26showMode%3D0",
+          "logo": "http://image.coolapk.com/product_logo/2026/0309/16/0_3710_765_82@267x149.jpg"
+        }
+      ]
+    },
+    {
+      "entityType": "card",
+      "entityTemplate": "sortSelectCard",
+      "entityId": "productCategorySortSelect",
+      "title": "排序规则",
+      "entities": [
+        {
+          "title": "热度",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Fid%3D1021%26isSecondCategory%3D1%26sortField%3Dhot_num%26showMode%3D0"
+        },
+        {
+          "title": "评分",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Fid%3D1021%26isSecondCategory%3D1%26sortField%3Dstar_average_score%26limitField%3Dstar_total_count-80%26showMode%3D0"
+        },
+        {
+          "title": "最新",
+          "url": "/page?url=%2Fproduct%2FcategoryDetailList%3Fid%3D1021%26isSecondCategory%3D1%26sortField%3Drelease_time%26showMode%3D0"
+        }
+      ]
+    }
+  ]
+}
