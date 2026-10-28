@@ -1,19 +1,28 @@
 package com.example.c001apk.compose.ui
 
 import android.os.ParcelFileDescriptor
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.*
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.c001apk.compose.ui.message.MessageSection
 import com.example.c001apk.compose.ui.notification.NoticeType
 import com.example.c001apk.compose.ui.notification.NotificationCategories
+import com.example.c001apk.compose.ui.notification.NotificationPager
 import com.example.c001apk.compose.ui.theme.C001apkComposeTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -21,6 +30,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
+import top.yukonga.miuix.kmp.basic.Text
 
 class MessageSectionTest {
     private val compose = createComposeRule()
@@ -67,22 +77,62 @@ class MessageSectionTest {
         }
     }
 
-    @Test fun notificationGroupStillExposesEachOriginalCategory() {
-        val opened = mutableListOf<NoticeType>()
-        compose.setContent {
+    @Test fun notificationTabsSupportSwipesClicksAndRestoreListPositions() {
+        lateinit var pager: PagerState
+        val lists = mutableMapOf<NoticeType, LazyListState>()
+        val restoration = StateRestorationTester(compose)
+        restoration.setContent {
             C001apkComposeTheme(materialYou = false) {
-                var selected by remember { mutableStateOf(NoticeType.NOTIFICATION) }
-                NotificationCategories(selected = selected, onSelected = {
-                    selected = it
-                    opened += it
-                })
+                val state = rememberPagerState { 3 }
+                SideEffect { pager = state }
+                Column(Modifier.fillMaxSize()) {
+                    NotificationCategories(state)
+                    NotificationPager(state, Modifier.weight(1f)) { category ->
+                        val list = rememberLazyListState()
+                        SideEffect { lists[category] = list }
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize().testTag("list-${category.name}"),
+                            state = list,
+                        ) {
+                            items(60) { index ->
+                                Text(
+                                    "${category.name}-$index",
+                                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
-        listOf("@我的动态", "@我的评论", "信息").forEach {
-            compose.onNodeWithText(it).assertIsDisplayed().performClick()
+        fun awaitPage(index: Int, type: NoticeType) {
+            compose.waitUntil(5_000) { pager.currentPage == index && !pager.isScrollInProgress }
+            compose.onNodeWithTag("list-${type.name}").assertIsDisplayed()
         }
+
+        awaitPage(0, NoticeType.NOTIFICATION)
+        compose.onNodeWithTag("list-NOTIFICATION").performScrollToIndex(25)
+        compose.onNodeWithTag("list-NOTIFICATION").performTouchInput { swipeLeft() }
+        awaitPage(1, NoticeType.AT)
+        compose.onNodeWithText("@我的评论").performClick()
+        awaitPage(2, NoticeType.COMMENT)
+        compose.onNodeWithTag("list-COMMENT").performScrollToIndex(18)
+        compose.onNodeWithTag("list-COMMENT").performTouchInput { swipeRight() }
+        awaitPage(1, NoticeType.AT)
+        compose.onNodeWithText("信息").performClick()
+        awaitPage(0, NoticeType.NOTIFICATION)
+        compose.runOnIdle { assertEquals(25, lists.getValue(NoticeType.NOTIFICATION).firstVisibleItemIndex) }
+        compose.onNodeWithText("@我的评论").performClick()
+        awaitPage(2, NoticeType.COMMENT)
+        compose.runOnIdle { assertEquals(18, lists.getValue(NoticeType.COMMENT).firstVisibleItemIndex) }
+
+        restoration.emulateSavedInstanceStateRestore()
+        awaitPage(2, NoticeType.COMMENT)
+        compose.runOnIdle { assertEquals(18, lists.getValue(NoticeType.COMMENT).firstVisibleItemIndex) }
+        compose.onNodeWithText("信息").performClick()
+        awaitPage(0, NoticeType.NOTIFICATION)
         compose.runOnIdle {
-            assertEquals(listOf(NoticeType.AT, NoticeType.COMMENT, NoticeType.NOTIFICATION), opened)
+            assertEquals(25, lists.getValue(NoticeType.NOTIFICATION).firstVisibleItemIndex)
         }
     }
 }

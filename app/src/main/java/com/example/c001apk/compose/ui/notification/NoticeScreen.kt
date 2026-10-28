@@ -10,12 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,11 +47,10 @@ fun NoticeScreen(
     onViewChat: (String, String, String) -> Unit,
 ) {
     val destination = remember(type) { NoticeType.valueOf(type) }
-    var selectedCategory by rememberSaveable(type) {
-        mutableStateOf(NoticeType.NOTIFICATION)
-    }
-    val activeType = if (destination == NoticeType.NOTICES) selectedCategory else destination
-    val listStateHolder = rememberSaveableStateHolder()
+    val pagerState = if (destination == NoticeType.NOTICES) {
+        rememberPagerState { notificationCategories.size }
+    } else null
+    val activeType = pagerState?.let { notificationCategories[it.currentPage] } ?: destination
     val viewModel = noticeViewModel(activeType)
 
     // Refresh on returning to the page, not when switching between cached categories.
@@ -87,19 +85,17 @@ fun NoticeScreen(
                         )
                     },
                 )
-                if (destination == NoticeType.NOTICES) {
-                    NotificationCategories(
-                        selected = activeType,
-                        onSelected = { selectedCategory = it },
-                    )
+                if (pagerState != null) {
+                    NotificationCategories(pagerState)
                 }
             }
         },
     ) { paddingValues ->
-        listStateHolder.SaveableStateProvider(activeType.name) {
+        val content: @Composable (NoticeType) -> Unit = { category ->
+            val pageViewModel = noticeViewModel(category)
             CommonScreen(
-                viewModel = viewModel,
-                isReceivedLikeList = activeType == NoticeType.LIKE,
+                viewModel = pageViewModel,
+                isReceivedLikeList = category == NoticeType.LIKE,
                 refreshState = null,
                 resetRefreshState = {},
                 paddingValues =
@@ -115,16 +111,21 @@ fun NoticeScreen(
                 onCopyText = onCopyText,
                 onReport = onReport,
                 onHandleMessage = { ukey, isTop ->
-                    viewModel.ukey = ukey
-                    viewModel.isTop = isTop
+                    pageViewModel.ukey = ukey
+                    pageViewModel.isTop = isTop
                     showMessageDialog = true
                 },
                 onDeleteNotice = { deleteNoticeId = it },
                 onViewChat = { ukey, uid, username ->
-                    viewModel.resetUnRead(ukey)
+                    pageViewModel.resetUnRead(ukey)
                     onViewChat(ukey, uid, username)
                 },
             )
+        }
+        if (pagerState != null) {
+            NotificationPager(pagerState, content = content)
+        } else {
+            content(destination)
         }
     }
 
