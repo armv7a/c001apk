@@ -115,6 +115,7 @@ fun NoticeScreen(
     ) { paddingValues ->
         CommonScreen(
             viewModel = viewModel,
+            isReceivedLikeList = type == NoticeType.LIKE.name,
             refreshState = null,
             resetRefreshState = {},
             paddingValues =

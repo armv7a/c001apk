@@ -9,11 +9,13 @@ import androidx.compose.foundation.lazy.staggeredgrid.*
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed as gridItemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.logic.model.purchasePriceSummary
+import com.example.c001apk.compose.logic.model.receivedLike
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.ui.base.LikeType
 import com.example.c001apk.compose.ui.component.cards.AppCard
@@ -36,6 +38,7 @@ import com.example.c001apk.compose.ui.component.cards.NotificationCard
 import com.example.c001apk.compose.ui.component.cards.ProductConfigListCard
 import com.example.c001apk.compose.ui.component.cards.ProductListCard
 import com.example.c001apk.compose.ui.component.cards.PurchasePriceSummaryCard
+import com.example.c001apk.compose.ui.component.cards.ReceivedLikeCard
 import com.example.c001apk.compose.ui.component.cards.TextCard
 import com.example.c001apk.compose.ui.component.cards.TitleCard
 import com.example.c001apk.compose.util.ReportType
@@ -136,6 +139,7 @@ fun LazyListScope.ItemCard(
 fun FeedListEntry(
     item: HomeFeedResponse.Data,
     index: Int,
+    isReceivedLikeList: Boolean = false,
     onViewUser: (String) -> Unit,
     onViewFeed: (String, Boolean) -> Unit,
     onOpenLink: (String, String?) -> Unit,
@@ -163,6 +167,13 @@ fun FeedListEntry(
     onShowGlobalProductComparison: (() -> Unit)? = null,
     onToggleProductEntityComparison: ((HomeFeedResponse.Entities) -> Unit)? = null,
 ) {
+    val receivedLike = remember(item, isReceivedLikeList) {
+        if (isReceivedLikeList) item.receivedLike() else null
+    }
+    if (receivedLike != null) {
+        ReceivedLikeCard(receivedLike, onViewUser, onOpenLink, onCopyText)
+        return
+    }
     when (val type = item.entityType) {
         "card" ->
             when (item.entityTemplate) {
@@ -370,6 +381,7 @@ fun FeedListEntry(
 
 fun LazyStaggeredGridScope.GridItemCard(
     loadingState: LoadingState<List<HomeFeedResponse.Data>>,
+    isReceivedLikeList: Boolean = false,
     loadMore: () -> Unit,
     isEnd: Boolean,
     onViewUser: (String) -> Unit,
@@ -420,7 +432,8 @@ fun LazyStaggeredGridScope.GridItemCard(
                 items = loadingState.response,
                 key = { index, item -> "${item.entityType}:${item.id ?: item.entityId}:$index" },
                 span = { _, item ->
-                    if (
+                    if (isReceivedLikeList) StaggeredGridItemSpan.FullLine
+                    else if (
                         item.entityType in
                             setOf(
                                 "feed",
@@ -438,6 +451,7 @@ fun LazyStaggeredGridScope.GridItemCard(
                 },
             ) { index, item ->
                 FeedListEntry(
+                    isReceivedLikeList = isReceivedLikeList,
                     item = item,
                     index = index,
                     onViewUser = onViewUser,

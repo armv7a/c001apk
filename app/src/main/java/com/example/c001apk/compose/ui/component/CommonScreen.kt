@@ -54,6 +54,7 @@ fun CommonScreen(
     onToggleProductEntityComparison: ((HomeFeedResponse.Entities) -> Unit)? = null,
     listModifier: Modifier = Modifier,
     displayState: LoadingState<List<HomeFeedResponse.Data>> = viewModel.loadingState,
+    isReceivedLikeList: Boolean = false,
 ) {
 
     val view = LocalView.current
@@ -112,6 +113,7 @@ fun CommonScreen(
                     item(key = "listHeader", span = StaggeredGridItemSpan.FullLine) { listHeader() }
                 }
                 GridItemCard(
+                    isReceivedLikeList = isReceivedLikeList,
                     loadingState = displayState,
                     loadMore = viewModel::loadMore,
                     isEnd = viewModel.isEnd,
