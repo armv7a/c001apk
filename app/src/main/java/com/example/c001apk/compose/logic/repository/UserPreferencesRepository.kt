@@ -22,6 +22,8 @@ constructor(
     val data
         get() = userPreferencesDataSource.data
 
+    suspend fun setHideHomePublishButton(value: Boolean) = userPreferencesDataSource.setHideHomePublishButton(value)
+
     suspend fun setReadingMode(value: Int) = userPreferencesDataSource.setReadingMode(value)
 
     suspend fun setFloatingNavigationBar(value: Boolean) =

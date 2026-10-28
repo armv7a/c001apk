@@ -24,6 +24,10 @@ constructor(
     private val digitalUnion: DigitalUnionRepository,
 ) : PrefsViewModel(userPreferencesRepository) {
 
+    fun setHideHomePublishButton(value: Boolean) {
+        viewModelScope.launch { userPreferencesRepository.setHideHomePublishButton(value) }
+    }
+
     fun setReadingMode(value: Int) {
         viewModelScope.launch { userPreferencesRepository.setReadingMode(value) }
     }

@@ -1,5 +1,7 @@
 package com.example.c001apk.compose.ui.home
 
+import com.example.c001apk.compose.logic.providable.LocalUserPreferences
+
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
@@ -239,7 +241,7 @@ fun HomeScreen(
             }
         },
         floatingActionButton = {
-            if (isLogin && tabList.getOrNull(selectedTabIndex) == TabType.FEED) {
+            if (isLogin && !LocalUserPreferences.current.hideHomePublishButton && tabList.getOrNull(selectedTabIndex) == TabType.FEED) {
                 AnimatedVisibility(
                     modifier = Modifier.padding(bottom = bottomPadding),
                     visible = isScrollingUp,

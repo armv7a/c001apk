@@ -65,6 +65,7 @@ message UserPreferences {
   bool hideHomeCarousel = 58;
   bool hideHomeChannels = 59;
   string contentFilterJson = 60;
+  bool hideHomePublishButton = 61;
   int64 deviceIdentityRevision = 63;
 }
 

@@ -389,6 +389,12 @@ fun SettingsScreen(
                                     onShowEmoji = viewModel::setShowEmoji,
                                 )
                             }
+                            item(key = "publish") {
+                                PreferenceGroup(title = "发布") {
+                                    SwitchListItem(prefs.hideHomePublishButton, MiuixIcons.Rename, "隐藏首页发布按钮",
+                                        "关闭后可在首页动态页发布") { viewModel.setHideHomePublishButton(it) }
+                                }
+                            }
                             item(key = "Content_1") {
                                 PreferenceGroup(title = "关注") {
                                     BasicListItem(
