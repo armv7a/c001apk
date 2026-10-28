@@ -2,8 +2,8 @@ package com.example.c001apk.compose.ui.component.cards
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons
@@ -17,7 +17,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 fun MessageListCard(
     modifier: Modifier = Modifier,
-    imageVector: ImageVector,
+    icon: @Composable () -> Unit,
     title: String,
     count: Int?,
     first: Boolean,
@@ -36,12 +36,7 @@ fun MessageListCard(
         role = Role.Button,
         onClick = onViewNotice,
         startAction = {
-            Icon(
-                imageVector,
-                null,
-                modifier = Modifier.size(24.dp),
-                tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-            )
+            Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) { icon() }
         },
         endActions = {
             if (count != null && count > 0) {

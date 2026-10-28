@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.c001apk.compose.ui.component.cards.MessageListCard
-import com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons
-import com.example.c001apk.compose.ui.component.icons.NotificationIcon
 import com.example.c001apk.compose.ui.notification.NoticeType
 
 @Composable
@@ -17,12 +15,7 @@ internal fun MessageSection(
     Column(modifier) {
         MessageEntry.entries.forEachIndexed { index, entry ->
             MessageListCard(
-                imageVector = when (entry) {
-                    MessageEntry.NOTICES -> NotificationIcon
-                    MessageEntry.LIKES -> FlutterProfileIcons.ThumbUp
-                    MessageEntry.FOLLOWS -> FlutterProfileIcons.PersonAdd
-                    MessageEntry.MESSAGES -> FlutterProfileIcons.Mail
-                },
+                icon = { MessageEntryIcon(entry) },
                 title = entry.title,
                 count = entry.unreadCount(counts),
                 first = index == 0,
