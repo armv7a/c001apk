@@ -25,6 +25,15 @@ class ContentFilterStore @Inject constructor(private val preferences: DataStore<
     suspend fun remove(id: String) = update { it.copy(rules = it.rules.filterNot { rule -> rule.id == id }) }
 
     suspend fun disable(id: String) = update {
-        it.copy(rules = it.rules.map { rule -> if (rule.id == id) rule.copy(enabled = false) else rule })
+        if (id.startsWith("twilight:")) it.copy(disabledTwilightRules = it.disabledTwilightRules + id)
+        else it.copy(rules = it.rules.map { rule -> if (rule.id == id) rule.copy(enabled = false) else rule })
+    }
+
+    suspend fun importTwilight(candidate: TwilightRuleSet) = update { current ->
+        candidate.validate()
+        current.twilight?.let { previous ->
+            require(candidate.revision > previous.revision || candidate == previous) { "远程版本过旧或同版本内容改变，保留已有规则" }
+        }
+        current.copy(twilight = candidate)
     }
 }

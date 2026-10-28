@@ -45,20 +45,28 @@ data class ContentFilterPreferences(
     val rules: List<ContentRule> = emptyList(),
     val allowedAuthors: Set<String> = emptySet(),
     val allowedContent: Set<String> = emptySet(),
+    val twilight: TwilightRuleSet? = null,
+    val twilightStrict: Boolean = false,
+    val disabledTwilightRules: Set<String> = emptySet(),
 ) {
     fun encode(): String {
         require(rules.size <= 200 && rules.map { it.id }.distinct().size == rules.size) { "最多保存 200 条不同规则" }
         require(allowedAuthors.size <= 1000 && allowedContent.size <= 1000) { "例外已达上限，请先清理" }
         rules.forEach { it.validate() }
+        twilight?.validate()
+        require(disabledTwilightRules.size <= 10000 && disabledTwilightRules.all { it.startsWith("twilight:") && it.length <= 109 })
+        require(codec.encodeToString(copy(twilight = null, twilightStrict = false, disabledTwilightRules = emptySet())).length <= 512 * 1024) {
+            "个人规则内容过多，请减少匹配词或例外"
+        }
         return codec.encodeToString(this).also {
-            require(it.length <= 512 * 1024) { "规则内容过多，请减少匹配词或例外" }
+            require(it.length <= 2 * 1024 * 1024) { "规则内容过多，请减少匹配词或例外" }
         }
     }
 
     companion object {
         private val codec = Json { ignoreUnknownKeys = true }
         fun decode(value: String): ContentFilterPreferences = runCatching {
-            require(value.length <= 512 * 1024)
+            require(value.length <= 2 * 1024 * 1024)
             codec.decodeFromString<ContentFilterPreferences>(value).also { it.encode() }
         }.getOrDefault(ContentFilterPreferences())
     }
@@ -70,13 +78,16 @@ data class FilterInput(
     val author: String?,
     val text: String,
     val topics: List<String> = emptyList(),
+    val topicIds: List<String> = emptyList(),
 )
 
 data class ContentFilterMatch(val ruleId: String, val reason: String)
 
 /** Public TG-Twilight filtering semantics, implemented with native models; no remote regex. */
 class ContentFilterEngine(private val preferences: ContentFilterPreferences) {
-    val isEnabled = preferences.enabled && preferences.scopes.isNotEmpty() && preferences.rules.any { it.enabled }
+    val isEnabled = preferences.enabled && preferences.scopes.isNotEmpty() &&
+        (preferences.rules.any { it.enabled } || preferences.twilight?.rules?.isNotEmpty() == true)
+    private val twilight by lazy { TwilightFilterEngine(preferences) }
     private val rules by lazy {
         preferences.rules.filter { it.enabled }.map { rule ->
             Triple(rule, rule.terms.map(::normalizeFilterText), rule.exceptions.map(::normalizeFilterText))
@@ -98,7 +109,7 @@ class ContentFilterEngine(private val preferences: ContentFilterPreferences) {
             }
             if (matched) return ContentFilterMatch(rule.id, rule.title)
         }
-        return null
+        return twilight.match(input)
     }
 
     fun match(item: HomeFeedResponse.Data, scope: FilterScope? = null): ContentFilterMatch? =
@@ -132,6 +143,7 @@ fun HomeFeedResponse.Data.filterInput(scope: FilterScope? = null): FilterInput? 
         else listOfNotNull(messageTitle, title, message, articleFilterText(messageRawOutput)).joinToString("\n"),
         tags.orEmpty().split(',', '#').map(String::trim).filter(String::isNotBlank) +
             listOfNotNull(ttitle) + relationRows.orEmpty().mapNotNull { it.title },
+        relationRows.orEmpty().filter { it.entityType == "topic" }.mapNotNull { it.id },
     )
 }
 

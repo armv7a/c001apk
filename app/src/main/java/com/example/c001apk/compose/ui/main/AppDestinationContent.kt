@@ -114,7 +114,9 @@ internal fun AppDestinationContent(
         AppDestination.ContentFilters -> com.example.c001apk.compose.ui.contentfilter.ContentFilterScreen(
             onBack = { navigator.popBackStack() },
             onEdit = { navigator.navigate(AppDestination.ContentRule(it)) },
+            onRemoteRules = { navigator.navigate(AppDestination.TwilightRules) },
         )
+        AppDestination.TwilightRules -> com.example.c001apk.compose.ui.contentfilter.TwilightRulesScreen { navigator.popBackStack() }
         is AppDestination.ContentRule -> com.example.c001apk.compose.ui.contentfilter.ContentRuleScreen(route.id) { navigator.popBackStack() }
 
         AppDestination.LocalFollows -> {

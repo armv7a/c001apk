@@ -17,7 +17,7 @@ import top.yukonga.miuix.kmp.icon.extended.Blocklist
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
-fun ContentFilterScreen(onBack: () -> Unit, onEdit: (String?) -> Unit) {
+fun ContentFilterScreen(onBack: () -> Unit, onEdit: (String?) -> Unit, onRemoteRules: () -> Unit) {
     val model: ContentFilterViewModel = hiltViewModel()
     val json = LocalUserPreferences.current.contentFilterJson
     val prefs = remember(json) { ContentFilterPreferences.decode(json) }
@@ -35,11 +35,14 @@ fun ContentFilterScreen(onBack: () -> Unit, onEdit: (String?) -> Unit) {
                     }
                 }
             }
+            twilightRulesPreferences(prefs, model.saving, model.importMessage,
+                onDetails = onRemoteRules,
+                onImport = model::importTwilight, onRemove = model::removeTwilight, onUpdate = model::update)
             item {
                 PreferenceGroup(title = "个人规则") {
                     BasicListItem(headlineText = "添加规则", supportingText = "关键词、用户 UID 或话题", onClick = { onEdit(null) })
                 }
-                if (prefs.rules.isEmpty()) Text("还没有规则，添加后再启用过滤。", Modifier.padding(24.dp), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                if (prefs.rules.isEmpty()) Text("还没有个人规则，可添加或导入秋风规则后启用过滤。", Modifier.padding(24.dp), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             }
             FilterKind.entries.forEach { kind ->
                 val rules = prefs.rules.filter { it.kind == kind }

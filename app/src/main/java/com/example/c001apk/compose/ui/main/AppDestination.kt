@@ -19,6 +19,7 @@ sealed interface AppDestination {
     @Serializable data object DetailPlaceholder : AppDestination
     @Serializable data class Settings(val section: String? = null) : AppDestination
     @Serializable data object ContentFilters : AppDestination
+    @Serializable data object TwilightRules : AppDestination
     @Serializable data class ContentRule(val id: String? = null) : AppDestination
     @Serializable data object LocalFollows : AppDestination
     @Serializable data object Accounts : AppDestination
