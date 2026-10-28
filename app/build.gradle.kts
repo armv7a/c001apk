@@ -185,6 +185,7 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.viewpager2)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.palette)
     implementation(libs.androidx.datastore.core)
     implementation(libs.androidx.exifinterface)
     implementation(libs.androidx.hilt.navigation.compose)

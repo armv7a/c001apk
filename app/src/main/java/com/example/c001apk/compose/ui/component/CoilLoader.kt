@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.component
 
+import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -35,6 +36,8 @@ fun CoilLoader(
     url: String?,
     colorFilter: Long? = null,
     contentScale: ContentScale = ContentScale.Crop,
+    allowHardware: Boolean = true,
+    onSuccess: ((Drawable) -> Unit)? = null,
 ) {
     val prefs = LocalUserPreferences.current
     url?.let {
@@ -48,6 +51,7 @@ fun CoilLoader(
                 AsyncImage(
                     model =
                         ImageRequest.Builder(context)
+                            .allowHardware(allowHardware)
                             .memoryCachePolicy(CachePolicy.ENABLED)
                             .diskCachePolicy(CachePolicy.ENABLED)
                             .memoryCacheKey(imageUrl)
@@ -87,7 +91,10 @@ fun CoilLoader(
                     contentDescription = null,
                     contentScale = contentScale,
                     modifier = Modifier.fillMaxWidth(),
-                    onSuccess = { failed = false },
+                    onSuccess = {
+                        failed = false
+                        onSuccess?.invoke(it.result.drawable)
+                    },
                     onError = {
                         failed = true
                         logImageFailure(it.result.throwable)

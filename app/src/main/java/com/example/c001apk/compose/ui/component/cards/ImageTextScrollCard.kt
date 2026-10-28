@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.component.cards
 
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -79,6 +85,8 @@ fun ImageTextScrollCardItem(
     onOpenLink: (String, String?) -> Unit,
     itemWidth: Dp,
 ) {
+    var cover by remember(pic) { mutableStateOf<Drawable?>(null) }
+    val titleColor = rememberCoverTitleColor(pic, cover)
 
     Column(
         modifier =
@@ -89,17 +97,20 @@ fun ImageTextScrollCardItem(
         CoilLoader(
             url = pic,
             modifier = Modifier.fillMaxWidth().aspectRatio(2.22f),
+            allowHardware = false,
+            onSuccess = { cover = it },
         )
 
         Text(
             text = title,
             maxLines = 2,
             minLines = 2,
+            color = if (titleColor != null) Color.White else MiuixTheme.colorScheme.onSurface,
             overflow = TextOverflow.Ellipsis,
             style = MiuixTheme.textStyles.body1.copy(fontWeight = FontWeight.Bold),
             modifier =
                 Modifier.fillMaxWidth()
-                    .background(cardBg())
+                    .background(titleColor ?: cardBg())
                     .padding(horizontal = 10.dp, vertical = 5.dp),
         )
     }
