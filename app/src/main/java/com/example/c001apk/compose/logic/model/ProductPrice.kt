@@ -61,7 +61,7 @@ internal fun String?.asProductPrice(): String? {
 fun HomeFeedResponse.Data.feedPriceDisplay(): FeedPriceDisplay? {
     if (subTabId == "6") {
         purchasePrice?.finalPrice.asProductPrice()?.let { amount ->
-            return FeedPriceDisplay("到手价", amount, purchasePrice?.configName?.takeIf { it.isNotBlank() })
+            return FeedPriceDisplay("到手价", amount, purchasePrice?.configName?.takeIf { it.isNotBlank() }, inlineConfiguration = true)
         }
     }
     if (feedType in setOf("ershou", "trade")) {

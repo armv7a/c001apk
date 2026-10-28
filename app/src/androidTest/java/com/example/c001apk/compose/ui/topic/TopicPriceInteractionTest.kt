@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.topic
 
+import android.os.ParcelFileDescriptor
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,6 +18,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.test.platform.app.InstrumentationRegistry
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.logic.model.feedPriceDisplay
 import com.example.c001apk.compose.logic.model.purchasePriceSummary
@@ -29,10 +31,20 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExternalResource
+import org.junit.rules.RuleChain
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 class TopicPriceInteractionTest {
-    @get:Rule val compose = createComposeRule()
+    private val compose = createComposeRule()
+    @get:Rule val rule: RuleChain = RuleChain.outerRule(object : ExternalResource() {
+        override fun before() {
+            val instrumentation = InstrumentationRegistry.getInstrumentation()
+            instrumentation.uiAutomation.executeShellCommand(
+                "am start -W -n ${instrumentation.targetContext.packageName}/androidx.activity.ComponentActivity",
+            ).use { ParcelFileDescriptor.AutoCloseInputStream(it).use { stream -> stream.readBytes() } }
+        }
+    }).around(compose)
     private fun item(json: String) = Gson().fromJson(json, HomeFeedResponse.Data::class.java)
 
     @Test fun pricesAndConfigurationStayVisibleWithLargerTextAndNarrowWidth() {
@@ -51,6 +63,10 @@ class TopicPriceInteractionTest {
         }
         for (text in listOf("到手价","¥2648","12GB+256GB","交易价","¥3900","16GB+512GB"))
             compose.onNodeWithText(text).assertIsDisplayed()
+        val amount = compose.onNodeWithText("¥2648").fetchSemanticsNode().boundsInRoot
+        val configuration = compose.onNodeWithText("12GB+256GB").fetchSemanticsNode().boundsInRoot
+        assertTrue(configuration.left >= amount.right)
+        assertEquals(amount.center.y, configuration.center.y, 1f)
     }
 
     @Test fun priceSummaryOpensTheSourceFeed() {

@@ -13,7 +13,7 @@ class ProductPriceTest {
         val items = gson.fromJson(json, HomeFeedResponse::class.java).data!!
         assertEquals("¥2508", items[0].purchasePriceSummary()!!.finalPrice.asProductPrice())
         assertEquals("12345", items[0].purchasePriceSummary()!!.feedId)
-        assertEquals(FeedPriceDisplay("到手价", "¥2648", "12GB+256GB"), items[1].feedPriceDisplay())
+        assertEquals(FeedPriceDisplay("到手价", "¥2648", "12GB+256GB", inlineConfiguration = true), items[1].feedPriceDisplay())
         assertEquals("¥3708", items[4].feedPriceDisplay()!!.amount)
         assertEquals(FeedPriceDisplay("交易价", "¥3900", "16GB+512GB", inlineConfiguration = true), items[5].feedPriceDisplay())
         assertEquals(FeedPriceDisplay("交易价", "¥3900", null, inlineConfiguration = true), items[7].feedPriceDisplay())
