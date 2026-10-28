@@ -88,52 +88,36 @@ class TopicViewModel @AssistedInject constructor(
         toastText = null
     }
 
+    private var followJob: kotlinx.coroutines.Job? = null
+
     fun onGetFollow() {
-        val followUrl = if (isFollowed) "/v6/feed/unFollowTag"
-        else "/v6/feed/followTag"
-        viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.getFollow(followUrl, title, null)
-                .collect { result ->
-                    val response = result.getOrNull()
-                    if (response != null) {
-                        if (!response.message.isNullOrEmpty()) {
-                            if (response.message.contains("关注成功"))
-                                isFollowed = !isFollowed
-                            toastText = response.message
-                        }
-                    } else {
-                        toastText = result.exceptionOrNull()?.message ?: "response is null"
-                        result.exceptionOrNull()?.printStackTrace()
-                    }
-                }
+        if (!::title.isInitialized) return
+        changeFollow { desired ->
+            networkRepo.getFollow(if (desired) "/v6/feed/followTag" else "/v6/feed/unFollowTag", title, null)
         }
     }
 
-    private var postFollowData: HashMap<String, String>? = null
     fun onPostFollow() {
-        if (postFollowData.isNullOrEmpty()) postFollowData = HashMap()
-        postFollowData?.let { map ->
-            map["id"] = id.orEmpty()
-            map["status"] = if (isFollowed) "0" else "1"
+        if (id.isNullOrBlank()) return
+        changeFollow { desired ->
+            networkRepo.postFollow(hashMapOf("id" to id.orEmpty(), "status" to if (desired) "1" else "0"))
         }
-        viewModelScope.launch(Dispatchers.IO) {
-            postFollowData?.let {
-                networkRepo.postFollow(it)
-                    .collect { result ->
-                        val response = result.getOrNull()
-                        if (response != null) {
-                            if (!response.message.isNullOrEmpty()) {
-                                if (response.message.contains("成功"))
-                                    isFollowed = !isFollowed
-                                toastText = response.message
-                            }
-                        } else {
-                            toastText = result.exceptionOrNull()?.message ?: "response is null"
-                            result.exceptionOrNull()?.printStackTrace()
-                        }
-                    }
-            }
+    }
 
+    private fun changeFollow(request: suspend (Boolean) -> kotlinx.coroutines.flow.Flow<Result<com.example.c001apk.compose.logic.model.LikeResponse>>) {
+        if (followJob?.isActive == true) return
+        val desired = !isFollowed
+        followJob = viewModelScope.launch(Dispatchers.IO) {
+            request(desired).collect { result ->
+                val response = result.getOrNull()
+                if (response != null) {
+                    val accepted = response.topicFollowAcknowledged()
+                    if (accepted) isFollowed = desired
+                    toastText = response.message ?: if (accepted) {
+                        if (desired) "关注成功" else "取消关注成功"
+                    } else "关注状态未更新，请重试"
+                } else toastText = result.exceptionOrNull()?.message ?: "关注请求失败"
+            }
         }
     }
 
