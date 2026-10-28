@@ -203,9 +203,9 @@ internal fun MainNavigationLayout(
             val paneWidth = detailWidth.coerceIn(0.dp, maxWidth)
             main(
                 (if (split) Modifier.width(maxWidth - paneWidth) else Modifier.fillMaxWidth())
-                    .fillMaxHeight().align(Alignment.CenterEnd),
+                    .fillMaxHeight().align(Alignment.CenterStart),
             )
-            detail(Modifier.width(paneWidth).fillMaxHeight().align(Alignment.CenterStart))
+            detail(Modifier.width(paneWidth).fillMaxHeight().align(Alignment.CenterEnd))
         }
     }
 }
