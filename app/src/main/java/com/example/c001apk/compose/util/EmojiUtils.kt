@@ -10,6 +10,13 @@ object EmojiUtils {
     val dataList by lazy { emojiMap.toList() }
     val emojiList = ArrayList<List<Pair<String, Int>>>()
     val coolBList = ArrayList<List<Pair<String, Int>>>()
+    val niuniuList = ArrayList<List<Pair<String, Int>>>()
+
+    data class PickerCategory(val title: String, val pages: List<List<Pair<String, Int>>>)
+
+    val pickerCategories by lazy {
+        listOf(PickerCategory("默认", emojiList), PickerCategory("牛牛", niuniuList), PickerCategory("酷币", coolBList))
+    }
 
     init {
         emojiMap["[置顶]"] = R.drawable.ic_feed_top
@@ -201,7 +208,9 @@ object EmojiUtils {
         emojiMap["[新酷币5€]"] = R.drawable.coolapk_emotion_80
 
         val coins = dataList.indexOfFirst { it.first == "[酷币]" }
-        emojiList.addAll(dataList.subList(4, coins).chunked(27))
+        val niuniu = dataList.indexOfFirst { it.first.startsWith("[牛牛") }
+        emojiList.addAll(dataList.subList(4, niuniu).chunked(27))
+        niuniuList.addAll(dataList.subList(niuniu, coins).chunked(27))
         coolBList.addAll(dataList.drop(coins).chunked(27))
     }
 }

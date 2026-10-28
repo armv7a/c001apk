@@ -39,6 +39,7 @@ class EmojiGridAdapter(
             val imageView: ImageView = view.findViewById(R.id.imageView)
 
             imageView.setImageResource(emoji?.second ?: R.drawable.outline_backspace_24)
+            view.contentDescription = emoji?.first ?: "删除表情"
             emoji?.first?.let {
                 view.background =
                     AppCompatResources.getDrawable(parent.context, R.drawable.selector_emoji)

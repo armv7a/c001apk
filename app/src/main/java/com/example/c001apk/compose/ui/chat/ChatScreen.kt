@@ -79,8 +79,7 @@ import com.example.c001apk.compose.ui.component.TopBarScrollEffect
 import com.example.c001apk.compose.ui.theme.cardBg
 import com.example.c001apk.compose.util.CookieUtil
 import com.example.c001apk.compose.util.EmojiUtils
-import com.example.c001apk.compose.util.EmojiUtils.coolBList
-import com.example.c001apk.compose.util.EmojiUtils.emojiList
+import com.example.c001apk.compose.util.EmojiUtils.pickerCategories
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.copyText
 import com.example.c001apk.compose.util.makeToast
@@ -628,21 +627,17 @@ fun ChatBottom(
             pagerState =
                 rememberPagerState(
                     initialPage = if (recentList.isEmpty()) 1 else 0,
-                    pageCount = { 3 },
+                    pageCount = { pickerCategories.size + 1 },
                 )
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxWidth().padding(10.dp),
             ) { index ->
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    val pagerState1 = rememberPagerState {
-                        when (index) {
-                            0 -> 1
-                            1 -> 4
-                            2 -> 2
-                            else -> 0
-                        }
-                    }
+                    val pages = if (index == 0) listOf(recentList.take(27).mapNotNull { recent ->
+                        EmojiUtils.emojiMap[recent.data]?.let { recent.data to it }
+                    }) else pickerCategories[index - 1].pages
+                    val pagerState1 = rememberPagerState { pages.size }
                     HorizontalPager(
                         state = pagerState1,
                         modifier = Modifier.fillMaxWidth(),
@@ -652,24 +647,9 @@ fun ChatBottom(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             items(28) {
-                                val emojiName =
-                                    when (index) {
-                                        0 -> recentList.getOrNull(it)?.data
-                                        1 -> emojiList.getOrNull(index0)?.getOrNull(it)?.first
-                                        2 -> coolBList.getOrNull(index0)?.getOrNull(it)?.first
-                                        else -> null
-                                    }
-                                val emojiRes =
-                                    when (index) {
-                                        0 ->
-                                            emojiName?.let { name ->
-                                                EmojiUtils.emojiMap.getValue(name)
-                                            }
-
-                                        1 -> emojiList.getOrNull(index0)?.getOrNull(it)?.second
-                                        2 -> coolBList.getOrNull(index0)?.getOrNull(it)?.second
-                                        else -> null
-                                    }
+                                val emoji = pages.getOrNull(index0)?.getOrNull(it)
+                                val emojiName = emoji?.first
+                                val emojiRes = emoji?.second
                                 Box(
                                     modifier =
                                         Modifier.size(48.dp)
@@ -700,7 +680,7 @@ fun ChatBottom(
                                                             context.theme,
                                                         ),
                                                 ),
-                                            contentDescription = null,
+                                            contentDescription = emojiName,
                                             modifier = Modifier.size(28.dp),
                                         )
                                     } else if (it == 27) {
@@ -726,23 +706,10 @@ fun ChatBottom(
             Row(
                 modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             ) {
-                TextIndicator(
-                    index = 0,
-                    title = "最近",
-                    pagerState = pagerState,
-                )
-                VerticalDivider()
-                TextIndicator(
-                    index = 1,
-                    title = "默认",
-                    pagerState = pagerState,
-                )
-                VerticalDivider()
-                TextIndicator(
-                    index = 2,
-                    title = "酷币",
-                    pagerState = pagerState,
-                )
+                (listOf("最近") + pickerCategories.map { it.title }).forEachIndexed { index, title ->
+                    if (index > 0) VerticalDivider()
+                    TextIndicator(index = index, title = title, pagerState = pagerState)
+                }
             }
         }
     }

@@ -59,8 +59,7 @@ import com.example.c001apk.compose.ui.feed.reply.emoji.EmojiPagerAdapter
 import com.example.c001apk.compose.ui.feed.reply.emoji.updateEmojiCategoryStyle
 import com.example.c001apk.compose.util.EmojiTextWatcher
 import com.example.c001apk.compose.util.EmojiUtils
-import com.example.c001apk.compose.util.EmojiUtils.coolBList
-import com.example.c001apk.compose.util.EmojiUtils.emojiList
+import com.example.c001apk.compose.util.EmojiUtils.pickerCategories
 import com.example.c001apk.compose.util.FastDeleteAtUserKeyListener
 import com.example.c001apk.compose.util.OSSUtil.getImageDimensionsAndMD5
 import com.example.c001apk.compose.util.OSSUtil.toHex
@@ -116,7 +115,7 @@ class ReplyActivity :
     private val color by lazy { resolveSurfaceContainerColor() }
     private val imeScrimDrawable by lazy { ColorDrawable(color) }
     private val recentList = ArrayList<List<Pair<String, Int>>>()
-    private val list = listOf(recentList, emojiList, coolBList)
+    private val list = listOf(recentList) + pickerCategories.map { it.pages }
     private lateinit var pickContent: ActivityResultLauncher<String>
     private lateinit var pickDocument: ActivityResultLauncher<Array<String>>
     private var uriList: MutableList<Uri> = ArrayList()
@@ -653,7 +652,8 @@ class ReplyActivity :
     }
 
     private fun initEmojiPanel() {
-        for (i in 0..2) {
+        val labels = listOf("最近") + pickerCategories.map { it.title }
+        for (i in labels.indices) {
             binding.indicator.addView(
                 TextView(this).apply {
                     layoutParams =
@@ -665,7 +665,7 @@ class ReplyActivity :
                                 weight = 1f
                             }
                     gravity = Gravity.CENTER
-                    text = listOf("最近", "默认", "酷币")[i]
+                    text = labels[i]
                     updateEmojiCategoryStyle(i == binding.emojiPanel.currentItem)
                     setOnClickListener {
                         binding.emojiPanel.setCurrentItem(i, false)
@@ -678,7 +678,7 @@ class ReplyActivity :
                     }
                 },
             )
-            if (i != 2) {
+            if (i != labels.lastIndex) {
                 binding.indicator.addView(
                     View(this).apply {
                         layoutParams =
