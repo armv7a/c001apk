@@ -53,6 +53,7 @@ fun MainNavigation(
     val detailNavigator = rememberAppNavigator(AppDestination.DetailPlaceholder)
     var detailParent by rememberSaveable { mutableStateOf<String?>(null) }
     var detailExiting by remember { mutableStateOf(false) }
+    var sidebarHidden by rememberSaveable(accountRevision) { mutableStateOf(false) }
 
     LaunchedEffect(accountRevision) {
         if (displayedAccountRevision != accountRevision) {
@@ -76,8 +77,8 @@ fun MainNavigation(
     )
     val paneAttached = detailParent == navigator.currentEntry.id
     val paneVisible = paneAttached && detailNavigator.canGoBack
-    val split = paneVisible && canSplit
-    val detailWidth = if (canSplit) (windowSize.width * .52f).coerceIn(390.dp, 760.dp) else windowSize.width
+    val split = paneVisible && canSplit && !sidebarHidden
+    val detailWidth = if (canSplit && !sidebarHidden) (windowSize.width * .52f).coerceIn(390.dp, 760.dp) else windowSize.width
 
     fun onReport(id: String, type: ReportType) {
         navigator.navigateToWebView(getReportUrl(id, type))
@@ -85,11 +86,13 @@ fun MainNavigation(
 
     fun onViewFeed(id: String, isViewReply: Boolean) {
         if (canSplit || paneVisible) {
+            if (detailParent != navigator.currentEntry.id) {
+                detailNavigator.reset(AppDestination.DetailPlaceholder)
+            }
             detailParent = navigator.currentEntry.id
             detailExiting = false
             val destination = AppDestination.Feed(id, isViewReply)
-            if (detailNavigator.canGoBack) detailNavigator.replace(destination)
-            else detailNavigator.navigate(destination)
+            detailNavigator.navigateReading(destination)
         } else {
             navigator.navigateToFeed(id, isViewReply)
         }
@@ -101,7 +104,7 @@ fun MainNavigation(
 
     fun closeDetail() {
         if (detailNavigator.canGoBack) {
-            detailExiting = true
+            detailExiting = detailNavigator.controller.backStack.size == 2
             detailNavigator.popBackStack()
         }
     }
@@ -176,6 +179,8 @@ fun MainNavigation(
                         onOpenLink = ::onOpenLink,
                         onCopyText = navigator::navigateToCopyText,
                         onReport = ::onReport,
+                        onToggleSidebar = if (canSplit) ({ sidebarHidden = !sidebarHidden }) else null,
+                        sidebarHidden = sidebarHidden,
                     )
                 }
             }

@@ -5,6 +5,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -15,6 +20,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -23,6 +29,7 @@ import com.example.c001apk.compose.logic.datastore.UserPreferencesCompat
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.ui.component.MiuixNavigationRail
 import com.example.c001apk.compose.ui.component.MiuixNavigationScaffold
+import com.example.c001apk.compose.ui.component.ReadingSidebarButton
 import com.example.c001apk.compose.ui.main.MainNavigationLayout
 import com.example.c001apk.compose.ui.main.MainPageState
 import com.example.c001apk.compose.ui.main.mainNavigationItems
@@ -53,6 +60,50 @@ class MainRailLayoutTest {
     private val wide = mutableStateOf(true)
     private val badge = mutableIntStateOf(3)
     private lateinit var state: MainPageState
+
+    @Test
+    fun collapsingSidebarKeepsBothScrollPositionsAndExpandsReadingWidth() {
+        val hidden = mutableStateOf(false)
+        lateinit var mainList: LazyListState
+        lateinit var readingList: LazyListState
+        compose.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(1f)) {
+                MiuixTheme {
+                    MainNavigationLayout(
+                        split = !hidden.value,
+                        detailWidth = if (hidden.value) 2000.dp else 450.dp,
+                        rail = {},
+                        main = { modifier ->
+                            mainList = rememberLazyListState()
+                            LazyColumn(modifier, state = mainList) {
+                                items(80) { Text("动态 $it", Modifier.height(80.dp)) }
+                            }
+                        },
+                        detail = { modifier ->
+                            readingList = rememberLazyListState()
+                            Column(modifier.testTag("reading")) {
+                                ReadingSidebarButton(hidden.value) { hidden.value = !hidden.value }
+                                LazyColumn(state = readingList) {
+                                    items(80) { Text("正文 $it", Modifier.height(80.dp)) }
+                                }
+                            }
+                        },
+                    )
+                }
+            }
+        }
+        compose.runOnIdle { mainList.requestScrollToItem(12); readingList.requestScrollToItem(17) }
+        compose.waitForIdle()
+        val before = compose.onNodeWithTag("reading").fetchSemanticsNode().boundsInRoot.width
+        compose.onNodeWithContentDescription("收起信息流").performClick()
+        val expanded = compose.onNodeWithTag("reading").fetchSemanticsNode().boundsInRoot.width
+        assertTrue(expanded > before)
+        compose.onNodeWithContentDescription("显示信息流").performClick()
+        compose.runOnIdle {
+            assertEquals(12, mainList.firstVisibleItemIndex)
+            assertEquals(17, readingList.firstVisibleItemIndex)
+        }
+    }
 
     private fun showLayout() {
         compose.setContent {

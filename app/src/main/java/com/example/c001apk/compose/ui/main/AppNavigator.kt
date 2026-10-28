@@ -22,6 +22,16 @@ class AppNavigator(val controller: NavController) {
 
     fun popBackStack(): Boolean = controller.pop()
 
+    /** Keep a bounded native back stack so each reading entry retains its own saved state. */
+    fun navigateReading(destination: AppDestination.Feed, historyLimit: Int = 8) {
+        require(historyLimit > 0)
+        if (currentDestination == destination) return
+        Snapshot.withMutableSnapshot {
+            while (controller.backStack.size > historyLimit) controller.backStack.removeAt(1)
+            controller.push(AppNavEntry(destination))
+        }
+    }
+
     fun replace(destination: AppDestination) {
         if (currentDestination != destination) controller.replace(AppNavEntry(destination))
     }

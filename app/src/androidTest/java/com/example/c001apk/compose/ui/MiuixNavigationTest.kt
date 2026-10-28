@@ -58,6 +58,38 @@ class MiuixNavigationTest {
     private lateinit var navigation: AppNavigator
     private lateinit var pager: PagerState
     private lateinit var list: LazyListState
+
+    @Test
+    fun readingBackStackRestoresScrollPositionAcrossNextArticleAndRecreation() {
+        val restoration = StateRestorationTester(compose)
+        restoration.setContent {
+            MiuixTheme {
+                navigation = rememberAppNavigator(AppDestination.DetailPlaceholder)
+                AppNavHost(navigation, Modifier.fillMaxSize()) { entry ->
+                    if (entry.destination is AppDestination.Feed) {
+                        val readingList = rememberLazyListState()
+                        if (navigation.currentEntry.id == entry.id) list = readingList
+                        LazyColumn(state = readingList) {
+                            items(80) { Text("段落 $it", modifier = Modifier.height(80.dp)) }
+                        }
+                    }
+                }
+            }
+        }
+        compose.runOnIdle { navigation.navigateReading(AppDestination.Feed("first", false)) }
+        compose.waitForIdle()
+        compose.runOnIdle { list.requestScrollToItem(18, 11) }
+        compose.waitForIdle()
+        val firstVisit = navigation.currentEntry.id
+        compose.runOnIdle { navigation.navigateReading(AppDestination.Feed("second", false)) }
+        compose.waitForIdle()
+        compose.runOnIdle { assertEquals(0, list.firstVisibleItemIndex); navigation.popBackStack() }
+        compose.waitForIdle()
+        compose.runOnIdle { assertEquals(firstVisit, navigation.currentEntry.id); assertEquals(18, list.firstVisibleItemIndex) }
+        restoration.emulateSavedInstanceStateRestore()
+        compose.waitForIdle()
+        compose.runOnIdle { assertEquals(firstVisit, navigation.currentEntry.id); assertEquals(18, list.firstVisibleItemIndex) }
+    }
     private val overlay = mutableStateOf(false)
     private val back = TestBackInput()
 

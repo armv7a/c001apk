@@ -3,6 +3,7 @@ package com.example.c001apk.compose.ui.feed
 import com.example.c001apk.compose.ui.contentfilter.rememberContentFilter
 import com.example.c001apk.compose.ui.contentfilter.FilterNotice
 import com.example.c001apk.compose.ui.contentfilter.ContentFilterViewModel
+import com.example.c001apk.compose.ui.component.ReadingSidebarButton
 import com.example.c001apk.compose.logic.filter.FilterScope
 import android.app.Activity.RESULT_OK
 import android.content.Intent
@@ -103,6 +104,8 @@ fun FeedScreen(
     onOpenLink: (String, String?) -> Unit,
     onCopyText: (String?) -> Unit,
     onReport: (String, ReportType) -> Unit,
+    onToggleSidebar: (() -> Unit)? = null,
+    sidebarHidden: Boolean = false,
 ) {
 
     val viewModel =
@@ -212,6 +215,7 @@ fun FeedScreen(
         Scaffold(topBar = {
             com.example.c001apk.compose.ui.component.MiuixTopBar(
                 title = "内容已过滤", navigationIcon = { BackButton(onBackClick) },
+                actions = { ReadingSidebarButton(sidebarHidden, onToggleSidebar) },
             )
         }) { padding ->
             FilterNotice(
@@ -270,6 +274,7 @@ fun FeedScreen(
                                     " · 公开内容"
                                 else "",
                         actions = {
+                            ReadingSidebarButton(sidebarHidden, onToggleSidebar)
                             if (viewModel.feedState is LoadingState.Success) {
                                 FeedExportAction(
                                     (viewModel.feedState as LoadingState.Success).response,

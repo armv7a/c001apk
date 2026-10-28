@@ -76,4 +76,23 @@ class AppNavigatorTest {
         assertTrue(nav.popBackStack())
         assertEquals(root, nav.currentEntry)
     }
+
+    @Test
+    fun readingHistoryPreservesPreviousVisitAndBoundsOldEntries() {
+        val nav = navigator(AppDestination.DetailPlaceholder)
+        val root = nav.currentEntry
+        nav.navigateReading(AppDestination.Feed("1", false))
+        val first = nav.currentEntry
+        nav.navigateReading(AppDestination.Feed("2", false))
+        nav.popBackStack()
+        assertEquals(first, nav.currentEntry)
+        for (id in 2..12) nav.navigateReading(AppDestination.Feed(id.toString(), false))
+        assertEquals(9, nav.controller.backStack.size)
+        assertEquals(root, nav.controller.backStack.first())
+        assertEquals(AppDestination.Feed("5", false), (nav.controller.backStack[1] as AppNavEntry).destination)
+        nav.navigateReading(AppDestination.Feed("12", false))
+        assertEquals(9, nav.controller.backStack.size)
+        repeat(8) { assertTrue(nav.popBackStack()) }
+        assertEquals(root, nav.currentEntry)
+    }
 }
