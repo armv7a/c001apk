@@ -99,4 +99,18 @@ class LocalFollowPagerTest {
             LocalFollowPager(listOf("a")) { _, _, _ -> throw CancellationException("cancel") }
         assertTrue(runCatching { cancelling.next() }.exceptionOrNull() is CancellationException)
     }
+
+    @Test
+    fun nextCursorUsesRawTailEvenWhenLastRowBelongsToAnotherAuthor() = runBlocking {
+        val cursors = mutableListOf<String?>()
+        val pager = LocalFollowPager(listOf("a")) { _, page, last ->
+            cursors += last
+            when (page) {
+                1 -> LoadingState.Success(listOf(feed("mine", "a", 2), feed("raw-tail", "b", 1)))
+                else -> LoadingState.Empty
+            }
+        }
+        assertEquals(listOf("mine"), pager.next().map { it.id })
+        assertEquals(listOf(null, "raw-tail"), cursors)
+    }
 }

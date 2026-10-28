@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.chat
 
+import com.example.c001apk.compose.logic.filter.ContentFilterStore
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -32,9 +33,10 @@ constructor(
     @Assisted val ukey: String,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
+    contentFilters: ContentFilterStore,
     private val recentEmojiRepo: RecentEmojiRepo,
     private val imageUploader: ChatImageUploader,
-) : BaseViewModel(networkRepo, blackListRepo) {
+) : BaseViewModel(networkRepo, blackListRepo, contentFilters) {
 
     @AssistedFactory
     interface ViewModelFactory {

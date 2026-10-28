@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.app
 
+import com.example.c001apk.compose.logic.filter.ContentFilterStore
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.logic.repository.BlackListRepo
 import com.example.c001apk.compose.logic.repository.NetworkRepo
@@ -18,7 +19,8 @@ class AppContentViewModel @AssistedInject constructor(
     @Assisted("appCommentTitle") val appCommentTitle: String,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
-) : BaseViewModel(networkRepo, blackListRepo) {
+    contentFilters: ContentFilterStore,
+) : BaseViewModel(networkRepo, blackListRepo, contentFilters) {
 
     @AssistedFactory
     interface ViewModelFactory {

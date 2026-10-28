@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.carousel
 
+import com.example.c001apk.compose.logic.filter.ContentFilterStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -33,7 +34,8 @@ class CarouselViewModel @AssistedInject constructor(
     @Assisted("title") val title: String,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
-) : BaseViewModel(networkRepo, blackListRepo) {
+    contentFilters: ContentFilterStore,
+) : BaseViewModel(networkRepo, blackListRepo, contentFilters) {
 
     @AssistedFactory
     interface ViewModelFactory {

@@ -207,7 +207,7 @@ fun CollectionScreen(
                     ItemCard(
                         loadingState = viewModel.loadingState,
                         loadMore = viewModel::loadMore,
-                        isEnd = viewModel.isEnd,
+                        isEnd = viewModel.stopAutomaticLoading,
                         onViewUser = onViewUser,
                         onViewFeed = onViewFeed,
                         onOpenLink = onOpenLink,

@@ -1,5 +1,8 @@
 package com.example.c001apk.compose.ui.follow
 
+import com.example.c001apk.compose.logic.filter.loadFilteredPages
+import com.example.c001apk.compose.logic.filter.ContentFilterStore
+import com.example.c001apk.compose.logic.filter.ContentFilterEngine
 import androidx.compose.runtime.*
 import androidx.lifecycle.viewModelScope
 import com.example.c001apk.compose.logic.follow.*
@@ -19,7 +22,8 @@ constructor(
     private val store: LocalFollowStore,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
-) : BaseViewModel(networkRepo, blackListRepo) {
+    contentFilters: ContentFilterStore,
+) : BaseViewModel(networkRepo, blackListRepo, contentFilters) {
     private var pager: LocalFollowPager? = null
     private var work: Job? = null
     var warning by mutableStateOf<String?>(null)
@@ -81,17 +85,23 @@ constructor(
     }
 
     private suspend fun append(current: LocalFollowPager, reset: Boolean) {
-        val added =
-            current.next().filterNot {
-                blackListRepo.checkTopic(it.tags.orEmpty() + it.ttitle.orEmpty())
-            }
-        val previous =
-            if (reset) emptyList() else (loadingState as? LoadingState.Success)?.response.orEmpty()
-        val combined = previous + added
-        warning = current.warning
-        isEnd = current.isEnd || warning != null
+        automaticLoadPaused = false
+        val filters = ContentFilterEngine(contentFilters.data.first())
+        var combined = if (reset) emptyList() else (loadingState as? LoadingState.Success)?.response.orEmpty()
+        val paused = loadFilteredPages(
+            fetch = { current.next() },
+            accept = { items, _ ->
+                val added = items.filterNot { blackListRepo.checkTopic(it.tags.orEmpty() + it.ttitle.orEmpty()) }
+                combined = (combined + added).distinctBy { it.id }
+                warning = current.warning
+                current.isEnd || warning != null || added.any { filters.match(it) == null }
+            },
+        )
+        automaticLoadPaused = paused || warning != null
+        isEnd = current.isEnd
+        if (paused) warning = "本批内容已过滤，点击继续加载"
         loadingState =
-            if (combined.isNotEmpty()) LoadingState.Success(combined)
+            if (combined.isNotEmpty() || paused) LoadingState.Success(combined)
             else if (warning != null) LoadingState.Error(warning!!) else LoadingState.Empty
         footerState =
             if (warning != null) FooterState.Error(warning!!)

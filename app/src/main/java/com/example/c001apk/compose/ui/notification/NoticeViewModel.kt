@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.notification
 
+import com.example.c001apk.compose.logic.filter.ContentFilterStore
 import androidx.lifecycle.viewModelScope
 import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.logic.repository.BlackListRepo
@@ -22,7 +23,8 @@ constructor(
     @Assisted val url: String,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
-) : BaseViewModel(networkRepo, blackListRepo) {
+    contentFilters: ContentFilterStore,
+) : BaseViewModel(networkRepo, blackListRepo, contentFilters) {
 
     @AssistedFactory
     interface ViewModelFactory {

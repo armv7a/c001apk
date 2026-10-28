@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.home.feed
 
+import com.example.c001apk.compose.logic.filter.ContentFilterStore
 import androidx.lifecycle.viewModelScope
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.logic.repository.BlackListRepo
@@ -24,8 +25,9 @@ constructor(
     @Assisted("installTime") var installTime: String,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
+    contentFilters: ContentFilterStore,
     private val userPreferencesRepository: UserPreferencesRepository,
-) : BaseViewModel(networkRepo, blackListRepo) {
+) : BaseViewModel(networkRepo, blackListRepo, contentFilters) {
 
     @AssistedFactory
     interface ViewModelFactory {

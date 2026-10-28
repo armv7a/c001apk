@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.message
 
+import com.example.c001apk.compose.logic.filter.ContentFilterStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -33,8 +34,9 @@ constructor(
     @Assisted val url: String,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
+    contentFilters: ContentFilterStore,
     private val accounts: com.example.c001apk.compose.logic.accounts.AccountStore,
-) : BaseViewModel(networkRepo, blackListRepo) {
+) : BaseViewModel(networkRepo, blackListRepo, contentFilters) {
 
     var fffList by mutableStateOf<List<String>>(emptyList())
         private set

@@ -1,5 +1,11 @@
 package com.example.c001apk.compose.ui.feed
 
+import com.example.c001apk.compose.logic.filter.loadFilteredPages
+import com.example.c001apk.compose.logic.filter.FilterScope
+import com.example.c001apk.compose.logic.filter.ContentFilterStore
+import com.example.c001apk.compose.logic.filter.ContentFilterEngine
+import kotlinx.coroutines.flow.first
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -38,9 +44,10 @@ constructor(
     @Assisted var isViewReply: Boolean,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
+    contentFilters: ContentFilterStore,
     private val historyFavoriteRepo: HistoryFavoriteRepo,
     private val preferences: com.example.c001apk.compose.logic.repository.UserPreferencesRepository,
-) : BaseViewModel(networkRepo, blackListRepo) {
+) : BaseViewModel(networkRepo, blackListRepo, contentFilters) {
 
     @AssistedFactory
     interface ViewModelFactory {
@@ -378,6 +385,10 @@ constructor(
     private var replyPage = 1
     private var replyLastItem: String? = null
     var isEndReply = false
+    private var replyAutomaticPaused by mutableStateOf(false)
+    val stopReplyAutomaticLoading get() = isEndReply || replyAutomaticPaused
+    private var replyFetchJob: kotlinx.coroutines.Job? = null
+    private var replyFetchGeneration = 0
     var replyRootId by mutableStateOf<String?>(null)
         private set
 
@@ -406,66 +417,72 @@ constructor(
     }
 
     fun fetchTotalReply() {
-        viewModelScope.launch(Dispatchers.IO) {
-            networkRepo.getReply2Reply(replyId, replyPage, replyLastItem).collect { state ->
-                when (state) {
-                    LoadingState.Empty -> {
-                        if (replyLoadingState is LoadingState.Success && !isRefreshing)
-                            replyFooterState = FooterState.End
-                        else {
-                            replyLoadingState =
-                                getReplyTop()?.let {
+        val generation = ++replyFetchGeneration
+        replyFetchJob?.cancel()
+        val targetId = replyId
+        val append = isLoadMoreReply
+        replyAutomaticPaused = false
+        replyFetchJob = viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val filters = ContentFilterEngine(contentFilters.data.first())
+                val paused = loadFilteredPages(
+                    fetch = { networkRepo.getReply2Reply(targetId, replyPage, replyLastItem).first { it !is LoadingState.Loading } },
+                    accept = { state, attempt ->
+                        if (generation != replyFetchGeneration) throw kotlinx.coroutines.CancellationException()
+                        when (state) {
+                            LoadingState.Empty -> {
+                                isEndReply = true
+                                if (replyLoadingState !is LoadingState.Success) {
+                                    replyLoadingState = getReplyTop()?.let {
+                                        replyRootId = it.id
+                                        LoadingState.Success(listOf(it))
+                                    } ?: state
+                                }
+                                replyFooterState = FooterState.End
+                                true
+                            }
+                            is LoadingState.Error -> {
+                                replyAutomaticPaused = true
+                                if (replyLoadingState is LoadingState.Success) replyFooterState = FooterState.Error(state.errMsg)
+                                else replyLoadingState = state
+                                true
+                            }
+                            is LoadingState.Success -> {
+                                val raw = state.response
+                                replyLastItem = raw.lastOrNull { !it.id.isNullOrBlank() }?.id ?: replyLastItem
+                                isEndReply = raw.any { it.entityTemplate == "noMoreDataCard" }
+                                var response = raw.filter { it.entityType == "feed_reply" }
+                                    .map { it.copy(username = generateName(it, replyUid)) }
+                                val hasVisible = response.any { filters.match(it, FilterScope.COMMENT) == null }
+                                if (replyPage == 1) getReplyTop()?.let {
                                     replyRootId = it.id
-                                    LoadingState.Success(listOf(it))
-                                } ?: state
-                            replyFooterState = FooterState.End
-                        }
-                        isEndReply = true
-                    }
-
-                    is LoadingState.Error -> {
-                        if (replyLoadingState is LoadingState.Success)
-                            replyFooterState = FooterState.Error(state.errMsg)
-                        else replyLoadingState = state
-                        isEndReply = true
-                    }
-
-                    LoadingState.Loading -> {
-                        if (replyLoadingState is LoadingState.Success)
-                            replyFooterState = FooterState.Loading
-                        else replyLoadingState = state
-                    }
-
-                    is LoadingState.Success -> {
-                        replyPage++
-                        var response =
-                            state.response.filter {
-                                it.entityType == "feed_reply"
+                                    response = listOf(it) + response
+                                }
+                                replyPage++
+                                if (append || attempt > 0) response = (replyLoadingState as? LoadingState.Success)?.response.orEmpty() + response
+                                replyLoadingState = LoadingState.Success(response.distinctBy { it.entityId })
+                                replyFooterState = if (isEndReply) FooterState.End else FooterState.Success
+                                isEndReply || hasVisible
                             }
-                        response = response.map { reply ->
-                            reply.copy(
-                                username = generateName(reply, replyUid),
-                            )
+                            LoadingState.Loading -> true
                         }
-                        if (replyPage == 2) {
-                            getReplyTop()?.let {
-                                replyRootId = it.id
-                                response = listOf(it) + response
-                            }
-                        }
-                        replyLastItem = response.lastOrNull()?.id
-                        replyLoadingState =
-                            if (isLoadMoreReply)
-                                LoadingState.Success(
-                                    (((replyLoadingState as? LoadingState.Success)?.response
-                                            ?: emptyList()) + response)
-                                        .distinctBy { it.entityId },
-                                )
-                            else LoadingState.Success(response)
-                        replyFooterState = FooterState.Success
-                    }
+                    },
+                )
+                if (paused) {
+                    replyAutomaticPaused = true
+                    replyFooterState = FooterState.Error("本批内容已过滤，点击继续加载")
                 }
-                isLoadMoreReply = false
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                if (generation == replyFetchGeneration) {
+                    replyAutomaticPaused = true
+                    val message = failure.message ?: "加载失败，请重试"
+                    if (replyLoadingState is LoadingState.Success) replyFooterState = FooterState.Error(message)
+                    else replyLoadingState = LoadingState.Error(message)
+                }
+            } finally {
+                if (generation == replyFetchGeneration) isLoadMoreReply = false
             }
         }
     }
@@ -492,6 +509,9 @@ constructor(
     }
 
     fun resetReplyState() {
+        replyFetchGeneration++
+        replyFetchJob?.cancel()
+        replyAutomaticPaused = false
         replyRootId = null
         replyPage = 1
         isLoadMoreReply = false
@@ -503,7 +523,7 @@ constructor(
     }
 
     fun loadMoreReply() {
-        if (!isLoadMoreReply) {
+        if (!isLoadMoreReply && replyFetchJob?.isActive != true) {
             isEndReply = false
             isLoadMoreReply = true
             fetchTotalReply()

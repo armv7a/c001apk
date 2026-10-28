@@ -57,7 +57,7 @@ class LocalFollowPager(
                                                     !it.id.isNullOrBlank() &&
                                                     it.uid == cursor.uid
                                             }
-                                            cursor.last = feeds.lastOrNull()?.id ?: cursor.last
+                                            cursor.last = items.lastOrNull { !it.id.isNullOrBlank() }?.id ?: cursor.last
                                             cursor.page++
                                             cursor.buffer.addAll(
                                                 feeds.filter { cursor.seen.add(it.id!!) },

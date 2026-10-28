@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.topic
 
+import com.example.c001apk.compose.logic.filter.ContentFilterStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -36,8 +37,9 @@ class TopicContentViewModel @AssistedInject constructor(
     @Assisted("title") var title: String,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
+    contentFilters: ContentFilterStore,
     private val productComparisonRepo: ProductComparisonRepo,
-) : BaseViewModel(networkRepo, blackListRepo) {
+) : BaseViewModel(networkRepo, blackListRepo, contentFilters) {
 
     @AssistedFactory
     interface ViewModelFactory {

@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.ffflist
 
+import com.example.c001apk.compose.logic.filter.ContentFilterStore
 import androidx.lifecycle.viewModelScope
 import com.example.c001apk.compose.logic.repository.BlackListRepo
 import com.example.c001apk.compose.logic.repository.NetworkRepo
@@ -23,7 +24,8 @@ class FFFContentViewModel @AssistedInject constructor(
     @Assisted val showDefault: Int?,
     networkRepo: NetworkRepo,
     blackListRepo: BlackListRepo,
-) : BaseViewModel(networkRepo, blackListRepo) {
+    contentFilters: ContentFilterStore,
+) : BaseViewModel(networkRepo, blackListRepo, contentFilters) {
 
     @AssistedFactory
     interface ViewModelFactory {

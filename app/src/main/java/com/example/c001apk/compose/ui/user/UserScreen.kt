@@ -260,7 +260,7 @@ fun UserScreen(
                         ItemCard(
                             loadingState = viewModel.loadingState,
                             loadMore = viewModel::loadMore,
-                            isEnd = viewModel.isEnd,
+                            isEnd = viewModel.stopAutomaticLoading,
                             onViewUser = { uid ->
                                 if (uid != viewModel.uid) {
                                     onViewUser(uid)

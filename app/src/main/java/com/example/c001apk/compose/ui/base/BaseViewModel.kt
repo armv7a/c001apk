@@ -1,5 +1,7 @@
 package com.example.c001apk.compose.ui.base
 
+import com.example.c001apk.compose.logic.filter.loadFilteredPages
+import com.example.c001apk.compose.logic.filter.ContentFilterStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -16,6 +18,8 @@ import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.util.CookieUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import com.example.c001apk.compose.logic.filter.ContentFilterEngine
 import kotlinx.coroutines.launch
 
 /** Created by bggRGjQaUbCoE on 2024/6/10 */
@@ -27,6 +31,7 @@ enum class LikeType {
 abstract class BaseViewModel(
     val networkRepo: NetworkRepo,
     val blackListRepo: BlackListRepo,
+    protected val contentFilters: ContentFilterStore,
 ) : ViewModel() {
 
     private val accountRevision = CookieUtil.accountSession.revision
@@ -42,6 +47,9 @@ abstract class BaseViewModel(
     var firstLaunch = 1
     var isLoadMore = false
     var isEnd = false
+    var automaticLoadPaused by mutableStateOf(false)
+        protected set
+    val stopAutomaticLoading get() = isEnd || automaticLoadPaused
     var firstItem: String? = null
     var lastItem: String? = null
 
@@ -67,95 +75,91 @@ abstract class BaseViewModel(
         fetchJob?.cancel()
     }
 
+    private var fetchGeneration = 0
+
     fun fetchData() {
         if (accountRevision != CookieUtil.accountSession.revision) return
+        val generation = ++fetchGeneration
         fetchJob?.cancel()
-        fetchJob =
-            viewModelScope.launch(Dispatchers.IO) {
-                customFetchData().collect { state ->
-                    if (accountRevision != CookieUtil.accountSession.revision) return@collect
-                    when (state) {
-                        LoadingState.Empty -> {
-                            if (loadingState is LoadingState.Success && !isRefreshing)
-                                footerState = FooterState.End
-                            else {
-                                loadingState = state
-                                footerState = FooterState.Success
-                            }
-                            isEnd = true
-                        }
-
-                        is LoadingState.Error -> {
-                            if (loadingState is LoadingState.Success) {
-                                footerState = FooterState.Error(state.errMsg)
-                                if (isRefreshing) toastText = state.errMsg
-                            } else loadingState = state
-                            isEnd = true
-                        }
-
-                        LoadingState.Loading -> {
-                            if (loadingState is LoadingState.Success)
-                                footerState = FooterState.Loading
-                            else loadingState = state
-                        }
-
-                        is LoadingState.Success -> {
-                            page++
-                            var response =
-                                state.response.filter {
-                                    ((it.entityType in entityTypeList ||
-                                        it.entityTemplate in
-                                            if (CookieUtil.showSquare) entityTemplateList
-                                            else
-                                                entityTemplateList.toMutableList().also { list ->
-                                                    list.removeAll(
-                                                        listOf(
-                                                            "iconMiniScrollCard",
-                                                            "iconMiniGridCard",
-                                                        ),
-                                                    )
-                                                }) || isAdditionalItemSupported(it)) &&
-                                        !blackListRepo.checkUid(
-                                            if (!it.fromuid.isNullOrEmpty()) it.fromuid
-                                            else it.uid.orEmpty(),
-                                        ) &&
-                                        !blackListRepo.checkTopic(
-                                            it.tags +
-                                                it.ttitle +
-                                                it.relationRows?.getOrNull(0)?.title,
-                                        )
+        val append = isLoadMore && !isRefreshing
+        automaticLoadPaused = false
+        fetchJob = viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val filters = ContentFilterEngine(contentFilters.data.first())
+                val result = loadFilteredPages(
+                    fetch = { customFetchData().first { it !is LoadingState.Loading } },
+                    accept = { state, attempt ->
+                        if (accountRevision != CookieUtil.accountSession.revision || generation != fetchGeneration)
+                            throw kotlinx.coroutines.CancellationException()
+                        when (state) {
+                            LoadingState.Empty -> {
+                                isEnd = true
+                                if (loadingState is LoadingState.Success && (append || attempt > 0))
+                                    footerState = FooterState.End
+                                else {
+                                    loadingState = LoadingState.Empty
+                                    footerState = FooterState.Success
                                 }
-                            if (firstItem == null) firstItem = response.firstOrNull()?.id
-                            lastItem = response.lastOrNull()?.id
-
-                            handleResponse(response)?.let {
-                                response = it
+                                true
                             }
-
-                            if (isLoadMore) {
-                                response =
-                                    ((loadingState as? LoadingState.Success)?.response
-                                        ?: emptyList()) + response
+                            is LoadingState.Error -> {
+                                automaticLoadPaused = true
+                                if (loadingState is LoadingState.Success) {
+                                    footerState = FooterState.Error(state.errMsg)
+                                    if (isRefreshing) toastText = state.errMsg
+                                } else loadingState = state
+                                true
                             }
-
-                            handleLoadMore(response)?.let {
-                                response = it
+                            is LoadingState.Success -> {
+                                val raw = state.response
+                                page++
+                                if (firstItem == null) firstItem = raw.firstOrNull { !it.id.isNullOrBlank() }?.id
+                                lastItem = raw.lastOrNull { !it.id.isNullOrBlank() }?.id ?: lastItem
+                                val rawEnd = raw.any { it.entityTemplate == "noMoreDataCard" }
+                                isEnd = rawEnd
+                                val templates = if (CookieUtil.showSquare) entityTemplateList else
+                                    entityTemplateList.filterNot { it in listOf("iconMiniScrollCard", "iconMiniGridCard") }
+                                var response = raw.filter {
+                                    (it.entityType in entityTypeList || it.entityTemplate in templates || isAdditionalItemSupported(it)) &&
+                                        !blackListRepo.checkUid(it.fromuid?.takeIf(String::isNotBlank) ?: it.uid.orEmpty()) &&
+                                        !blackListRepo.checkTopic(it.tags.orEmpty() + it.ttitle.orEmpty() + it.relationRows?.firstOrNull()?.title.orEmpty())
+                                }
+                                response = handleResponse(response) ?: response
+                                isEnd = isEnd || rawEnd
+                                val hasVisible = response.any { filters.match(it) == null }
+                                if (append || attempt > 0) {
+                                    response = (loadingState as? LoadingState.Success)?.response.orEmpty() + response
+                                }
+                                response = handleLoadMore(response) ?: response
+                                // Preserve fetched rows so changing a content rule needs no network refresh.
+                                loadingState = LoadingState.Success(response)
+                                footerState = if (isEnd) FooterState.End else FooterState.Success
+                                isEnd || hasVisible
                             }
-
-                            loadingState = LoadingState.Success(response)
-                            footerState = FooterState.Success
-                            if (response.isEmpty()) {
-                                isLoadMore = false
-                                isRefreshing = false
-                                loadMore()
-                                return@collect
-                            }
+                            LoadingState.Loading -> true
                         }
-                    }
+                    },
+                )
+                if (result) {
+                    automaticLoadPaused = true
+                    footerState = FooterState.Error("本批内容已过滤，点击继续加载")
+                }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                if (generation == fetchGeneration) {
+                    automaticLoadPaused = true
+                    val message = failure.message ?: "加载失败，请重试"
+                    if (loadingState is LoadingState.Success) footerState = FooterState.Error(message)
+                    else loadingState = LoadingState.Error(message)
+                }
+            } finally {
+                if (generation == fetchGeneration) {
                     isLoadMore = false
                     isRefreshing = false
                 }
             }
+        }
     }
 
     open fun handleResponse(response: List<HomeFeedResponse.Data>): List<HomeFeedResponse.Data>? {
@@ -183,7 +187,7 @@ abstract class BaseViewModel(
     }
 
     open fun loadMore() {
-        if (!isRefreshing && !isLoadMore) {
+        if (!isRefreshing && !isLoadMore && fetchJob?.isActive != true) {
             isEnd = false
             isLoadMore = true
             fetchData()

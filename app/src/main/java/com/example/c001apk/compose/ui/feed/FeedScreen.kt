@@ -597,7 +597,7 @@ fun FeedScreen(
                             ItemCard(
                                 loadingState = viewModel.loadingState,
                                 loadMore = viewModel::loadMore,
-                                isEnd = viewModel.isEnd,
+                                isEnd = viewModel.stopAutomaticLoading,
                                 onViewUser = onViewUser,
                                 onViewFeed = onViewFeed,
                                 onOpenLink = onOpenLink,
@@ -654,7 +654,7 @@ fun FeedScreen(
                         rootId = viewModel.replyRootId,
                         threadKey = viewModel.replyId,
                         footerState = viewModel.replyFooterState,
-                        isEnd = viewModel.isEndReply,
+                        isEnd = viewModel.stopReplyAutomaticLoading,
                         onLoadMore = viewModel::loadMoreReply,
                         onDismiss = ::resetBottomSheet,
                     ) { reply, index ->
