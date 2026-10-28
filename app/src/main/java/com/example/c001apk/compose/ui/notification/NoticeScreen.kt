@@ -14,6 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,16 +36,6 @@ import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/** Created by bggRGjQaUbCoE on 2024/6/13 */
-enum class NoticeType {
-    AT,
-    COMMENT,
-    LIKE,
-    FOLLOW,
-    MESSAGE,
-    NOTIFICATION,
-}
-
 @Composable
 fun NoticeScreen(
     onBackClick: () -> Unit,
@@ -55,23 +47,15 @@ fun NoticeScreen(
     onReport: (String, ReportType) -> Unit,
     onViewChat: (String, String, String) -> Unit,
 ) {
+    val destination = remember(type) { NoticeType.valueOf(type) }
+    var selectedCategory by rememberSaveable(type) {
+        mutableStateOf(NoticeType.NOTIFICATION)
+    }
+    val activeType = if (destination == NoticeType.NOTICES) selectedCategory else destination
+    val listStateHolder = rememberSaveableStateHolder()
+    val viewModel = noticeViewModel(activeType)
 
-    val viewModel =
-        hiltViewModel<NoticeViewModel, NoticeViewModel.ViewModelFactory>(key = type) { factory ->
-            factory.create(
-                url =
-                    when (type) {
-                        NoticeType.AT.name -> "/v6/notification/atMeList"
-                        NoticeType.COMMENT.name -> "/v6/notification/atCommentMeList"
-                        NoticeType.LIKE.name -> "/v6/notification/feedLikeList"
-                        NoticeType.FOLLOW.name -> "/v6/notification/contactsFollowList"
-                        NoticeType.MESSAGE.name -> "/v6/message/list"
-                        NoticeType.NOTIFICATION.name -> "/v6/notification/list"
-                        else -> throw IllegalArgumentException("invalid type: $type")
-                    },
-            )
-        }
-
+    // Refresh on returning to the page, not when switching between cached categories.
     androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
         if (viewModel.loadingState !is com.example.c001apk.compose.logic.state.LoadingState.Loading)
             viewModel.refresh()
@@ -82,65 +66,66 @@ fun NoticeScreen(
         viewModel.resetToastText()
         context.makeToast(it)
     }
-    var showMessageDialog by remember { mutableStateOf(false) }
-    var deleteNoticeId by remember { mutableStateOf<String?>(null) }
+    var showMessageDialog by remember(activeType) { mutableStateOf(false) }
+    var deleteNoticeId by remember(activeType) { mutableStateOf<String?>(null) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                windowInsets =
-                    WindowInsets.systemBars.only(WindowInsetsSides.Start + WindowInsetsSides.Top),
-                navigationIcon = {
-                    BackButton { onBackClick() }
-                },
-                title = {
-                    Text(
-                        text =
-                            when (type) {
-                                NoticeType.AT.name -> "@我的动态"
-                                NoticeType.COMMENT.name -> "@我的评论"
-                                NoticeType.LIKE.name -> "我收到的赞"
-                                NoticeType.FOLLOW.name -> "好友关注"
-                                NoticeType.MESSAGE.name -> "私信"
-                                NoticeType.NOTIFICATION.name -> "信息"
-                                else -> throw IllegalArgumentException("invalid type: $type")
-                            },
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+            Column {
+                TopAppBar(
+                    windowInsets =
+                        WindowInsets.systemBars.only(WindowInsetsSides.Start + WindowInsetsSides.Top),
+                    navigationIcon = {
+                        BackButton { onBackClick() }
+                    },
+                    title = {
+                        Text(
+                            text = destination.title,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                )
+                if (destination == NoticeType.NOTICES) {
+                    NotificationCategories(
+                        selected = activeType,
+                        onSelected = { selectedCategory = it },
                     )
-                },
-            )
+                }
+            }
         },
     ) { paddingValues ->
-        CommonScreen(
-            viewModel = viewModel,
-            isReceivedLikeList = type == NoticeType.LIKE.name,
-            refreshState = null,
-            resetRefreshState = {},
-            paddingValues =
-                PaddingValues(
-                    top = paddingValues.calculateTopPadding(),
-                    start = paddingValues.calculateLeftPadding(layoutDirection),
-                    bottom = paddingValues.calculateBottomPadding(),
-                ),
-            needTopPadding = true,
-            onViewUser = onViewUser,
-            onViewFeed = onViewFeed,
-            onOpenLink = onOpenLink,
-            onCopyText = onCopyText,
-            onReport = onReport,
-            onHandleMessage = { ukey, isTop ->
-                viewModel.ukey = ukey
-                viewModel.isTop = isTop
-                showMessageDialog = true
-            },
-            onDeleteNotice = { deleteNoticeId = it },
-            onViewChat = { ukey, uid, username ->
-                viewModel.resetUnRead(ukey)
-                onViewChat(ukey, uid, username)
-            },
-        )
+        listStateHolder.SaveableStateProvider(activeType.name) {
+            CommonScreen(
+                viewModel = viewModel,
+                isReceivedLikeList = activeType == NoticeType.LIKE,
+                refreshState = null,
+                resetRefreshState = {},
+                paddingValues =
+                    PaddingValues(
+                        top = paddingValues.calculateTopPadding(),
+                        start = paddingValues.calculateLeftPadding(layoutDirection),
+                        bottom = paddingValues.calculateBottomPadding(),
+                    ),
+                needTopPadding = true,
+                onViewUser = onViewUser,
+                onViewFeed = onViewFeed,
+                onOpenLink = onOpenLink,
+                onCopyText = onCopyText,
+                onReport = onReport,
+                onHandleMessage = { ukey, isTop ->
+                    viewModel.ukey = ukey
+                    viewModel.isTop = isTop
+                    showMessageDialog = true
+                },
+                onDeleteNotice = { deleteNoticeId = it },
+                onViewChat = { ukey, uid, username ->
+                    viewModel.resetUnRead(ukey)
+                    onViewChat(ukey, uid, username)
+                },
+            )
+        }
     }
 
     deleteNoticeId?.let { id ->
@@ -214,3 +199,9 @@ fun NoticeScreen(
         }
     }
 }
+
+@Composable
+private fun noticeViewModel(type: NoticeType): NoticeViewModel =
+    hiltViewModel<NoticeViewModel, NoticeViewModel.ViewModelFactory>(key = type.name) { factory ->
+        factory.create(url = type.url)
+    }

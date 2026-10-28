@@ -39,9 +39,16 @@ constructor(
     var fffList by mutableStateOf<List<String>>(emptyList())
         private set
 
-    var badgeList by
+    var badgeCounts by
         mutableStateOf(
-            listOf(atme, atcommentme, feedlike, contacts_follow, message, CookieUtil.notification),
+            mapOf(
+                NoticeType.AT to atme,
+                NoticeType.COMMENT to atcommentme,
+                NoticeType.LIKE to feedlike,
+                NoticeType.FOLLOW to contacts_follow,
+                NoticeType.MESSAGE to message,
+                NoticeType.NOTIFICATION to CookieUtil.notification,
+            ),
         )
         private set
 
@@ -86,14 +93,14 @@ constructor(
             if (session.revision != CookieUtil.accountSession.revision) return@collect
             result.getOrNull()?.data?.let {
                 CookieUtil.notification = it.notification
-                badgeList =
-                    listOf(
-                        it.atme,
-                        it.atcommentme,
-                        it.feedlike,
-                        it.contactsFollow,
-                        it.message,
-                        it.notification,
+                badgeCounts =
+                    mapOf(
+                        NoticeType.AT to it.atme,
+                        NoticeType.COMMENT to it.atcommentme,
+                        NoticeType.LIKE to it.feedlike,
+                        NoticeType.FOLLOW to it.contactsFollow,
+                        NoticeType.MESSAGE to it.message,
+                        NoticeType.NOTIFICATION to it.notification,
                     )
             }
         }
@@ -123,8 +130,10 @@ constructor(
         }
     }
 
-    fun clearBadge(index: Int) {
-        if (index == NoticeType.NOTIFICATION.ordinal) CookieUtil.notification = 0
-        badgeList = badgeList.mapIndexed { i, count -> if (index == i) null else count }
+    fun clearBadge(type: NoticeType) {
+        // Opening the group does not mean all three notification lists have been read.
+        if (type == NoticeType.NOTICES) return
+        if (type == NoticeType.NOTIFICATION) CookieUtil.notification = 0
+        badgeCounts = badgeCounts + (type to null)
     }
 }

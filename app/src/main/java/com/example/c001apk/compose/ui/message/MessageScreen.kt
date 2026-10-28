@@ -13,13 +13,9 @@ import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
 import com.example.c001apk.compose.ui.component.cards.MessageFFFCard
 import com.example.c001apk.compose.ui.component.cards.MessageHeaderCard
-import com.example.c001apk.compose.ui.component.cards.MessageListCard
 import com.example.c001apk.compose.ui.component.cards.MessageWidgetCard
-import com.example.c001apk.compose.ui.component.cards.iconList
-import com.example.c001apk.compose.ui.component.cards.titleList
 import com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons
 import com.example.c001apk.compose.ui.component.TopBarScrollEffect
-import com.example.c001apk.compose.ui.notification.NoticeType
 import com.example.c001apk.compose.util.ReportType
 import com.example.c001apk.compose.util.makeToast
 import top.yukonga.miuix.kmp.basic.Text
@@ -144,23 +140,17 @@ fun MessageScreen(
                             )
                         }
                         item(key = "messagesTitle") { ProfileSectionTitle("消息") }
-                        items(titleList.size, key = { "message_$it" }) { index ->
-                            MessageListCard(
+                        item(key = "messages") {
+                            MessageSection(
                                 modifier =
                                     Modifier.padding(horizontal = 12.dp)
-                                        .padding(
-                                            bottom = if (index == titleList.lastIndex) 12.dp else 0.dp,
-                                        ),
-                                imageVector = iconList[index],
-                                title = titleList[index],
-                                count = viewModel.badgeList.getOrNull(index),
-                                first = index == 0,
-                                last = index == titleList.lastIndex,
-                                onViewNotice = {
+                                        .padding(bottom = 12.dp),
+                                counts = viewModel.badgeCounts,
+                                onViewNotice = { type ->
                                     if (!prefs.isLogin) onLogin()
                                     else {
-                                        viewModel.clearBadge(index)
-                                        onViewNotice(NoticeType.entries[index].name)
+                                        viewModel.clearBadge(type)
+                                        onViewNotice(type.name)
                                     }
                                 },
                             )

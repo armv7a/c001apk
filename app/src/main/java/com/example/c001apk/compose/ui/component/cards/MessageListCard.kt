@@ -11,21 +11,8 @@ import top.yukonga.miuix.kmp.basic.Badge
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Info
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-
-val iconList =
-    listOf(
-        FlutterProfileIcons.Mention,
-        FlutterProfileIcons.Comment,
-        FlutterProfileIcons.ThumbUp,
-        FlutterProfileIcons.PersonAdd,
-        FlutterProfileIcons.Mail,
-        MiuixIcons.Info,
-    )
-val titleList = listOf("@我的动态", "@我的评论", "我收到的赞", "好友关注", "私信", "信息")
 
 @Composable
 fun MessageListCard(
