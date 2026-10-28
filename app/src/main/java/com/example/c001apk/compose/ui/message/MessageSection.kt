@@ -5,8 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.c001apk.compose.ui.component.cards.MessageListCard
 import com.example.c001apk.compose.ui.component.icons.FlutterProfileIcons
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Info
+import com.example.c001apk.compose.ui.component.icons.NotificationIcon
 import com.example.c001apk.compose.ui.notification.NoticeType
 
 @Composable
@@ -19,7 +18,7 @@ internal fun MessageSection(
         MessageEntry.entries.forEachIndexed { index, entry ->
             MessageListCard(
                 imageVector = when (entry) {
-                    MessageEntry.NOTICES -> MiuixIcons.Info
+                    MessageEntry.NOTICES -> NotificationIcon
                     MessageEntry.LIKES -> FlutterProfileIcons.ThumbUp
                     MessageEntry.FOLLOWS -> FlutterProfileIcons.PersonAdd
                     MessageEntry.MESSAGES -> FlutterProfileIcons.Mail
