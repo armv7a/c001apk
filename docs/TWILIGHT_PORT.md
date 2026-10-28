@@ -1,5 +1,27 @@
 # TG-Twilight 功能移植跟踪
 
+## 2026-10-28 增量移植
+
+参考上游 [1.5.0 / 0b6a58b](https://github.com/TG-Twilight/c001apk/commit/0b6a58be3f209290b1b75a8d97108ebb43fc1082)，将适用行为移植到原生 Compose/Miuix：
+
+| 功能 | 原生实现 |
+| --- | --- |
+| 手动导入数盟 ID 优先于迟到的生成结果 | `IdentityWriteGuard` 在 DataStore 原子更新中核对身份版本、ID 和设备参数；同值导入也使旧请求失效，保留原生进程隔离、回退地址及非阻塞启动 |
+| 过滤后的有限分页 | 普通列表、评论、楼中楼、本地关注以原始响应推进游标；每批最多自动补取 3 页，随后显示手动继续入口，暂停不等于服务端结束 |
+| 本地个人内容过滤 | 关键词、UID、完整话题名称；动态/评论/用户卡片范围；同句例外词；命中原因、临时查看、停用规则、单条内容例外；保留已取数据以立即恢复显示 |
+| 秋风远程规则导入 | 设置 → 关注与内容 → 内容过滤 → 导入秋风规则；手动下载/更新、独立规则明细页、标准/严格级别、逐条停用及移除；保留个人规则和内容例外 |
+| 首页发布按钮开关 | 设置 → 关注与内容 → 隐藏首页发布按钮，默认保持显示 |
+| 大屏阅读侧栏及阅读返回栈 | 收起/展开信息流，保持两侧位置；沿用 Miuix 原生导航，最多保留 8 条阅读记录及各自状态 |
+| 话题关注结果 | 接受无 `data` 的成功响应，错误/验证码不修改状态；合并连续点击并保存请求的目标状态 |
+
+内容过滤默认关闭，不预置针对特定用户的名单。用户可手动导入 [TG-Twilight 远程规则](https://github.com/TG-Twilight/c001apk/blob/filters/rules.json)，导入不自动启用过滤，不在启动时请求或后台自动更新。规则下载使用独立无账号凭据的客户端，限制 1 MiB、20 秒总超时，拒绝重定向、无效格式及旧版本/同版本变更；通过校验后原子替换远程快照，保留个人规则、例外及停用选择。匹配保留 schema v1 的 UID、完整话题名/ID、多组关键词距离、句内例外及严格级别语义，不执行远程正则。
+
+液态玻璃不移植。HDR 与实况照片已由 `media-support` / Mojito 实现，本次保留现有链路。
+
+本批回归入口：`IdentityWriteGuardTest`、`ContentFilterTest`、`ContentFilterStoreTest`、`TwilightRulesTest`、`TwilightRulesClientTest`、`FilteredPaginationTest`、`LocalFollowPagerTest`、`TopicFollowResultTest`、`AppNavigatorTest`，以及实机 `ContentFilterInteractionTest`、`FilteredFeedPaginationTest`、`MainRailLayoutTest`、`MiuixNavigationTest`。
+
+## 前一批移植
+
 用户范围：只移植 TG-Twilight 在其提交中新增、补全和修复的 Android 相关功能。当前原生 Compose + miuix 实现、独立包名、数盟 SDK 和用户指定的 UI 调整继续保留。
 
 用户追加要求：默认分享使用 `www.coolapk1s.com`，不附加官方域名的第二条链接；继续识别 `coolapk1s.com`、`www.coolapk1s.com` 与酷安官方域名。
