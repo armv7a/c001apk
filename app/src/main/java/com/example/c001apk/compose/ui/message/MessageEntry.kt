@@ -5,7 +5,7 @@ import com.example.c001apk.compose.ui.notification.notificationCategories
 
 internal enum class MessageEntry(val title: String, val destination: NoticeType) {
     NOTICES("通知", NoticeType.NOTICES),
-    LIKES("赞", NoticeType.LIKE),
+    LIKES("点赞", NoticeType.LIKE),
     FOLLOWS("关注", NoticeType.FOLLOW),
     MESSAGES("私信", NoticeType.MESSAGE);
 

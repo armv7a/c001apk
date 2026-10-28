@@ -63,7 +63,7 @@ class MessageSectionTest {
         compose.onNodeWithText("@我的动态").assertDoesNotExist()
         compose.onNodeWithText("@我的评论").assertDoesNotExist()
         compose.onNodeWithText("信息").assertDoesNotExist()
-        val labels = listOf("通知", "赞", "关注", "私信")
+        val labels = listOf("通知", "点赞", "关注", "私信")
         val bounds = labels.map { label ->
             compose.onNodeWithText(label).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         }
