@@ -5,7 +5,7 @@
     <objectAnimator
         android:propertyName="alpha"
         android:valueType="floatType"
-        android:valueFrom="0.2"
+        android:valueFrom="0.65"
         android:valueTo="1.0"/>
 
 </set>

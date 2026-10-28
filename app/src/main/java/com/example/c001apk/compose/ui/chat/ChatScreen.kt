@@ -698,7 +698,7 @@ fun ChatBottom(
                         modifier =
                             Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp),
                         pagerState = pagerState1,
-                        defColor = MiuixTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        defColor = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.65f),
                     )
                 }
             }

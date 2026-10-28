@@ -3,9 +3,11 @@ package com.example.c001apk.compose.ui.feed.reply.emoji
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.graphics.toArgb
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.example.c001apk.compose.R
+import com.example.c001apk.compose.ui.theme.miuixViewColors
 import com.example.c001apk.compose.view.circleindicator.CircleIndicator3
 
 class EmojiPagerAdapter(
@@ -30,6 +32,8 @@ class EmojiPagerAdapter(
     override fun getItemCount() = emojiList.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val colors = miuixViewColors(holder.itemView.context)
+        holder.indicator.tintIndicator(colors.primary.toArgb(), colors.onSurfaceVariantSummary.toArgb())
         holder.viewPager.adapter = EmojiChildPagerAdapter(
             emojiList[position], onClickEmoji, onCountStart, onCountStop
         )
