@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.component
 
+import com.example.c001apk.compose.ui.contentfilter.FilteredContentNotice
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -167,6 +168,8 @@ fun FeedListEntry(
     onShowGlobalProductComparison: (() -> Unit)? = null,
     onToggleProductEntityComparison: ((HomeFeedResponse.Entities) -> Unit)? = null,
 ) {
+    if ((item.entityType != "feed_reply" || isReceivedLikeList) &&
+        FilteredContentNotice(item)) return
     val receivedLike = remember(item, isReceivedLikeList) {
         if (isReceivedLikeList) item.receivedLike() else null
     }

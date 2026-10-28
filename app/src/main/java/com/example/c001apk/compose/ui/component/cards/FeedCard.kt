@@ -1,5 +1,9 @@
 package com.example.c001apk.compose.ui.component.cards
 
+import com.example.c001apk.compose.ui.contentfilter.FilteredContentNotice
+import com.example.c001apk.compose.logic.filter.FilterScope
+import com.example.c001apk.compose.logic.filter.filterInput
+
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -310,7 +314,7 @@ fun FeedMessage(
                         )
                         .padding(10.dp),
             )
-        } else {
+        } else if (!FilteredContentNotice(data.forwardSourceFeed.filterInput())) {
             Column(
                 modifier =
                     modifier
@@ -367,39 +371,41 @@ fun FeedMessage(
 
     if (!data.replyRows.isNullOrEmpty()) {
         val reply = data.replyRows?.getOrNull(0)
-        val replyPic =
-            when (reply?.pic) {
-                EMPTY_STRING -> EMPTY_STRING
-                else ->
-                    " <a class=\"feed-forward-pic\" href=" +
-                        reply?.pic +
-                        ">查看图片(" +
-                        reply?.picArr?.size +
-                        ")</a>"
-            }
-        LinkText(
-            text =
-                """<a class="feed-link-uname" href="/u/${reply?.uid}">${reply?.username}</a>: ${reply?.message}$replyPic""",
-            onOpenLink = onOpenLink,
-            lineSpacingMultiplier = 1.2f,
-            imgList = reply?.picArr,
-            textSize = 14f,
-            modifier =
-                modifier
-                    .padding(top = 10.dp)
-                    .fillMaxWidth()
-                    .squircleClip(16.dp)
-                    .background(MiuixTheme.colorScheme.surface)
-                    .combinedClickable(
-                        onClick = {
-                            onViewFeed(data.id.orEmpty(), true)
-                        },
-                        onLongClick = {
-                            onCopyText(reply?.message)
-                        },
-                    )
-                    .padding(10.dp),
-        )
+        if (reply != null && !FilteredContentNotice(reply, FilterScope.COMMENT)) {
+            val replyPic =
+                when (reply.pic) {
+                    EMPTY_STRING -> EMPTY_STRING
+                    else ->
+                        " <a class=\"feed-forward-pic\" href=" +
+                            reply.pic +
+                            ">查看图片(" +
+                            reply.picArr?.size +
+                            ")</a>"
+                }
+            LinkText(
+                text =
+                    """<a class="feed-link-uname" href="/u/${reply.uid}">${reply.username}</a>: ${reply.message}$replyPic""",
+                onOpenLink = onOpenLink,
+                lineSpacingMultiplier = 1.2f,
+                imgList = reply.picArr,
+                textSize = 14f,
+                modifier =
+                    modifier
+                        .padding(top = 10.dp)
+                        .fillMaxWidth()
+                        .squircleClip(16.dp)
+                        .background(MiuixTheme.colorScheme.surface)
+                        .combinedClickable(
+                            onClick = {
+                                onViewFeed(data.id.orEmpty(), true)
+                            },
+                            onLongClick = {
+                                onCopyText(reply.message)
+                            },
+                        )
+                        .padding(10.dp),
+            )
+        }
     }
 
     if (!data.extraUrl.isNullOrEmpty()) {

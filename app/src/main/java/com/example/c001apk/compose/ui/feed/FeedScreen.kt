@@ -1,5 +1,9 @@
 package com.example.c001apk.compose.ui.feed
 
+import com.example.c001apk.compose.ui.contentfilter.rememberContentFilter
+import com.example.c001apk.compose.ui.contentfilter.FilterNotice
+import com.example.c001apk.compose.ui.contentfilter.ContentFilterViewModel
+import com.example.c001apk.compose.logic.filter.FilterScope
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.os.Build.VERSION.SDK_INT
@@ -197,6 +201,28 @@ fun FeedScreen(
                 R.anim.anim_bottom_sheet_slide_down,
             )
         replyLauncher.launch(intent, options)
+    }
+
+    val filterData = (viewModel.feedState as? LoadingState.Success)?.response
+    var contentRevealed by rememberSaveable(id) { mutableStateOf(false) }
+    val contentFilter = rememberContentFilter()
+    val filterMatch = filterData?.let { contentFilter.match(it, FilterScope.FEED) }
+    if (filterMatch != null && !contentRevealed) {
+        val filters: ContentFilterViewModel = hiltViewModel()
+        Scaffold(topBar = {
+            com.example.c001apk.compose.ui.component.MiuixTopBar(
+                title = "内容已过滤", navigationIcon = { BackButton(onBackClick) },
+            )
+        }) { padding ->
+            FilterNotice(
+                reason = filterMatch.reason,
+                onReveal = { contentRevealed = true },
+                onDisable = { filters.disableRule(filterMatch.ruleId) },
+                modifier = Modifier.padding(padding),
+                error = filters.error,
+            )
+        }
+        return
     }
 
     CompositionLocalProvider(

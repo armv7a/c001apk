@@ -72,6 +72,7 @@ data class UserPreferencesCompat(
     val hideTradeLinkHint: Boolean = false,
     val showHomeCarousel: Boolean = true,
     val showHomeChannels: Boolean = true,
+    val contentFilterJson: String = "",
     val deviceIdentityRevision: Long = 0,
 ) {
     constructor(
@@ -137,6 +138,7 @@ data class UserPreferencesCompat(
         hideTradeLinkHint = original.hideTradeLinkHint,
         showHomeCarousel = !original.hideHomeCarousel,
         showHomeChannels = !original.hideHomeChannels,
+        contentFilterJson = original.contentFilterJson,
         deviceIdentityRevision = original.deviceIdentityRevision,
         followSelection =
             if (original.followSelectionConfigured) original.followSelection.coerceIn(0, 5)
@@ -222,6 +224,7 @@ data class UserPreferencesCompat(
             .setHideTradeLinkHint(hideTradeLinkHint)
             .setHideHomeCarousel(!showHomeCarousel)
             .setHideHomeChannels(!showHomeChannels)
+            .setContentFilterJson(contentFilterJson)
             .setDeviceIdentityRevision(deviceIdentityRevision)
             .build()
 

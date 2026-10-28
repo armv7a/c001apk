@@ -1,5 +1,7 @@
 package com.example.c001apk.compose.ui.component.cards
 
+import com.example.c001apk.compose.ui.contentfilter.FilteredContentNotice
+import com.example.c001apk.compose.logic.filter.FilterScope
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -81,6 +83,7 @@ fun FeedReplyCard(
     onReply: ((String, String, String, String?) -> Unit)? = null, // rid, uid/fuid, uname, frid?
 ) {
 
+    if (FilteredContentNotice(data, FilterScope.COMMENT, modifier)) return
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
     val performHapticClick = rememberHapticClick {}
 
@@ -568,6 +571,7 @@ fun ReplyRows(
         modifier = modifier,
     ) {
         data?.forEachIndexed { index, reply ->
+            if (FilteredContentNotice(reply, FilterScope.COMMENT)) return@forEachIndexed
             Box {
                 LinkText(
                     text = reply.message.orEmpty(),

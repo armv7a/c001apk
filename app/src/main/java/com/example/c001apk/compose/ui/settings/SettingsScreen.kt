@@ -92,6 +92,7 @@ fun SettingsScreen(
     onSectionClick: (String) -> Unit,
     onBackClick: () -> Unit,
     onHomeTabsClick: () -> Unit,
+    onContentFilters: () -> Unit,
     onAccountsClick: () -> Unit,
     onLocalFollowsClick: () -> Unit,
     onParamsClick: () -> Unit,
@@ -403,6 +404,8 @@ fun SettingsScreen(
                             }
                             item(key = "Content_2") {
                                 PreferenceGroup(title = "屏蔽") {
+                                    BasicListItem(headlineText = "内容过滤", supportingText = "个人规则、匹配范围与例外", leadingImageVector = MiuixIcons.Blocklist, onClick = onContentFilters)
+
                                     BasicListItem(
                                         leadingImageVector = MiuixIcons.Blocklist,
                                         headlineText = "用户黑名单",

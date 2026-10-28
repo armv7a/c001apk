@@ -102,6 +102,7 @@ internal fun AppDestinationContent(
                 onBackClick = { navigator.popBackStack() },
                 onAccountsClick = { navigator.navigate(AppDestination.Accounts) },
                 onLocalFollowsClick = { navigator.navigate(AppDestination.LocalFollows) },
+                onContentFilters = { navigator.navigate(AppDestination.ContentFilters) },
                 onHomeTabsClick = { navigator.navigate(AppDestination.TabEditor) },
                 onParamsClick = { navigator.navigate(AppDestination.Params) },
                 onDeviceImport = { navigator.navigate(AppDestination.DeviceImport) },
@@ -109,6 +110,12 @@ internal fun AppDestinationContent(
                 onViewBlackList = navigator::navigateToBlackList,
             )
         }
+
+        AppDestination.ContentFilters -> com.example.c001apk.compose.ui.contentfilter.ContentFilterScreen(
+            onBack = { navigator.popBackStack() },
+            onEdit = { navigator.navigate(AppDestination.ContentRule(it)) },
+        )
+        is AppDestination.ContentRule -> com.example.c001apk.compose.ui.contentfilter.ContentRuleScreen(route.id) { navigator.popBackStack() }
 
         AppDestination.LocalFollows -> {
             com.example.c001apk.compose.ui.follow.LocalFollowListScreen(

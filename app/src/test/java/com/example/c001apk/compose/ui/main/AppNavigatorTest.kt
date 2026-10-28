@@ -19,6 +19,7 @@ class AppNavigatorTest {
             AppDestination.Main, AppDestination.DetailPlaceholder, AppDestination.Settings(special),
             AppDestination.LocalFollows, AppDestination.Accounts, AppDestination.TabEditor,
             AppDestination.DeviceImport, AppDestination.Params, AppDestination.About, AppDestination.License,
+            AppDestination.ContentFilters, AppDestination.ContentRule(null), AppDestination.ContentRule(special),
             AppDestination.Feed("123", true), AppDestination.User("456"),
             AppDestination.Search(null, special, "null"), AppDestination.SearchResult(special, null, "null", special),
             AppDestination.CopyText(special), AppDestination.Topic(special, null),
