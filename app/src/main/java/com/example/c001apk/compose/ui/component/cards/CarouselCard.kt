@@ -62,7 +62,7 @@ fun CarouselCard(
                 CoilLoader(
                     url = item.pic,
                     modifier =
-                        Modifier.fillMaxWidth().aspectRatio(3f).clickable {
+                        Modifier.fillMaxWidth().aspectRatio(4.5f).clickable {
                             onOpenLink(
                                 item.url.orEmpty(),
                                 item.title?.replace("_首页轮播", EMPTY_STRING).orEmpty(),

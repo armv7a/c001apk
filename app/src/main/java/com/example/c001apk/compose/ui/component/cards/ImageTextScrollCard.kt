@@ -33,7 +33,7 @@ fun ImageTextScrollCard(
 ) {
 
     BoxWithConstraints {
-        val itemWidth = (maxWidth - 20.dp) / 3f * 2
+        val itemWidth = (maxWidth - 20.dp) * 0.55f
 
         Column(
             modifier = modifier.fillMaxWidth(),
