@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.c001apk.compose.logic.model.EventDetailResponse
 import com.example.c001apk.compose.logic.state.LoadingState
@@ -235,7 +236,7 @@ private fun EventContent(
                         Text(
                             text = notice.trim(),
                             style = MiuixTheme.textStyles.main,
-                            lineHeight = MiuixTheme.textStyles.main.lineHeight * 1.25f,
+                            lineHeight = 1.25.em,
                         )
                     }
                 }

@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import top.yukonga.miuix.kmp.basic.Card as Surface
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Text
@@ -38,7 +39,7 @@ fun HeadCard(
             Text(
                 text = description.trim(),
                 style = MiuixTheme.textStyles.main,
-                lineHeight = MiuixTheme.textStyles.main.lineHeight * 1.2f,
+                lineHeight = 1.2.em,
             )
         }
     }
