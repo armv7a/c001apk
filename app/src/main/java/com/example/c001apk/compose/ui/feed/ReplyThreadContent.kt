@@ -39,11 +39,11 @@ fun ReplyThreadContent(
     val replies = if (original == null) all else all.filterNot { it.id == rootId }
 
     Column(Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface)) {
-        Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
             Text(
                 "全部回复",
                 modifier = Modifier.align(Alignment.Center),
-                style = MiuixTheme.textStyles.subtitle,
+                style = MiuixTheme.textStyles.body1,
                 fontWeight = FontWeight.SemiBold,
             )
             IconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.CenterEnd)) {
@@ -94,7 +94,7 @@ fun ReplyThreadContent(
                                                 ),
                                         ) {
                                             HorizontalDivider(
-                                                Modifier.padding(start = 62.dp, end = 16.dp),
+                                                Modifier.padding(start = 56.dp, end = 16.dp),
                                             )
                                         }
                                     }
@@ -131,8 +131,8 @@ private fun ThreadSectionLabel(title: String, afterOriginal: Boolean = false) {
         modifier =
             Modifier.padding(
                 start = 4.dp,
-                top = if (afterOriginal) 20.dp else 4.dp,
-                bottom = 10.dp,
+                top = if (afterOriginal) 12.dp else 4.dp,
+                bottom = 6.dp,
             ),
         style = MiuixTheme.textStyles.footnote1,
         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,

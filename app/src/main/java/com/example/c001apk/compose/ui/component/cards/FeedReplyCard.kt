@@ -92,7 +92,7 @@ fun FeedReplyCard(
     val detailComments = LocalDetailComments.current
     val threadCorners = LocalReplyThreadCorners.current
     val horizontal by lazy { if (isFeedReply) 16.dp else 10.dp }
-    val vertical = if (threadCorners != null) 16.dp else if (isFeedReply) 12.dp else 10.dp
+    val vertical = if (isFeedReply) 12.dp else 10.dp
     val defaultCorner = if (detailComments) 20.dp else if (isFeedReply) 0.dp else 16.dp
     val topCorner = threadCorners?.let { if (it.first) 20.dp else 0.dp } ?: defaultCorner
     val bottomCorner = threadCorners?.let { if (it.last) 20.dp else 0.dp } ?: defaultCorner
@@ -153,9 +153,9 @@ fun FeedReplyCard(
             url = data.likeUserInfo?.userAvatar ?: data.userAvatar,
             modifier =
                 Modifier.padding(top = vertical)
-                    .size(if (threadCorners != null) 36.dp else 30.dp)
+                    .size(30.dp)
                     .then(
-                        if (threadCorners != null) Modifier.squircleClip(12.dp)
+                        if (threadCorners != null) Modifier.squircleClip(10.dp)
                         else Modifier.clip(CircleShape),
                     )
                     .constrainAs(avatar) {

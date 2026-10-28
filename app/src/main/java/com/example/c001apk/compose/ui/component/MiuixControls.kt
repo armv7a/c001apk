@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -209,20 +210,26 @@ fun MiuixBottomSheet(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
+    val contentDensity = LocalDensity.current
     WindowBottomSheet(
         show = true,
         modifier = modifier,
         onDismissRequest = onDismissRequest,
-        insideMargin = DpSize(0.dp, 12.dp),
+        backgroundColor = MiuixTheme.colorScheme.surface,
+        dragHandleColor = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.2f),
+        insideMargin = DpSize(0.dp, 0.dp),
     ) {
-        Box(
-            Modifier.windowInsetsPadding(
-                WindowInsets.systemBars
-                    .union(WindowInsets.displayCutout)
-                    .only(WindowInsetsSides.Bottom),
-            ),
-        ) {
-            content()
+        // The platform Dialog supplies a new density; preserve the page's component/font scale.
+        CompositionLocalProvider(LocalDensity provides contentDensity) {
+            Box(
+                Modifier.windowInsetsPadding(
+                    WindowInsets.systemBars
+                        .union(WindowInsets.displayCutout)
+                        .only(WindowInsetsSides.Bottom),
+                ),
+            ) {
+                content()
+            }
         }
     }
 }
