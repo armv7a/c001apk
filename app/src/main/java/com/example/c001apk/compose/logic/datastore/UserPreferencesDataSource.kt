@@ -66,10 +66,26 @@ constructor(
 
     suspend fun setSZLMId(value: String) =
         withContext(Dispatchers.IO) {
-            userPreferences.updateData { it.withDigitalUnionId(value.trim()) }
+            userPreferences.updateData {
+                it.withDigitalUnionId(value.trim()).copy(deviceIdentityRevision = it.deviceIdentityRevision + 1)
+            }
         }
 
-    suspend fun useCurrentDevice() = userPreferences.updateData { it.withCurrentDevice() }
+    suspend fun saveGeneratedIdentity(value: String, expected: UserPreferencesCompat): UserPreferencesCompat? {
+        var applied = false
+        val saved = userPreferences.updateData { current ->
+            if (com.example.c001apk.compose.logic.smid.identityUnchanged(expected, current)) {
+                applied = true
+                current.withDigitalUnionId(value.trim())
+                    .copy(deviceIdentityRevision = current.deviceIdentityRevision + 1)
+            } else current
+        }
+        return saved.takeIf { applied }
+    }
+
+    suspend fun useCurrentDevice() = userPreferences.updateData {
+        it.withCurrentDevice().copy(deviceIdentityRevision = it.deviceIdentityRevision + 1)
+    }
 
     suspend fun setImageQuality(value: Int) =
         withContext(Dispatchers.IO) {
@@ -171,7 +187,7 @@ constructor(
 
     suspend fun setXAppDevice(value: String) =
         withContext(Dispatchers.IO) {
-            userPreferences.updateData { it.copy(xAppDevice = value) }
+            userPreferences.updateData { it.copy(xAppDevice = value, deviceIdentityRevision = it.deviceIdentityRevision + 1) }
         }
 
     suspend fun setXAppToken(value: String) =

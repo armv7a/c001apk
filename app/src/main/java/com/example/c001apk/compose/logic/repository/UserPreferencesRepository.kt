@@ -4,6 +4,9 @@ import com.example.c001apk.compose.FollowType
 import com.example.c001apk.compose.ThemeMode
 import com.example.c001apk.compose.ThemeType
 import com.example.c001apk.compose.logic.datastore.UserPreferencesDataSource
+import com.example.c001apk.compose.logic.datastore.UserPreferencesCompat
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import com.example.c001apk.compose.logic.model.HapticStrength
 import com.example.c001apk.compose.util.CookieUtil
 import javax.inject.Inject
@@ -15,6 +18,7 @@ class UserPreferencesRepository
 constructor(
     private val userPreferencesDataSource: UserPreferencesDataSource,
 ) {
+    private val identityWrites = Mutex()
     val data
         get() = userPreferencesDataSource.data
 
@@ -41,23 +45,32 @@ constructor(
 
     suspend fun setContentScale(value: Float) = userPreferencesDataSource.setContentScale(value)
 
-    suspend fun setSZLMId(value: String) =
-        userPreferencesDataSource.setSZLMId(value).also {
-            CookieUtil.szlmId = it.szlmId
-            CookieUtil.xAppDevice = it.xAppDevice
-            CookieUtil.userAgent = it.userAgent
-            CookieUtil.versionName = it.versionName
-            CookieUtil.versionCode = it.versionCode
-            CookieUtil.apiVersion = it.apiVersion
-            CookieUtil.sdkInt = it.sdkInt
-        }
+    private fun publishIdentity(it: UserPreferencesCompat) {
+        CookieUtil.szlmId = it.szlmId
+        CookieUtil.xAppDevice = it.xAppDevice
+        CookieUtil.userAgent = it.userAgent
+        CookieUtil.versionName = it.versionName
+        CookieUtil.versionCode = it.versionCode
+        CookieUtil.apiVersion = it.apiVersion
+        CookieUtil.sdkInt = it.sdkInt
+    }
 
-    suspend fun useCurrentDevice() =
-        userPreferencesDataSource.useCurrentDevice().also {
-            CookieUtil.xAppDevice = it.xAppDevice
-            CookieUtil.userAgent = it.userAgent
-            CookieUtil.sdkInt = it.sdkInt
-        }
+    suspend fun setSZLMId(value: String) = identityWrites.withLock {
+        userPreferencesDataSource.setSZLMId(value).also(::publishIdentity)
+    }
+
+    suspend fun saveGeneratedIdentity(
+        value: String,
+        expected: UserPreferencesCompat,
+    ): Boolean = identityWrites.withLock {
+        val saved = userPreferencesDataSource.saveGeneratedIdentity(value, expected) ?: return@withLock false
+        publishIdentity(saved)
+        true
+    }
+
+    suspend fun useCurrentDevice() = identityWrites.withLock {
+        userPreferencesDataSource.useCurrentDevice().also(::publishIdentity)
+    }
 
     suspend fun setImageQuality(value: Int) = userPreferencesDataSource.setImageQuality(value)
 
@@ -100,7 +113,9 @@ constructor(
 
     suspend fun setUserAgent(value: String) = userPreferencesDataSource.setUserAgent(value)
 
-    suspend fun setXAppDevice(value: String) = userPreferencesDataSource.setXAppDevice(value)
+    suspend fun setXAppDevice(value: String) = identityWrites.withLock {
+        userPreferencesDataSource.setXAppDevice(value).also(::publishIdentity)
+    }
 
     suspend fun setXAppToken(value: String) = userPreferencesDataSource.setXAppToken(value)
 

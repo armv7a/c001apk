@@ -64,6 +64,7 @@ message UserPreferences {
   // Negative flags keep both existing sections visible when upgrading older preferences.
   bool hideHomeCarousel = 58;
   bool hideHomeChannels = 59;
+  int64 deviceIdentityRevision = 63;
 }
 
 enum ThemeType{

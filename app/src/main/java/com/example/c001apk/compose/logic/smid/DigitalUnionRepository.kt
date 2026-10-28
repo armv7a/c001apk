@@ -22,14 +22,14 @@ constructor(
         val current = preferences.data.first()
         if (!force && current.szlmId.isNotBlank()) {
             if (current.xAppDevice.isBlank() || current.versionName == "13.4.1") {
-                preferences.setSZLMId(current.szlmId)
+                if (!preferences.saveGeneratedIdentity(current.szlmId, current)) return@withLock latestIdentity()
             }
             return@withLock Result.success(current.szlmId)
         }
         try {
             val id = client.query()
-            preferences.setSZLMId(id)
-            Result.success(id)
+            if (preferences.saveGeneratedIdentity(id, current)) Result.success(id)
+            else latestIdentity()
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: IOException) {
@@ -39,5 +39,11 @@ constructor(
         } catch (failure: LinkageError) {
             Result.failure(IOException("数盟组件加载失败", failure))
         }
+    }
+
+    private suspend fun latestIdentity(): Result<String> {
+        val id = preferences.data.first().szlmId
+        return if (id.isNotBlank()) Result.success(id)
+        else Result.failure(IOException("设备标识已更新，已保留你刚保存的值"))
     }
 }
