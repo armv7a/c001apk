@@ -2,9 +2,13 @@ package com.example.c001apk.compose.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -17,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -30,7 +35,11 @@ import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.c001apk.compose.ui.main.AppDestination
 import com.example.c001apk.compose.ui.main.AppNavHost
+import com.example.c001apk.compose.ui.main.AppNavEntry
 import com.example.c001apk.compose.ui.main.AppNavigator
+import com.example.c001apk.compose.ui.main.MainPageState
+import com.example.c001apk.compose.ui.main.MainPageBackHandler
+import com.example.c001apk.compose.ui.main.rememberMainPageState
 import com.example.c001apk.compose.ui.main.rememberAppNavigator
 import org.junit.Assert.*
 import org.junit.Rule
@@ -234,6 +243,124 @@ class MiuixNavigationTest {
             assertEquals(AppDestination.Main, navigation.currentDestination)
             assertEquals(AppDestination.Feed("34"), hidden.currentDestination)
             assertEquals(0, hiddenBackCalls)
+        }
+    }
+
+    @Test
+    fun detailBackClosesDetailBeforeReturningFollowListHome() {
+        lateinit var detail: AppNavigator
+        lateinit var pageState: MainPageState
+        compose.setContent {
+            MiuixTheme {
+                BackSource()
+                navigation = rememberAppNavigator()
+                detail = rememberAppNavigator(AppDestination.DetailPlaceholder)
+                pageState = rememberMainPageState()
+                MainPageBackHandler(navigation, pageState, detail.canGoBack) {
+                    pageState.select(it, detail)
+                }
+                Row(Modifier.fillMaxSize()) {
+                    AppNavHost(navigation, Modifier.weight(1f).testTag("main-pane")) {
+                        Text("列表")
+                    }
+                    AppNavHost(detail, Modifier.weight(1f), active = detail.canGoBack) {
+                        Text(it.destination.toString())
+                    }
+                }
+            }
+        }
+        compose.runOnIdle {
+            pageState.select(1, detail)
+            detail.navigateReading(AppDestination.Feed("12"))
+        }
+        compose.onNodeWithTag("main-pane").performTouchInput {
+            down(center)
+            up()
+        }
+        compose.runOnIdle { back.complete() }
+        compose.runOnIdle {
+            assertEquals(1, pageState.selectedIndex)
+            assertFalse(detail.canGoBack)
+            assertEquals(AppDestination.Main, navigation.currentDestination)
+        }
+        compose.runOnIdle { back.complete() }
+        compose.runOnIdle { assertEquals(0, pageState.selectedIndex) }
+    }
+
+    @Test
+    fun closingHiddenDetailKeepsNavigationRootsAliveAndAllowsReopening() {
+        lateinit var detail: AppNavigator
+        lateinit var pageState: MainPageState
+        lateinit var listModel: ProbeViewModel
+        val detailModels = mutableMapOf<String, ProbeViewModel>()
+        val visible = mutableStateOf(true)
+        var contentWidth = 0
+        compose.setContent {
+            MiuixTheme {
+                navigation = rememberAppNavigator()
+                detail = rememberAppNavigator(AppDestination.DetailPlaceholder)
+                pageState = rememberMainPageState()
+                Box(Modifier.fillMaxSize()) {
+                    AppNavHost(navigation) {
+                        listModel = viewModel()
+                        Text("列表")
+                    }
+                    AppNavHost(
+                        detail,
+                        Modifier.width(if (visible.value) 400.dp else 0.dp),
+                        active = visible.value,
+                    ) { entry ->
+                        if (entry.destination is AppDestination.Feed) {
+                            detailModels[entry.id] = viewModel()
+                            LazyColumn(Modifier.onSizeChanged { contentWidth = it.width }) {
+                                item {
+                                    Column(Modifier.padding(16.dp)) {
+                                        Text("详情正文".repeat(100), Modifier.padding(16.dp))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        var rootId = ""
+        var listId = ""
+        lateinit var originalListModel: ProbeViewModel
+        compose.runOnIdle {
+            rootId = (detail.controller.backStack.first() as AppNavEntry).id
+            listId = navigation.currentEntry.id
+            originalListModel = listModel
+            pageState.select(1, detail)
+            detail.navigateReading(AppDestination.Feed("12"))
+        }
+        compose.runOnIdle { detail.navigateReading(AppDestination.Feed("34")) }
+        compose.runOnIdle {
+            pageState.select(1, detail)
+            assertEquals(3, detail.controller.backStack.size)
+        }
+        compose.runOnIdle { visible.value = false }
+        compose.runOnIdle {
+            assertTrue("Hidden detail content must not be measured at zero width", contentWidth > 0)
+            pageState.select(0, detail)
+        }
+        compose.runOnIdle {
+            assertEquals(AppDestination.Main, navigation.currentDestination)
+            assertEquals(listId, navigation.currentEntry.id)
+            assertSame(originalListModel, listModel)
+            assertFalse(listModel.cleared)
+            assertEquals(AppDestination.DetailPlaceholder, detail.currentDestination)
+            assertEquals(rootId, detail.currentEntry.id)
+            assertFalse(detail.canGoBack)
+            assertEquals(2, detailModels.size)
+            detailModels.values.forEach { assertTrue(it.cleared) }
+            detail.navigateReading(AppDestination.Feed("56"))
+            visible.value = true
+        }
+        compose.runOnIdle {
+            assertEquals(AppDestination.Feed("56"), detail.currentDestination)
+            assertEquals(2, detail.controller.backStack.size)
+            assertEquals(AppDestination.Main, navigation.currentDestination)
         }
     }
 

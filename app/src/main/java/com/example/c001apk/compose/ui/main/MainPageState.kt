@@ -1,5 +1,6 @@
 package com.example.c001apk.compose.ui.main
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -17,6 +18,13 @@ internal class MainPageState(initialIndex: Int = 0) {
     var homeRefreshing by mutableStateOf(false)
     var followRefreshing by mutableStateOf(false)
 
+    fun select(index: Int, detailNavigator: AppNavigator) {
+        if (selectedIndex != index) {
+            while (detailNavigator.canGoBack) detailNavigator.popBackStack()
+        }
+        select(index)
+    }
+
     fun select(index: Int) {
         if (selectedIndex == index) {
             if (index == 0) homeRefreshing = true
@@ -24,6 +32,19 @@ internal class MainPageState(initialIndex: Int = 0) {
         }
         selectedIndex = index
     }
+}
+
+@Composable
+internal fun MainPageBackHandler(
+    navigator: AppNavigator,
+    pageState: MainPageState,
+    detailVisible: Boolean,
+    onSelect: (Int) -> Unit,
+) {
+    BackHandler(
+        enabled = navigator.currentDestination == AppDestination.Main &&
+            pageState.selectedIndex != 0 && !detailVisible,
+    ) { onSelect(0) }
 }
 
 @Composable

@@ -1,6 +1,5 @@
 package com.example.c001apk.compose.ui.main
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -127,7 +126,4 @@ internal fun MainScreen(
         }
     }
 
-    BackHandler(enabled = selectIndex != 0) {
-        pageState.selectedIndex = 0
-    }
 }

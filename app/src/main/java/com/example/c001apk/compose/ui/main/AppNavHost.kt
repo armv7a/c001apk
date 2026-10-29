@@ -4,12 +4,14 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.constrainWidth
 import top.yukonga.miuix.kmp.nav.core.NavDisplay
 import top.yukonga.miuix.kmp.nav.core.NavDisplayEffects
 import top.yukonga.miuix.kmp.nav.core.rememberNavSystemCornerRadius
@@ -35,12 +37,17 @@ internal fun AppNavHost(
         navigator.currentDestination !is AppDestination.WebView
     ) NavSwipeDirection.LeftToRight else NavSwipeDirection.None
     val screenCornerRadius = rememberNavSystemCornerRadius()
+    val windowWidth = LocalWindowInfo.current.containerSize.width.coerceAtLeast(1)
     val hiddenPane = if (active) Modifier else Modifier
         .clearAndSetSemantics {}
         .layout { measurable, constraints ->
-            val placeable = measurable.measure(constraints)
+            // A zero-width retained feed can overflow its height while measuring padded content.
+            val measureConstraints = if (constraints.maxWidth == 0) {
+                constraints.copy(maxWidth = windowWidth)
+            } else constraints
+            val placeable = measurable.measure(measureConstraints)
             // Measuring retains the native host; not placing it removes even expanded touch bounds.
-            layout(placeable.width, placeable.height) {}
+            layout(constraints.constrainWidth(placeable.width), placeable.height) {}
         }
     NavigationPaneScope(active = active) {
         NavDisplay(

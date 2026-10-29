@@ -42,11 +42,6 @@ fun MainNavigation(
     val context = LocalContext.current
     val mainPageState = rememberMainPageState()
     val performHapticClick = rememberHapticClick {}
-    val onMainPageSelected: (Int) -> Unit = { index ->
-        performHapticClick()
-        mainPageState.select(index)
-        if (index == 2 && badge != 0) resetBadge()
-    }
     val preferences = LocalUserPreferences.current
     val accountRevision = preferences.accountRevision
     var displayedAccountRevision by rememberSaveable { mutableStateOf(accountRevision) }
@@ -54,6 +49,15 @@ fun MainNavigation(
     var detailParent by rememberSaveable { mutableStateOf<String?>(null) }
     var detailExiting by remember { mutableStateOf(false) }
     var sidebarHidden by rememberSaveable(accountRevision) { mutableStateOf(false) }
+    val onMainPageSelected: (Int) -> Unit = { index ->
+        performHapticClick()
+        if (index != mainPageState.selectedIndex) {
+            detailParent = null
+            detailExiting = false
+        }
+        mainPageState.select(index, detailNavigator)
+        if (index == 2 && badge != 0) resetBadge()
+    }
 
     LaunchedEffect(accountRevision) {
         if (displayedAccountRevision != accountRevision) {
@@ -77,6 +81,7 @@ fun MainNavigation(
     )
     val paneAttached = detailParent == navigator.currentEntry.id
     val paneVisible = paneAttached && detailNavigator.canGoBack
+    MainPageBackHandler(navigator, mainPageState, paneVisible, onMainPageSelected)
     val split = paneVisible && canSplit && !sidebarHidden
     val detailWidth = if (canSplit && !sidebarHidden) (windowSize.width * .52f).coerceIn(390.dp, 760.dp) else windowSize.width
 
@@ -203,9 +208,9 @@ internal fun MainNavigationLayout(
             val paneWidth = detailWidth.coerceIn(0.dp, maxWidth)
             main(
                 (if (split) Modifier.width(maxWidth - paneWidth) else Modifier.fillMaxWidth())
-                    .fillMaxHeight().align(Alignment.CenterEnd),
+                    .fillMaxHeight().align(Alignment.CenterStart),
             )
-            detail(Modifier.width(paneWidth).fillMaxHeight().align(Alignment.CenterStart))
+            detail(Modifier.width(paneWidth).fillMaxHeight().align(Alignment.CenterEnd))
         }
     }
 }

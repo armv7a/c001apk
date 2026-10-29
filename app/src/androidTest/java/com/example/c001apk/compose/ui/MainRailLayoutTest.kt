@@ -147,7 +147,7 @@ class MainRailLayoutTest {
     }
 
     @Test
-    fun railStaysAtLeftWhenDetailOpensAndCloses() {
+    fun listStaysBetweenRailAndDetailWhenDetailOpensAndCloses() {
         showLayout()
         val railBefore = compose.onNodeWithTag("rail").fetchSemanticsNode().boundsInRoot
         val root = compose.onNodeWithTag("root").fetchSemanticsNode().boundsInRoot
@@ -158,9 +158,9 @@ class MainRailLayoutTest {
         val detail = compose.onNodeWithTag("detail").fetchSemanticsNode().boundsInRoot
         val main = compose.onNodeWithTag("main").fetchSemanticsNode().boundsInRoot
         assertEquals(railBefore, railAfter)
-        assertEquals(railAfter.right, detail.left, 1f)
-        assertEquals(detail.right, main.left, 1f)
-        assertEquals(root.right, main.right, 1f)
+        assertEquals(railAfter.right, main.left, 1f)
+        assertEquals(main.right, detail.left, 1f)
+        assertEquals(root.right, detail.right, 1f)
         compose.onNodeWithText("详情").assertIsDisplayed()
         compose.runOnIdle { split.value = false }
         assertEquals(railBefore, compose.onNodeWithTag("rail").fetchSemanticsNode().boundsInRoot)
