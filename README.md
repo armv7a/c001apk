@@ -85,6 +85,8 @@ SDK 组件、Release 签名、测试和发布流程见[构建指南](docs/BUILDI
 - [YuKongA/Mishka](https://github.com/YuKongA/Mishka)：界面设计参考。
 - [daimiaopeng/coolapk-desktop](https://github.com/daimiaopeng/coolapk-desktop)：协议兼容实现参考。
 
+感谢 [LINUX DO](https://linux.do/) 社区的交流与分享。
+
 ## 许可
 
 项目采用 [GNU AGPL v3](LICENSE)。第三方代码、SDK、图标和素材遵循各自许可，详见[来源说明](docs/THIRD_PARTY_PORTS.md)与[随包许可证](app/src/main/assets/licenses)。酷安名称、商标及服务内容归相应权利人所有。
