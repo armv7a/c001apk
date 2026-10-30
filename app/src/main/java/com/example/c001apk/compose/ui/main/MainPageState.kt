@@ -11,7 +11,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 
-/** Shared by the outer navigation rail and the compact page's bottom navigation. */
+/** Selection is the stable page ID (Home=0, Follow=1, Profile=2), not its displayed position. */
 @Stable
 internal class MainPageState(initialIndex: Int = 0) {
     var selectedIndex by mutableIntStateOf(initialIndex)
@@ -53,8 +53,11 @@ internal fun rememberMainPageState(): MainPageState = rememberSaveable(
 ) { MainPageState() }
 
 @Composable
-internal fun mainNavigationItems(selectedIndex: Int) =
-    listOf(Router.HOME, Router.FOLLOW, Router.PROFILE).mapIndexed { index, screen ->
-        (if (selectedIndex == index) screen.selectedIcon!! else screen.unselectedIcon!!) to
-            stringResource(screen.stringId!!)
-    }
+internal fun mainNavigationItems(
+    selectedIndex: Int,
+    order: List<Int> = com.example.c001apk.compose.logic.model.MainNavigationOrder.default,
+) = order.map { pageId ->
+    val screen = listOf(Router.HOME, Router.FOLLOW, Router.PROFILE)[pageId]
+    (if (selectedIndex == pageId) screen.selectedIcon!! else screen.unselectedIcon!!) to
+        stringResource(screen.stringId!!)
+}

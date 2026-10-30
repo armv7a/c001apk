@@ -104,6 +104,7 @@ internal fun AppDestinationContent(
                 onLocalFollowsClick = { navigator.navigate(AppDestination.LocalFollows) },
                 onContentFilters = { navigator.navigate(AppDestination.ContentFilters) },
                 onHomeTabsClick = { navigator.navigate(AppDestination.TabEditor) },
+                onNavigationOrderClick = { navigator.navigate(AppDestination.NavigationOrder) },
                 onParamsClick = { navigator.navigate(AppDestination.Params) },
                 onDeviceImport = { navigator.navigate(AppDestination.DeviceImport) },
                 onAboutClick = { navigator.navigate(AppDestination.About) },
@@ -135,6 +136,12 @@ internal fun AppDestinationContent(
 
         AppDestination.TabEditor -> {
             HomeTabEditorScreen(onBackClick = { navigator.popBackStack() })
+        }
+
+        AppDestination.NavigationOrder -> {
+            com.example.c001apk.compose.ui.settings.NavigationBarOrderScreen(
+                onBackClick = { navigator.popBackStack() },
+            )
         }
 
         AppDestination.DeviceImport -> {

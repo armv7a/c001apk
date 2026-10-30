@@ -12,6 +12,7 @@ import com.example.c001apk.compose.constant.Constants.VERSION_CODE
 import com.example.c001apk.compose.constant.Constants.VERSION_NAME
 import com.example.c001apk.compose.logic.accounts.SavedAccount
 import com.example.c001apk.compose.logic.model.HapticStrength
+import com.example.c001apk.compose.logic.model.MainNavigationOrder
 
 data class UserPreferencesCompat(
     val themeMode: ThemeMode,
@@ -75,6 +76,8 @@ data class UserPreferencesCompat(
     val contentFilterJson: String = "",
     val hideHomePublishButton: Boolean = false,
     val deviceIdentityRevision: Long = 0,
+    val predictiveBack: Boolean = true,
+    val mainNavigationOrder: List<Int> = MainNavigationOrder.default,
 ) {
     constructor(
         original: UserPreferences,
@@ -142,6 +145,8 @@ data class UserPreferencesCompat(
         contentFilterJson = original.contentFilterJson,
         hideHomePublishButton = original.hideHomePublishButton,
         deviceIdentityRevision = original.deviceIdentityRevision,
+        predictiveBack = !original.disablePredictiveBack,
+        mainNavigationOrder = MainNavigationOrder.normalize(original.mainNavigationOrderList),
         followSelection =
             if (original.followSelectionConfigured) original.followSelection.coerceIn(0, 5)
             else original.followTypeValue.takeIf { it in 1..4 } ?: 1,
@@ -229,6 +234,8 @@ data class UserPreferencesCompat(
             .setContentFilterJson(contentFilterJson)
             .setHideHomePublishButton(hideHomePublishButton)
             .setDeviceIdentityRevision(deviceIdentityRevision)
+            .setDisablePredictiveBack(!predictiveBack)
+            .addAllMainNavigationOrder(MainNavigationOrder.normalize(mainNavigationOrder))
             .build()
 
     companion object {

@@ -17,13 +17,25 @@ Home / Following / Profile are peer sections, not entries in the back history. T
 
 Tab click animations use the same Miuix pager helper. Top tab rows remain native Miuix components. Loading states, list expansion, dialogs, and image viewers retain their component-specific behavior; they are not forced into the page back stack.
 
+The bottom bar and large-screen rail share a persistent display order. Selection, refresh triggers,
+account-switch navigation and unread badges use stable page IDs rather than display positions. Sorting
+does not change the Home launch/back destination. The main pager and its saved state use page identity.
+Home tab positions remain in Room and are preserved when the editor or Home ViewModel is recreated.
+
 ## Detail pane
 
 The adaptive feed pane has its own Miuix stack with an empty root. Its host stays composed at zero width when hidden, and is not placed, to retain state without intercepting touches. `NavigationPaneScope` caps a hidden pane's lifecycle at CREATED and disables its child back dispatcher. Closing the detail waits for the native exit before hiding the pane. Mid-screen pane boundaries use zero screen-corner radius and clip the transition to the pane.
 
 ## Back behavior
 
-Native in-content right swipes are enabled on ordinary routes, with the library's child-first gesture arbitration. The IME disables in-content dismissal while editing. WebView retains its internal-history BackHandler and disables in-content page dismissal; system back continues to reach the page handler before the navigator. Dialogs continue using their existing Miuix window back handling.
+Settings → Appearance includes a persistent predictive-back switch, enabled by default for existing
+preferences. Turning it off disables in-content dismissal and uses a completion-only navigation-event
+handler at the start of each entry, before its page content. The page stays still until system back
+commits; cancellation does not pop. Inner page handlers and window/IME dismissal keep their existing
+priority. No hidden APIs or system settings are changed; system back-to-home and cross-activity
+animations remain owned by Android.
+
+Native in-content right swipes are enabled on ordinary routes when this switch is on, with the library's child-first gesture arbitration. The IME disables in-content dismissal while editing. WebView retains its internal-history BackHandler and disables in-content page dismissal; system back continues to reach the page handler before the navigator. Dialogs continue using their existing Miuix window back handling.
 
 ## Build and verification
 

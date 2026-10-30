@@ -5,6 +5,12 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.example.c001apk.compose.logic.providable.LocalUserPreferences
+import com.example.c001apk.compose.logic.model.MainNavigationOrder
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import com.example.c001apk.compose.logic.model.UpdateCheckItem
@@ -40,25 +46,31 @@ internal fun MainScreen(
     widthSizeClass: WindowWidthSizeClass,
 ) {
 
-    val screens =
-        listOf(
-            Router.HOME,
-            Router.FOLLOW,
-            Router.PROFILE,
-        )
-
-    val selectIndex = pageState.selectedIndex
-    val pagerState = rememberPagerState(initialPage = selectIndex, pageCount = { screens.size })
-    LaunchedEffect(selectIndex) { pagerState.springAnimateToPage(selectIndex) }
+    val order = LocalUserPreferences.current.mainNavigationOrder
+    val screens = order.map { listOf(Router.HOME, Router.FOLLOW, Router.PROFILE)[it] }
+    val selectedPageId = pageState.selectedIndex
+    val selectedPosition = order.indexOf(selectedPageId)
+    val pagerState = rememberPagerState(initialPage = selectedPosition, pageCount = { screens.size })
+    var displayedOrder by remember { mutableStateOf<List<Int>?>(null) }
+    LaunchedEffect(selectedPosition, order) {
+        // Reordering must move the existing page state with its identity, not animate through peers.
+        if (displayedOrder != order) {
+            pagerState.scrollToPage(selectedPosition)
+            displayedOrder = order
+        } else {
+            pagerState.springAnimateToPage(selectedPosition)
+        }
+    }
     val savableStateHolder = rememberSaveableStateHolder()
 
     MiuixNavigationScaffold(
-        items = mainNavigationItems(selectIndex),
-        selectedIndex = selectIndex,
+        items = mainNavigationItems(selectedPageId, order),
+        selectedIndex = selectedPosition,
         wide = widthSizeClass != WindowWidthSizeClass.Compact,
         unreadCount = badge,
-        onSelect = onSelect,
+        onSelect = { position -> onSelect(order[position]) },
         showRail = false,
+        badgeIndex = order.indexOf(MainNavigationOrder.PROFILE),
     ) { mainPadding ->
         HorizontalPager(
             state = pagerState,
@@ -67,9 +79,9 @@ internal fun MainScreen(
             userScrollEnabled = false,
         ) { page ->
             savableStateHolder.SaveableStateProvider(
-                key = page,
+                key = screens[page].name,
                 content = {
-                    when (page) {
+                    when (order[page]) {
                         0 ->
                             HomeScreen(
                                 bottomPadding = mainPadding.calculateBottomPadding(),

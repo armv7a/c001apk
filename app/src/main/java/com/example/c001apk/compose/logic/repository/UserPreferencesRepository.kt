@@ -22,6 +22,10 @@ constructor(
     val data
         get() = userPreferencesDataSource.data
 
+    suspend fun setPredictiveBack(value: Boolean) = userPreferencesDataSource.setPredictiveBack(value)
+
+    suspend fun setMainNavigationOrder(value: List<Int>) = userPreferencesDataSource.setMainNavigationOrder(value)
+
     suspend fun setHideHomePublishButton(value: Boolean) = userPreferencesDataSource.setHideHomePublishButton(value)
 
     suspend fun setReadingMode(value: Int) = userPreferencesDataSource.setReadingMode(value)

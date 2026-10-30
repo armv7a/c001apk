@@ -5,6 +5,7 @@ import com.example.c001apk.compose.FollowType
 import com.example.c001apk.compose.ThemeMode
 import com.example.c001apk.compose.ThemeType
 import com.example.c001apk.compose.logic.model.HapticStrength
+import com.example.c001apk.compose.logic.model.MainNavigationOrder
 import com.example.c001apk.compose.logic.smid.withCurrentDevice
 import com.example.c001apk.compose.logic.smid.withDigitalUnionId
 import javax.inject.Inject
@@ -18,6 +19,14 @@ constructor(
 ) {
     val data
         get() = userPreferences.data
+
+    suspend fun setPredictiveBack(value: Boolean) = userPreferences.updateData {
+        it.copy(predictiveBack = value)
+    }
+
+    suspend fun setMainNavigationOrder(value: List<Int>) = userPreferences.updateData {
+        it.copy(mainNavigationOrder = MainNavigationOrder.normalize(value))
+    }
 
     suspend fun setHideHomePublishButton(value: Boolean) = userPreferences.updateData { it.copy(hideHomePublishButton = value) }
 

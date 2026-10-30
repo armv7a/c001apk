@@ -27,6 +27,7 @@ fun MiuixNavigationScaffold(
     unreadCount: Int,
     onSelect: (Int) -> Unit,
     showRail: Boolean = true,
+    badgeIndex: Int = 2,
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val floating = !wide && LocalUserPreferences.current.floatingNavigationBar
@@ -35,7 +36,7 @@ fun MiuixNavigationScaffold(
     }
     Row(Modifier.fillMaxSize()) {
         if (wide && showRail)
-            MiuixNavigationRail(items, selectedIndex, unreadCount, onSelect)
+            MiuixNavigationRail(items, selectedIndex, unreadCount, onSelect, badgeIndex)
         Scaffold(
             modifier = Modifier.weight(1f),
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -61,7 +62,7 @@ fun MiuixNavigationScaffold(
                                 onClick = { onSelect(index) },
                                 icon = item.first,
                                 label = item.second,
-                                badge = if (index == 2) badge else null,
+                                badge = if (index == badgeIndex) badge else null,
                             )
                         }
                     }
@@ -73,7 +74,7 @@ fun MiuixNavigationScaffold(
                                 onClick = { onSelect(index) },
                                 icon = item.first,
                                 label = item.second,
-                                badge = if (index == 2) badge else null,
+                                badge = if (index == badgeIndex) badge else null,
                             )
                         }
                     }
@@ -90,6 +91,7 @@ fun MiuixNavigationRail(
     selectedIndex: Int,
     unreadCount: Int,
     onSelect: (Int) -> Unit,
+    badgeIndex: Int = 2,
 ) {
     NavigationRail {
         items.forEachIndexed { index, item ->
@@ -98,7 +100,7 @@ fun MiuixNavigationRail(
                 onClick = { onSelect(index) },
                 icon = item.first,
                 label = item.second,
-                badge = if (index == 2 && unreadCount > 0) {
+                badge = if (index == badgeIndex && unreadCount > 0) {
                     { Badge { Text(if (unreadCount > 99) "99+" else unreadCount.toString()) } }
                 } else null,
             )
