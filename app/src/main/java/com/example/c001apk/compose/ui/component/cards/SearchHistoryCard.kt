@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.ui.theme.cardBg
@@ -31,9 +32,11 @@ fun SearchHistoryCard(
                 .combinedClickable(
                     onClick = onSearch,
                     onLongClick = onDelete,
+                    onLongClickLabel = "删除搜索历史",
+                    role = Role.Button,
                 )
-                .padding(horizontal = 10.dp, vertical = 4.dp),
+                .padding(horizontal = 14.dp, vertical = 8.dp),
         text = data,
-        style = MiuixTheme.textStyles.headline2,
+        style = MiuixTheme.textStyles.body1,
     )
 }
