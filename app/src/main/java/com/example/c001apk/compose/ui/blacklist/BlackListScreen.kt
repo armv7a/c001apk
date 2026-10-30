@@ -2,78 +2,28 @@ package com.example.c001apk.compose.ui.blacklist
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.core.text.isDigitsOnly
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.c001apk.compose.constant.Constants.EMPTY_STRING
 import com.example.c001apk.compose.logic.model.StringEntity
-import com.example.c001apk.compose.logic.state.LoadingState
-import com.example.c001apk.compose.ui.component.BackButton
-import com.example.c001apk.compose.ui.component.MiuixActionButton as TextButton
-import com.example.c001apk.compose.ui.component.MiuixAlertDialog as AlertDialog
-import com.example.c001apk.compose.ui.component.MiuixHeader as TopAppBar
-import com.example.c001apk.compose.ui.component.MiuixScaffold as Scaffold
-import com.example.c001apk.compose.ui.component.cards.LoadingCard
-import com.example.c001apk.compose.ui.component.cards.SearchHistoryCard
-import com.example.c001apk.compose.ui.component.rememberTopBarScrollState
+import com.example.c001apk.compose.ui.component.*
 import com.example.c001apk.compose.util.makeToast
 import com.google.gson.Gson
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextField
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Clear
-import top.yukonga.miuix.kmp.icon.extended.Delete
-import top.yukonga.miuix.kmp.icon.extended.Download
-import top.yukonga.miuix.kmp.icon.extended.UploadCloud
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** Created by bggRGjQaUbCoE on 2024/6/16 */
-enum class BlackListType {
-    USER,
-    TOPIC,
-}
+enum class BlackListType { USER, TOPIC }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BlackListScreen(
     onBackClick: () -> Unit,
@@ -81,38 +31,30 @@ fun BlackListScreen(
     onViewUser: (String) -> Unit,
     onViewTopic: (String) -> Unit,
 ) {
-
-    val viewModel =
-        hiltViewModel<BlackListViewModel, BlackListViewModel.ViewModelFactory>(key = type) { factory
-            ->
-            factory.create(BlackListType.valueOf(type))
-        }
-    val blackList by viewModel.blackList.collectAsStateWithLifecycle(initialValue = emptyList())
-
-    val context = LocalContext.current
-    val focusRequest = remember { FocusRequester() }
-    LaunchedEffect(Unit) {
-        try {
-            focusRequest.requestFocus()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+    val listType = remember(type) { BlackListType.valueOf(type) }
+    val viewModel = hiltViewModel<BlackListViewModel, BlackListViewModel.ViewModelFactory>(key = type) { factory ->
+        factory.create(listType)
     }
-
-    var textInput by remember { mutableStateOf(TextFieldValue(text = EMPTY_STRING)) }
-    val textStyle = MiuixTheme.textStyles.main
-    var showClearDialog by remember { mutableStateOf(false) }
+    val entries by viewModel.blackList.collectAsStateWithLifecycle(initialValue = null)
+    val blackList = entries.orEmpty()
+    val context = LocalContext.current
+    var query by rememberSaveable(type) { mutableStateOf("") }
+    var menu by remember(type) { mutableStateOf(false) }
+    var showClearDialog by remember(type) { mutableStateOf(false) }
 
     val backupSAFLauncher =
         rememberLauncherForActivityResult(
             ActivityResultContracts.CreateDocument("application/json"),
         ) backup@{ uri ->
             if (uri == null) return@backup
-            context.contentResolver.openOutputStream(uri).use { output ->
-                if (output == null) context.makeToast("导出失败")
-                else output.write(Gson().toJson(blackList.map { it.data }).toByteArray())
+            try {
+                val output = context.contentResolver.openOutputStream(uri)
+                    ?: throw IOException("无法创建导出文件")
+                output.use { it.write(Gson().toJson(blackList.map { entry -> entry.data }).toByteArray()) }
+                context.makeToast("导出成功")
+            } catch (e: Exception) {
+                context.makeToast("导出失败")
             }
-            context.makeToast("导出成功")
         }
 
     fun onBackup() {
@@ -163,200 +105,53 @@ fun BlackListScreen(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
+    MiuixScaffold(
         topBar = {
-            TopAppBar(
-                navigationIcon = {
-                    BackButton { onBackClick() }
-                },
-                title = {
-                    TextField(
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequest),
-                        singleLine = true,
-                        value = textInput,
-                        onValueChange = {
-                            when (type) {
-                                BlackListType.USER.name -> {
-                                    if (it.text.isDigitsOnly()) textInput = it
-                                }
-
-                                else -> {
-                                    textInput = it
-                                }
-                            }
-                        },
-                        textStyle = textStyle.copy(fontSize = 18.sp),
-                        label =
-                            when (type) {
-                                BlackListType.USER.name -> "UID"
-                                BlackListType.TOPIC.name -> "话题"
-                                else -> EMPTY_STRING
-                            },
-                        useLabelAsPlaceholder = true,
-                        trailingIcon = {
-                            AnimatedVisibility(
-                                visible = textInput.text.isNotEmpty(),
-                                enter = fadeIn(),
-                                exit = fadeOut(),
-                            ) {
-                                IconButton(
-                                    onClick = {
-                                        textInput = TextFieldValue(EMPTY_STRING)
-                                    },
-                                ) {
-                                    Icon(
-                                        imageVector = MiuixIcons.Clear,
-                                        contentDescription = null,
-                                    )
-                                }
-                            }
-                        },
-                        keyboardOptions =
-                            KeyboardOptions(
-                                keyboardType =
-                                    when (type) {
-                                        BlackListType.USER.name -> KeyboardType.Number
-                                        BlackListType.TOPIC.name -> KeyboardType.Text
-                                        else -> KeyboardType.Text
-                                    },
-                                imeAction = ImeAction.Done,
-                            ),
-                        keyboardActions =
-                            KeyboardActions(
-                                onDone = {
-                                    if (textInput.text.trim().isNotEmpty()) {
-                                        viewModel.save(textInput.text)
-                                        textInput = TextFieldValue(EMPTY_STRING)
-                                    }
-                                },
-                            ),
-                    )
-                },
+            MiuixTopBar(
+                title = if (listType == BlackListType.USER) "用户黑名单" else "话题黑名单",
+                navigationIcon = { BackButton(onBackClick) },
                 actions = {
-                    Row {
-                        IconButton(
-                            onClick = {
-                                onBackup()
-                            },
-                        ) {
-                            Icon(imageVector = MiuixIcons.UploadCloud, contentDescription = null)
-                        }
-                        IconButton(
-                            onClick = {
-                                onRestore()
-                            },
-                        ) {
-                            Icon(imageVector = MiuixIcons.Download, contentDescription = null)
-                        }
+                    MiuixMoreMenu(expanded = menu, onExpandedChange = { menu = it }) {
+                        MiuixMenuItem(text = { Text("导入") }, onClick = { menu = false; onRestore() })
+                        MiuixMenuItem(text = { Text("导出") }, enabled = blackList.isNotEmpty(),
+                            onClick = { menu = false; onBackup() })
+                        MiuixMenuItem(text = { Text("清空全部") }, enabled = blackList.isNotEmpty(),
+                            onClick = { menu = false; showClearDialog = true })
                     }
                 },
             )
         },
-    ) { paddingValues ->
-        Column(
-            modifier =
-                Modifier.fillMaxSize().verticalScroll(rememberTopBarScrollState()).padding(paddingValues),
-        ) {
-            HorizontalDivider()
-
-            androidx.compose.animation.AnimatedVisibility(
-                visible = blackList.isNotEmpty(),
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text =
-                            when (type) {
-                                BlackListType.USER.name -> "用户"
-                                BlackListType.TOPIC.name -> "话题"
-                                else -> type
-                            },
-                        modifier = Modifier.weight(1f).padding(start = 10.dp),
-                        style =
-                            MiuixTheme.textStyles.headline2.copy(
-                                fontWeight = FontWeight.Bold,
-                            ),
-                    )
-
-                    IconButton(
-                        onClick = {
-                            showClearDialog = true
-                        },
-                    ) {
-                        Icon(imageVector = MiuixIcons.Delete, contentDescription = null)
-                    }
+    ) { padding ->
+        BlackListContent(
+            type = listType, entries = entries, query = query, padding = padding,
+            onQueryChange = { if (listType != BlackListType.USER || it.isDigitsOnly()) query = it },
+            onAdd = {
+                val value = query.trim()
+                if (value.isNotEmpty()) {
+                    viewModel.save(value)
+                    query = ""
                 }
-            }
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.padding(horizontal = 10.dp),
-            ) {
-                blackList.forEach {
-                    SearchHistoryCard(
-                        data = it.data,
-                        onSearch = {
-                            when (type) {
-                                BlackListType.USER.name -> onViewUser(it.data)
-                                BlackListType.TOPIC.name -> onViewTopic(it.data)
-                                else -> {}
-                            }
-                        },
-                        onDelete = {
-                            viewModel.delete(it.data)
-                        },
-                    )
-                }
-            }
-        }
-
-        if (blackList.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                LoadingCard(state = LoadingState.Empty)
-            }
-        }
+            },
+            onOpen = { if (listType == BlackListType.USER) onViewUser(it) else onViewTopic(it) },
+            onRemove = viewModel::delete,
+        )
     }
-
-    when {
-        showClearDialog -> {
-            AlertDialog(
-                onDismissRequest = { showClearDialog = false },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showClearDialog = false
-                            viewModel.clearAll()
-                        },
-                    ) {
-                        Text(text = stringResource(id = android.R.string.ok))
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = {
-                            showClearDialog = false
-                        },
-                    ) {
-                        Text(text = stringResource(id = android.R.string.cancel))
-                    }
-                },
-                title = { Text("确定清除全部黑名单？") },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
+    if (showClearDialog) {
+        MiuixAlertDialog(
+            onDismissRequest = { showClearDialog = false },
+            title = { Text("确定清空全部${if (listType == BlackListType.USER) "用户" else "话题"}黑名单？",
+                Modifier.fillMaxWidth(), textAlign = TextAlign.Center) },
+            confirmButton = {
+                MiuixDialogButton(onClick = { showClearDialog = false; viewModel.clearAll() }) { Text("清空") }
+            },
+            dismissButton = { MiuixDialogButton(onClick = { showClearDialog = false }) { Text("取消") } },
+        )
     }
-
-    viewModel.toastText?.let {
-        viewModel.reset()
-        context.makeToast(it)
+    val toastText = viewModel.toastText
+    LaunchedEffect(toastText) {
+        toastText?.let {
+            context.makeToast(it)
+            viewModel.reset()
+        }
     }
 }
