@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -13,11 +16,13 @@ import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 import com.example.c001apk.compose.ui.component.*
 import com.example.c001apk.compose.ui.follow.FollowSettingsViewModel
 import com.example.c001apk.compose.ui.follow.LocalFollowViewModel
+import com.example.c001apk.compose.ui.follow.LocalFollowHeader
 import com.example.c001apk.compose.ui.home.feed.HomeFeedScreen
 import com.example.c001apk.compose.util.ReportType
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Search
+import top.yukonga.miuix.kmp.icon.extended.ChevronForward
 
 @Composable
 fun FollowScreen(
@@ -42,24 +47,31 @@ fun FollowScreen(
     MiuixScaffold(
         topBar = {
             MiuixHeader(
+                centerTitle = true,
                 title = {
-                    Box {
-                        Text(
-                            if (prefs.isLogin) "$label ▾" else label,
-                            modifier =
-                                Modifier.clickable(enabled = prefs.isLogin) { menu = true }
+                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Box {
+                            Row(
+                                Modifier.clickable(enabled = prefs.isLogin, role = Role.Button) { menu = true }
                                     .padding(vertical = 8.dp),
-                        )
-                        MiuixMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                            labels.forEach { (value, title) ->
-                                BasicComponent(
-                                    title = title,
-                                    summary = if (prefs.followSelection == value) "当前分类" else null,
-                                    onClick = {
-                                        menu = false
-                                        settings.select(value)
-                                    },
-                                )
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                Text(label)
+                                if (prefs.isLogin) Icon(MiuixIcons.ChevronForward, null,
+                                    Modifier.size(12.dp).rotate(90f))
+                            }
+                            MiuixMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                                labels.forEach { (value, title) ->
+                                    BasicComponent(
+                                        title = title,
+                                        summary = if (prefs.followSelection == value) "当前分类" else null,
+                                        onClick = {
+                                            menu = false
+                                            settings.select(value)
+                                        },
+                                    )
+                                }
                             }
                         }
                     }
@@ -71,21 +83,7 @@ fun FollowScreen(
         if (local) {
             val model = hiltViewModel<LocalFollowViewModel>()
             val localHeader: @Composable () -> Unit = {
-                Column {
-                    BasicComponent(
-                        title = "${label}动态",
-                        summary = "仅保存于本机，不会同步账号关注",
-                        endActions = { MiuixActionButton(onClick = onManage) { Text("管理") } },
-                    )
-                    model.warning?.let { warning ->
-                        BasicComponent(
-                            title = warning,
-                            endActions = {
-                                MiuixActionButton(onClick = model::loadMore) { Text("重试") }
-                            },
-                        )
-                    }
-                }
+                LocalFollowHeader(warning = model.warning, onManage = onManage, onRetry = model::loadMore)
             }
             if (prefs.localFollows.isEmpty()) {
                 Column(
@@ -100,7 +98,9 @@ fun FollowScreen(
                     Text(
                         if (prefs.isLogin) "在设置中开启悄悄关注后，长按用户主页的关注按钮即可添加。"
                         else "在用户主页点击“本地关注”，即可在这里查看动态。",
-                        Modifier.padding(24.dp),
+                        Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
+                        style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.body2,
+                        color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     )
                 }
             } else {
