@@ -11,7 +11,6 @@ import com.example.c001apk.compose.logic.model.purchasePriceSummary
 import com.example.c001apk.compose.logic.model.ProductConfigData
 import com.example.c001apk.compose.logic.model.ProductComparisonSelection
 import com.example.c001apk.compose.logic.model.ProductSpecSection
-import com.example.c001apk.compose.logic.model.specSections
 import com.example.c001apk.compose.logic.repository.BlackListRepo
 import com.example.c001apk.compose.logic.repository.NetworkRepo
 import com.example.c001apk.compose.logic.repository.ProductComparisonRepo
@@ -101,7 +100,7 @@ class TopicContentViewModel @AssistedInject constructor(
                 onSuccess = { data ->
                     productConfigSheetState = ProductConfigSheetState.Details(
                         title = config.title.orEmpty().ifBlank { data.title.orEmpty() },
-                        sections = data.specSections(),
+                        sections = data.sections,
                     )
                 },
                 onFailure = { error ->
@@ -202,7 +201,7 @@ class TopicContentViewModel @AssistedInject constructor(
                             val data = loadProductConfig(configId).getOrThrow()
                             ProductComparisonColumn(
                                 selection = selection,
-                                sections = data.specSections(),
+                                sections = data.sections,
                             )
                         }
                     }.map { it.await() }

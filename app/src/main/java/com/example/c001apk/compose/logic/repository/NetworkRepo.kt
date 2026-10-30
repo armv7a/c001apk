@@ -9,6 +9,7 @@ import com.example.c001apk.compose.logic.model.AccountCollection
 import com.example.c001apk.compose.logic.model.FeedContentResponse
 import com.example.c001apk.compose.logic.model.HomeFeedResponse
 import com.example.c001apk.compose.logic.model.ProductConfigData
+import com.example.c001apk.compose.logic.model.configSections
 import com.example.c001apk.compose.logic.network.ApiService
 import com.example.c001apk.compose.logic.state.LoadingState
 import com.example.c001apk.compose.util.CookieUtil
@@ -155,12 +156,13 @@ constructor(
 
     suspend fun getProductConfig(id: String) = fire {
         val response = apiService.getProductConfig(id).await()
+        val sections = response.configSections()
         when {
-            !response.dataRows.isNullOrEmpty() ->
+            sections.isNotEmpty() ->
                 Result.success(
                     ProductConfigData(
-                        title = response.title,
-                        dataRows = response.dataRows,
+                        title = response.data?.title.orEmpty(),
+                        sections = sections,
                     ),
                 )
             !response.message.isNullOrBlank() ->
