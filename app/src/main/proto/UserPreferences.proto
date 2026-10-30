@@ -69,6 +69,8 @@ message UserPreferences {
   int64 deviceIdentityRevision = 63;
   // Negative flag preserves the existing interactive back behavior on upgrade.
   bool disablePredictiveBack = 64;
+  // Stable page IDs: Home = 0, Following = 1, Profile = 2. Empty keeps the default order.
+  repeated int32 mainNavigationOrder = 65;
 }
 
 enum ThemeType{

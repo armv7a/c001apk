@@ -26,7 +26,7 @@ internal fun HomeContentPreferences(
         BasicListItem(
             leadingImageVector = MiuixIcons.All,
             headlineText = "首页板块",
-            supportingText = "选择首页显示的标签页",
+            supportingText = "选择并排序首页显示的标签页",
             onClick = onHomeTabsClick,
         )
         SwitchListItem(

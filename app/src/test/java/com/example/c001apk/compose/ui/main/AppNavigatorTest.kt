@@ -17,7 +17,7 @@ class AppNavigatorTest {
         val special = "中文 / null ?q=a&b=%23 #片段 user_tag:%s%d C++ 100% %20 %"
         val destinations = listOf(
             AppDestination.Main, AppDestination.DetailPlaceholder, AppDestination.Settings(special),
-            AppDestination.LocalFollows, AppDestination.Accounts, AppDestination.TabEditor,
+            AppDestination.LocalFollows, AppDestination.Accounts, AppDestination.TabEditor, AppDestination.NavigationOrder,
             AppDestination.DeviceImport, AppDestination.Params, AppDestination.About, AppDestination.License,
             AppDestination.ContentFilters, AppDestination.ContentRule(null), AppDestination.ContentRule(special),
             AppDestination.TwilightRules,

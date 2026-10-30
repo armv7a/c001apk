@@ -70,6 +70,7 @@ import top.yukonga.miuix.kmp.icon.extended.Recent
 import top.yukonga.miuix.kmp.icon.extended.Rename
 import top.yukonga.miuix.kmp.icon.extended.ScreenMirroring
 import top.yukonga.miuix.kmp.icon.extended.SelectAll
+import top.yukonga.miuix.kmp.icon.extended.Sort
 import top.yukonga.miuix.kmp.icon.extended.Theme
 import top.yukonga.miuix.kmp.icon.extended.Update
 import top.yukonga.miuix.kmp.icon.extended.WorldClock
@@ -92,6 +93,7 @@ fun SettingsScreen(
     onSectionClick: (String) -> Unit,
     onBackClick: () -> Unit,
     onHomeTabsClick: () -> Unit,
+    onNavigationOrderClick: () -> Unit,
     onContentFilters: () -> Unit,
     onAccountsClick: () -> Unit,
     onLocalFollowsClick: () -> Unit,
@@ -280,6 +282,12 @@ fun SettingsScreen(
                                     ) {
                                         viewModel.setFloatingNavigationBar(it)
                                     }
+                                    BasicListItem(
+                                        leadingImageVector = MiuixIcons.Sort,
+                                        headlineText = "底栏排序",
+                                        supportingText = "调整主页、关注与我的的顺序，也用于大屏侧栏",
+                                        onClick = onNavigationOrderClick,
+                                    )
                                     SwitchListItem(
                                         value = prefs.predictiveBack,
                                         leadingImageVector = MiuixIcons.Back,

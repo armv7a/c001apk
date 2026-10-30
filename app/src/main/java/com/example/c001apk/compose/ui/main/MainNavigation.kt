@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
+import com.example.c001apk.compose.logic.model.MainNavigationOrder
 import com.example.c001apk.compose.ui.component.MiuixNavigationRail
 import com.example.c001apk.compose.ui.component.ReadingLayout
 import com.example.c001apk.compose.ui.component.WindowWidthSizeClass
@@ -43,6 +44,7 @@ fun MainNavigation(
     val mainPageState = rememberMainPageState()
     val performHapticClick = rememberHapticClick {}
     val preferences = LocalUserPreferences.current
+    val order = preferences.mainNavigationOrder
     val accountRevision = preferences.accountRevision
     var displayedAccountRevision by rememberSaveable { mutableStateOf(accountRevision) }
     val detailNavigator = rememberAppNavigator(AppDestination.DetailPlaceholder)
@@ -122,10 +124,11 @@ fun MainNavigation(
         rail = {
             if (showRail) {
                 MiuixNavigationRail(
-                    items = mainNavigationItems(mainPageState.selectedIndex),
-                    selectedIndex = mainPageState.selectedIndex,
+                    items = mainNavigationItems(mainPageState.selectedIndex, order),
+                    selectedIndex = order.indexOf(mainPageState.selectedIndex),
                     unreadCount = badge,
-                    onSelect = onMainPageSelected,
+                    onSelect = { position -> onMainPageSelected(order[position]) },
+                    badgeIndex = order.indexOf(MainNavigationOrder.PROFILE),
                 )
             }
         },

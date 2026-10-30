@@ -24,6 +24,7 @@ sealed interface AppDestination {
     @Serializable data object LocalFollows : AppDestination
     @Serializable data object Accounts : AppDestination
     @Serializable data object TabEditor : AppDestination
+    @Serializable data object NavigationOrder : AppDestination
     @Serializable data object DeviceImport : AppDestination
     @Serializable data object Params : AppDestination
     @Serializable data object About : AppDestination

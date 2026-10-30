@@ -28,6 +28,29 @@ constructor(
         viewModelScope.launch { userPreferencesRepository.setPredictiveBack(value) }
     }
 
+    var savingNavigationOrder by mutableStateOf(false)
+        private set
+    var navigationOrderError by mutableStateOf<String?>(null)
+        private set
+
+    fun setMainNavigationOrder(value: List<Int>, onSaved: () -> Unit) {
+        if (savingNavigationOrder) return
+        savingNavigationOrder = true
+        navigationOrderError = null
+        viewModelScope.launch {
+            try {
+                userPreferencesRepository.setMainNavigationOrder(value)
+                onSaved()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                navigationOrderError = "排序保存失败，请重试"
+            } finally {
+                savingNavigationOrder = false
+            }
+        }
+    }
+
     fun setHideHomePublishButton(value: Boolean) {
         viewModelScope.launch { userPreferencesRepository.setHideHomePublishButton(value) }
     }

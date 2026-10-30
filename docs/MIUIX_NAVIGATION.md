@@ -17,6 +17,11 @@ Home / Following / Profile are peer sections, not entries in the back history. T
 
 Tab click animations use the same Miuix pager helper. Top tab rows remain native Miuix components. Loading states, list expansion, dialogs, and image viewers retain their component-specific behavior; they are not forced into the page back stack.
 
+The bottom bar and large-screen rail share a persistent display order. Selection, refresh triggers,
+account-switch navigation and unread badges use stable page IDs rather than display positions. Sorting
+does not change the Home launch/back destination. The main pager and its saved state use page identity.
+Home tab positions remain in Room and are preserved when the editor or Home ViewModel is recreated.
+
 ## Detail pane
 
 The adaptive feed pane has its own Miuix stack with an empty root. Its host stays composed at zero width when hidden, and is not placed, to retain state without intercepting touches. `NavigationPaneScope` caps a hidden pane's lifecycle at CREATED and disables its child back dispatcher. Closing the detail waits for the native exit before hiding the pane. Mid-screen pane boundaries use zero screen-corner radius and clip the transition to the pane.

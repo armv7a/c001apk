@@ -3,6 +3,9 @@ package com.example.c001apk.compose.ui.home
 import com.example.c001apk.compose.logic.providable.LocalUserPreferences
 
 import android.content.Intent
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -12,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -22,6 +24,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -43,6 +47,7 @@ import com.example.c001apk.compose.ui.component.MiuixTopBar as TopAppBar
 import com.example.c001apk.compose.ui.component.rememberHapticClick
 import com.example.c001apk.compose.ui.component.TopBarScrollEffect
 import com.example.c001apk.compose.ui.component.TopBarScrollPage
+import com.example.c001apk.compose.ui.component.settings.ReorderablePreferenceGroup
 import com.example.c001apk.compose.ui.feed.reply.ReplyActivity
 import com.example.c001apk.compose.ui.home.app.AppListScreen
 import com.example.c001apk.compose.ui.home.feed.HomeFeedScreen
@@ -58,6 +63,8 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.Search
+import top.yukonga.miuix.kmp.preference.CheckboxPreference
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.springAnimateToPage
 
 /** Created by bggRGjQaUbCoE on 2024/6/5 */
@@ -91,35 +98,40 @@ fun HomeTabEditorScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val storedMenus by viewModel.homeMenus.collectAsStateWithLifecycle(initialValue = emptyList())
-    val enabledTabs =
-        remember(storedMenus) {
-            if (storedMenus.isEmpty()) homeTabTypes.toSet()
-            else
-                storedMenus
-                    .filter(HomeMenu::isEnable)
-                    .mapNotNull { menu ->
-                        homeTabTypes.firstOrNull { it.name == menu.title }
-                    }
-                    .toSet()
-                    .ifEmpty { setOf(TabType.FEED) }
-        }
-    var selectedTabs by remember(enabledTabs) { mutableStateOf(enabledTabs) }
+    val saving by viewModel.saving.collectAsStateWithLifecycle()
+    val saveError by viewModel.saveError.collectAsStateWithLifecycle()
+    // The draft is the screen's state: Room's first emission fills it once, later emissions must
+    // not overwrite edits, and it survives configuration changes without touching the database.
+    var draft by rememberSaveable(stateSaver = HomeDraftSaver) {
+        mutableStateOf<List<HomeMenu>?>(null)
+    }
+    LaunchedEffect(storedMenus) {
+        if (draft == null && storedMenus.isNotEmpty()) draft = storedMenus
+    }
+    val menus = draft ?: storedMenus
+    val enabledCount = menus.count(HomeMenu::isEnable)
+    // An accepted save owns its write until completion; don't pop and cancel the entry's scope.
+    NavigationBackHandler(
+        state = rememberNavigationEventState(NavigationEventInfo.None),
+        isBackEnabled = saving,
+        onBackCompleted = {},
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = "首页板块",
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { if (!saving) onBackClick() }, enabled = !saving) {
                         Icon(MiuixIcons.Back, contentDescription = "返回")
                     }
                 },
                 actions = {
                     TextButton(
-                        onClick = {
-                            viewModel.setEnabledTabs(selectedTabs, onSaved = onBackClick)
-                        },
+                        enabled = !saving && menus.isNotEmpty(),
+                        onClick = { viewModel.saveMenus(menus, onSaved = onBackClick) },
                     ) {
-                        Text("完成")
+                        Text(if (saving) "保存中" else "完成")
                     }
                 },
             )
@@ -132,20 +144,84 @@ fun HomeTabEditorScreen(
             state = topBarListState,
             contentPadding = paddingValues,
         ) {
-            items(homeTabTypes, key = TabType::name) { type ->
-                val checked = type in selectedTabs
-                top.yukonga.miuix.kmp.preference.CheckboxPreference(
-                    title = tabTitle(type),
-                    checked = checked,
-                    enabled = !checked || selectedTabs.size > 1,
-                    onCheckedChange = { selected ->
-                        selectedTabs = if (selected) selectedTabs + type else selectedTabs - type
-                    },
+            item {
+                ReorderablePreferenceGroup(
+                    items = menus,
+                    key = HomeMenu::title,
+                    onReorder = { draft = it },
+                    title = "板块顺序",
+                    enabled = !saving,
+                ) { menu, dragging, dragHandle ->
+                    val type = homeTabTypes.firstOrNull { it.name == menu.title }
+                    if (type != null) {
+                        CheckboxPreference(
+                            title = tabTitle(type),
+                            checked = menu.isEnable,
+                            // The last enabled tab stays checkable-looking but inert; disabling the
+                            // whole row would also take its drag handle and checkbox away.
+                            onCheckedChange =
+                                if (menu.isEnable && enabledCount <= 1) {
+                                    null
+                                } else {
+                                    { checked ->
+                                        draft =
+                                            menus.map { item ->
+                                                if (item.title == menu.title) {
+                                                    item.copy(isEnable = checked)
+                                                } else {
+                                                    item
+                                                }
+                                            }
+                                    }
+                                },
+                            endActions = { dragHandle() },
+                            holdDownState = dragging,
+                            enabled = !saving,
+                        )
+                    }
+                }
+                Text(
+                    "拖动右侧手柄调整板块顺序，勾选决定是否显示。至少保留一个板块，点击完成后保存。",
+                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
+                if (saveError) {
+                    Text(
+                        "保存失败，请重试",
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.error,
+                    )
+                }
             }
         }
     }
 }
+
+/** Saves the editor draft as plain title/enabled pairs so it survives process recreation. */
+private val HomeDraftSaver: Saver<List<HomeMenu>?, Any> =
+    listSaver(
+        save = { draft ->
+            draft.orEmpty().map { menu -> "${menu.title}\u0001${if (menu.isEnable) 1 else 0}" }
+        },
+        restore = { saved ->
+            saved
+                .mapNotNull { entry ->
+                    val separator = entry.indexOf('\u0001')
+                    if (separator <= 0) return@mapNotNull null
+                    val title = entry.substring(0, separator)
+                    val type = homeTabTypes.firstOrNull { it.name == title } ?: return@mapNotNull null
+                    HomeMenu(
+                        position = 0,
+                        title = type.name,
+                        isEnable = entry.substring(separator + 1) != "0",
+                    )
+                }
+                .ifEmpty { null }
+                ?.let { normalizeHomeMenus(it) }
+        },
+    )
 
 @Composable
 fun HomeScreen(
@@ -282,6 +358,7 @@ fun HomeScreen(
         androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
             HorizontalPager(
                 state = pagerState,
+                key = { index -> tabList[index].name },
             ) { index ->
                 TopBarScrollPage(pagerState.currentPage == index) {
                     when (val type = tabList[index]) {
