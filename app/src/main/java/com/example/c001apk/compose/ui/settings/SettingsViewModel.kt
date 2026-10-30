@@ -24,6 +24,10 @@ constructor(
     private val digitalUnion: DigitalUnionRepository,
 ) : PrefsViewModel(userPreferencesRepository) {
 
+    fun setPredictiveBack(value: Boolean) {
+        viewModelScope.launch { userPreferencesRepository.setPredictiveBack(value) }
+    }
+
     fun setHideHomePublishButton(value: Boolean) {
         viewModelScope.launch { userPreferencesRepository.setHideHomePublishButton(value) }
     }

@@ -23,7 +23,14 @@ The adaptive feed pane has its own Miuix stack with an empty root. Its host stay
 
 ## Back behavior
 
-Native in-content right swipes are enabled on ordinary routes, with the library's child-first gesture arbitration. The IME disables in-content dismissal while editing. WebView retains its internal-history BackHandler and disables in-content page dismissal; system back continues to reach the page handler before the navigator. Dialogs continue using their existing Miuix window back handling.
+Settings → Appearance includes a persistent predictive-back switch, enabled by default for existing
+preferences. Turning it off disables in-content dismissal and uses a completion-only navigation-event
+handler at the start of each entry, before its page content. The page stays still until system back
+commits; cancellation does not pop. Inner page handlers and window/IME dismissal keep their existing
+priority. No hidden APIs or system settings are changed; system back-to-home and cross-activity
+animations remain owned by Android.
+
+Native in-content right swipes are enabled on ordinary routes when this switch is on, with the library's child-first gesture arbitration. The IME disables in-content dismissal while editing. WebView retains its internal-history BackHandler and disables in-content page dismissal; system back continues to reach the page handler before the navigator. Dialogs continue using their existing Miuix window back handling.
 
 ## Build and verification
 

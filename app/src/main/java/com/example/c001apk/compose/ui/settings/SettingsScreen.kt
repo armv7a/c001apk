@@ -281,6 +281,13 @@ fun SettingsScreen(
                                         viewModel.setFloatingNavigationBar(it)
                                     }
                                     SwitchListItem(
+                                        value = prefs.predictiveBack,
+                                        leadingImageVector = MiuixIcons.Back,
+                                        headlineText = "预测返回手势",
+                                        supportingText = "应用内返回时跟随手势预览上一页，关闭后在松手时返回",
+                                        onValueChanged = viewModel::setPredictiveBack,
+                                    )
+                                    SwitchListItem(
                                         value = prefs.blurBars && Build.VERSION.SDK_INT >= 33,
                                         enabled = Build.VERSION.SDK_INT >= 33,
                                         leadingImageVector = MiuixIcons.Theme,

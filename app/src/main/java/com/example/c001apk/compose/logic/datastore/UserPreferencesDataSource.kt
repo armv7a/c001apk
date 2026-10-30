@@ -19,6 +19,10 @@ constructor(
     val data
         get() = userPreferences.data
 
+    suspend fun setPredictiveBack(value: Boolean) = userPreferences.updateData {
+        it.copy(predictiveBack = value)
+    }
+
     suspend fun setHideHomePublishButton(value: Boolean) = userPreferences.updateData { it.copy(hideHomePublishButton = value) }
 
     suspend fun setReadingMode(value: Int) = userPreferences.updateData {

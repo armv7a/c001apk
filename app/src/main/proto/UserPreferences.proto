@@ -67,6 +67,8 @@ message UserPreferences {
   string contentFilterJson = 60;
   bool hideHomePublishButton = 61;
   int64 deviceIdentityRevision = 63;
+  // Negative flag preserves the existing interactive back behavior on upgrade.
+  bool disablePredictiveBack = 64;
 }
 
 enum ThemeType{
