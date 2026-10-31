@@ -129,7 +129,7 @@ interface ApiService {
         @Query("id") id: String,
     ): Call<FeedContentResponse>
 
-    @GET("https://m.coolapk.com/mp/product/configInfo")
+    @GET("/v6/product/config")
     fun getProductConfig(
         @Query("id") id: String,
     ): Call<ProductConfigResponse>
