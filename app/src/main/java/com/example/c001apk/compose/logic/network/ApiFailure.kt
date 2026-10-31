@@ -50,7 +50,7 @@ object ApiFailures {
                 ApiFailure(ApiFailureKind.AUTHENTICATION, "登录状态已失效或需要登录，请重新登录", message == "登录信息有误")
             "rate_limit" in clues || "频繁" in clues || code == 429 ->
                 ApiFailure(ApiFailureKind.RATE_LIMIT, "请求过于频繁，请稍后重试")
-            status == -2 && ("应用不存在" in message || "未上架" in message) ->
+            status == -2 && ("应用不存在" in message || "未上架" in message || "已下架" in message) ->
                 ApiFailure(ApiFailureKind.BUSINESS, "该应用未在酷安上架")
             else -> ApiFailure(ApiFailureKind.BUSINESS, "服务器未能完成请求，请稍后重试")
         }
